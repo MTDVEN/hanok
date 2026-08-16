@@ -10,6 +10,31 @@ silently did nothing.
 **Starting a fresh working session? Read `HANDOFF.md` first** — full
 brief, architecture, art-wiring plan, and environment gotchas.
 
+## Deploy
+
+| | |
+|---|---|
+| repo | `github.com/MTDVEN/hanok` (private, branch `main`) |
+| host | Vercel project `hanok`, team `mtdvens-projects` |
+| live | `tilesongiwa.com` + `www` (domain at Namecheap) |
+| fallback URL | `hanok-five.vercel.app` |
+
+**Push to `main` and it deploys.** The repo is connected to the Vercel
+project, and `vercel.json` tells it to run `node tools/build.js` and
+serve `dist/`. So `dist/` is NOT committed — it is rebuilt on every
+deploy, which is the only way it cannot go stale. `node tools/build.js`
+locally does exactly what the deploy does, if you want to check it
+first.
+
+`vercel --prod` from this folder also works for an out-of-band deploy.
+
+**What is deliberately not in the repo:** ~176MB of top-level art
+masters (`valley*.png`, the traced `*.svg`, the source PNGs) plus
+`art/village/_fake`, `/alt` and `/_placeholder`. See `.gitignore` — it
+explains each exclusion. **Those masters are not backed up by git.**
+They exist only in the working folder; if they matter, back them up
+somewhere real.
+
 ## Launch-day checklist (all in `js/config.js`)
 
 1. `ca` — the contract address. The floating pill starts copying it.

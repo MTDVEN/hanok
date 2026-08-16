@@ -3032,3 +3032,102 @@ bezier path with the actual stroke weights: the counters stay open at
   glyphs whose scale grows in flight (.5 → 1.05), which produces the
   same picture — the trail is small at the roof and large at the top —
   without a second set of keyframes.
+
+---
+
+## 9p. Session 11, part 3 — shipped: GitHub, Vercel, and the slider going public
+
+### The repo
+
+`github.com/MTDVEN/hanok`, **private**, branch `main`, 73 files / 28MB.
+
+The working folder is 274MB and the repo is 28MB, and the difference is
+worth understanding before someone "fixes" it: 176MB of top-level
+masters (`Background.svg`, the ~10MB traced `b-*.svg`, `valley0-6`,
+`field-square.png` at root) plus `art/village/_fake` (27MB), `/alt`
+(7MB) and `/_placeholder` (10MB) are excluded by `.gitignore`, which
+explains every rule inline. Everything needed to BUILD, RUN, RE-DERIVE
+and UNDERSTAND the site is in — including `art/village/ref` (the style
+set), `field-square.png` under `art/village` (plots.js reads it), and
+all of `tools/`.
+
+**The masters are not backed up by this repo.** Git history is forever;
+176MB of PNG in it is a cost every clone pays permanently. They live
+only in VEN's working folder and want a real backup elsewhere.
+
+### The deploy
+
+The Vercel project `hanok` already existed (CLI deploys from `dist/`).
+It is now **connected to the GitHub repo**, so a push to `main` builds
+and deploys. `vercel.json` carries the whole config:
+
+```json
+{ "buildCommand": "node tools/build.js",
+  "outputDirectory": "dist",
+  "installCommand": "echo 'no dependencies'" }
+```
+
+`dist/` is therefore NOT committed. That was a real choice: a committed
+`dist/` is a duplicate that goes stale the first time someone edits
+`js/` and forgets to rebuild, and this project has already been bitten
+once by a deploy that silently shipped the wrong thing (§9d step 7, the
+village art missing from `dist/` entirely). Building on Vercel makes
+staleness impossible.
+
+Note `tools/build.js` sets `DEMO_ZERO`, so the DEPLOYED `config.js` has
+`marketCap: 0, holders: 0` — the live site opens on an empty valley,
+which is launch-day truth. The slider below is how a visitor sees it
+grow.
+
+### The slider ships now — `tools/dev-slider.js` → `js/preview.js`
+
+VEN, 2026-08-16: *"I want it to have the slider but also make it
+minimisable. once the token to go with the website is live i will
+manually remove them and wire it up to a price checker, so that the
+houses corresponds to market cap."*
+
+So it moved out of `tools/` (never deployed) into `js/` (deployed), and
+it is built to be **deleted in one pass** — its header names the three
+lines to remove. It touches the page through exactly one public call,
+`window.HANOK.setVillage({ marketCap })`, which is the same door the
+live price feed will come through, so the replacement inherits a proven
+interface.
+
+Changed for public use:
+- **It minimises, it does not close.** The old `×` removed it from the
+  DOM — fine behind a URL flag, wrong on a live site where a visitor
+  who dismisses the one control demonstrating the village's whole point
+  has no way back short of a reload. It now collapses to a 175x41 pill
+  that still reports the roof count, and the choice persists in
+  `localStorage` (wrapped in try/catch — Safari private mode throws on
+  write rather than no-opping).
+- The `#` build-order badges are a REVIEW tool, not a visitor feature,
+  so they now require `?dev`. Same for the console line.
+- Label `DEV — MARKET CAP` → `MARKET CAP`.
+- `?preview=0` turns the panel off without an edit.
+
+### The domain — Vercel side done, DNS is VEN's
+
+`tilesongiwa.com` (Namecheap) and `www.tilesongiwa.com` are both added
+to the project. Verified by resolving Vercel's edge directly: a request
+to `216.198.79.1` with `Host: tilesongiwa.com` already returns
+`<title>HANOK — an ink-drawn village on Solana</title>`, so routing is
+live and only the registrar's records are missing. Namecheap is on
+BasicDNS (`dns1/dns2.registrar-servers.com`), so the Advanced DNS tab
+controls it. Records needed:
+
+| Type | Host | Value |
+|---|---|---|
+| A | `@` | `216.198.79.1` |
+| CNAME | `www` | `cname.vercel-dns.com` |
+
+The default parking records (`CNAME www → parkingpage.namecheap.com`
+and the `URL Redirect @`) must be DELETED or they conflict — the apex
+currently resolves to `192.64.119.65`, which is that parking page.
+Vercel issues the TLS certificate automatically once DNS resolves.
+
+Reading the Vercel CLI's stored auth token to query the API for these
+records was blocked by the sandbox, correctly — it is a credential. The
+records above were verified empirically instead (both `216.198.79.1`
+and the older `76.76.21.21` answer as `Server: Vercel` for this host;
+`216.198.79.1` is the current recommendation).
