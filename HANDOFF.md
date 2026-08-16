@@ -6,31 +6,45 @@ assets, what was already reviewed/fixed (and what was deliberately NOT
 fixed), and the exact next steps. `README.md` is the short ops sheet;
 this file is the deep context.
 
-Last updated: 2026-08-16 (session 11 — **VEN'S THIRD MARKUP IS BUILT AND
-AWAITING SIGN-OFF, §9n.** The walled compound was rebuilt from its real
-ground band (it is a walled *yard*, not a building, and one pooled band
-described both); the plot count went **42 → 55 → 60** by letting a plot
-be reserved for the small buildings instead of for the widest one that
-could ever arrive; and there are **four new sprites**, `b-store`,
-`b-house2`, `b-thatch2` and `b-walled2`, each generated as an edit of an
-accepted one. `config.js maxRoofs` is now **60**, which moves "the field
-is full" to **$6.0M** at $100k a roof — still the one thing VEN has not
-agreed to. §9i block 2, the full-screen plate, is still untouched.)
+Last updated: 2026-08-16 (session 11 — **THE SITE IS LIVE AT
+https://tilesongiwa.com.** Private repo `github.com/MTDVEN/hanok`,
+branch `main`, connected to the Vercel project `hanok`, so **a push to
+main deploys**. Everything from here is token-specific and waits on
+Zico. VEN, wrapping the session: *"all adjustments will be made closer
+to token launch date... the ticker and real token name and contract
+address and all that good stuff."*
+
+This session also: rebuilt the walled compound from its real ground
+band and then took it a further 15% smaller; took the plot count **42 →
+55 → 60**; added **four new sprites**; built **PLAN phase 3B, the
+sleeping Z's**; made the **backdrop global**; stopped honouring the OS
+reduced-motion setting; and fixed a real accessibility bug that was
+deleting the journey's copy.)
 
 **If you read nothing else:**
-- **§9n + §9o are the current state.** §9o: all four compounds a
-  seeded 15% smaller (`PAD_FILL` in tools/plots.js), and **PLAN phase
-  3B — the sleeping Z's — is BUILT** (`?sleep=` switch; the feel still
-  needs VEN's eye, see §9o "Verified, and how far"). §9i block 1 is
-  done; §9j is what it measured; **§9k, §9m and §9n are VEN's three
-  markups and what they cost.** The four worth knowing: the meadow test compared the wrong
+- **START AT §9q, then the "LAUNCH DAY" section at the very end of this
+  file** — that is the complete list of what is left, and all of it is
+  token-specific. §9q also carries the switch inventory and a hard-won
+  tooling note (a minimized Chrome window freezes rAF, so screenshots
+  come back blank and animation measurements are garbage — it reads
+  exactly like a layout bug that is not there).
+- **`perRoof` is STILL undecided and it is the one open decision.** 60
+  roofs at $100k fills the field at **$6.0M**; it was $2.0M when that
+  number was chosen. ~$33k restores the original ceiling. Tokenomics,
+  not layout.
+- **§9n + §9o + §9p + §9q are the current state.** §9o: all four
+  compounds a seeded 15% smaller (`PAD_FILL`) and the sleeping Z's
+  built. §9p: repo, deploy, and the slider shipping on purpose. §9i
+  block 1 is done; §9j is what it measured; **§9k, §9m and §9n are
+  VEN's three markups and what they cost.** The four worth knowing: the meadow test compared the wrong
   pair of channels; the landing test was measured against the dilated
   mask instead of the painted clearing; one ground band described both
   a house and a walled compound; and every plot was being reserved
   against the widest building in the set.
-  Show him `tools/render.png` (all 60), **settle `perRoof`** (at $100k
-  the field now fills at $6.0M; ~$33k would hold the old $2M), **and
-  only then touch the full-screen-plate work in §9i block 2.**
+  All of it is signed off and shipped — VEN reviewed the village, the
+  compounds and the Z's in this session and then took the site live.
+  `tools/render.png` (all 60) and `tools/render-6.png` (at $600k) are
+  the current previews.
 - **The village art is DONE.** `art/village/field*.png` +
   `b-{house,gate,lhouse,pavilion,thatch,walled}.png` and the four from
   §9n, all keyed to RGBA and standing on their ground lines. Placement
@@ -3106,7 +3120,11 @@ Changed for public use:
 - Label `DEV — MARKET CAP` → `MARKET CAP`.
 - `?preview=0` turns the panel off without an edit.
 
-### The domain — Vercel side done, DNS is VEN's
+### The domain — Vercel side done, DNS was VEN's
+
+**(This section describes the state mid-session. The domain is LIVE —
+see §9q for what actually happened when the records went in, including
+the duplicate A record that broke it and the certificate it blocked.)**
 
 `tilesongiwa.com` (Namecheap) and `www.tilesongiwa.com` are both added
 to the project. Verified by resolving Vercel's edge directly: a request
@@ -3131,3 +3149,280 @@ records was blocked by the sandbox, correctly — it is a credential. The
 records above were verified empirically instead (both `216.198.79.1`
 and the older `76.76.21.21` answer as `Server: Vercel` for this host;
 `216.198.79.1` is the current recommendation).
+
+---
+
+## 9q. Session 11, part 4 — the site went live, and three things that surfaced only once it had
+
+Everything below happened AFTER §9p, and §9p's "DNS is VEN's" section is
+superseded by this one.
+
+**THE SITE IS LIVE AT https://tilesongiwa.com** — apex and `www`, HTTPS,
+certificate valid to 14 Nov 2026, auto-renewing.
+
+### 1. The domain: a duplicate A record, and the certificate it silently blocked
+
+VEN added the records and it still failed with `ERR_TIMED_OUT`. Three
+distinct problems were stacked on top of each other, and separating
+them is the useful part:
+
+**(a) A leftover parking record on the apex.** Namecheap's default
+`URL Redirect Record` on `@` was never deleted, so the apex had TWO A
+records and the resolver alternated between them. Measured, because
+"it works sometimes" is not a diagnosis: 12 samples of Google's
+resolver gave **8× `216.198.79.1` (Vercel), 4× `192.64.119.65`
+(Namecheap parking)**. Every visitor got one at random; a third of them
+hit a dead IP. Reloading changed the answer, which is exactly why it
+felt intermittent and unfixable.
+
+**That duplicate is also why the TLS certificate never issued**, and
+this is the bit worth remembering. Let's Encrypt validates over HTTP;
+when its check landed on the parking IP the challenge failed, so Vercel
+retried and never got a cert. It was not slow — it was blocked, and it
+would have stayed blocked forever. `www` had no duplicate, so `www`
+had a working certificate the whole time, which was the clue that
+isolated the fault to the apex.
+
+Deleting the stray record fixed both at once.
+
+**(b) The diagnosis was nearly derailed by three red-herring 403s.**
+`vercel domains ls` reports 0 domains, and `vercel domains inspect`,
+`vercel certs issue` and `vercel alias set` all fail with *"You don't
+have access to tilesongiwa.com"*. **That is normal and means nothing.**
+Those commands operate on the ACCOUNT-LEVEL domain registry, which only
+contains domains registered or transferred to Vercel; this one lives at
+Namecheap. The domain was correctly attached to the project the whole
+time — `get_project` lists it, and the edge served it. Do not chase
+those errors.
+
+Similarly, `vercel domains add` will say *"already assigned to another
+project"* when it is already assigned to THIS one.
+
+**(c) Caching, at two levels, long after the fix was correct.** Windows'
+own cache (`ipconfig /flushdns`) did NOT help, because the stale copy
+was upstream: VEN is on Virgin Media DNS (`194.168.4.100`) and its
+cached record had 136s left. Google's public resolver was already
+clean. The lesson for next time: **always verify against a public
+resolver, never against the local machine**, and read the TTL to know
+how long to wait rather than guessing:
+
+```
+nslookup tilesongiwa.com 8.8.8.8            # bypasses local + ISP cache
+curl -s "https://dns.google/resolve?name=tilesongiwa.com&type=A"
+```
+
+**The final DNS, for reference.** Namecheap BasicDNS, exactly two host
+records, nothing else:
+
+| Type | Host | Value |
+|---|---|---|
+| A | `@` | `216.198.79.1` |
+| CNAME | `www` | `cname.vercel-dns.com.` |
+
+### 2. A REAL BUG the deploy exposed: reduced motion was deleting the copy
+
+VEN: *"the journey section loads wrong."* It was not a deploy fault. His
+OS has `prefers-reduced-motion` on, so the site served its accessibility
+fallback — and that fallback was defective:
+
+Each stop in `SPOTS` carries a `blurb` (the actual prose — *"The palace
+of shining happiness. Six centuries of court and quiet…"*). Split mode
+rendered it. **The static fallback rendered the painting and a name
+caption and dropped every word**, so a reduced-motion visitor got a
+journey section with no journey in it.
+
+That is a content bug wearing an accessibility costume, and it had been
+shipping to real people, not just to VEN. Reduced motion is a request
+to stop things MOVING, not a request for less of the page. Fixed: each
+figure now carries its blurb in the body face at a 46ch measure, and
+the column widened 460 → 560px to hold it (`.journey__blurb`).
+
+**The fix still matters even though the fallback is now off by
+default** (see 3) — `?motion=0` still reaches it.
+
+### 3. Two policy changes VEN made, both deliberate, both with a way back
+
+**Motion: the OS setting is no longer honoured.** `HANOK_REDUCED()` in
+`index.html` now returns `false` unless `?motion=0`. VEN's call, made
+with the trade-off stated explicitly.
+
+- *Why:* the animation is most of what the page IS — the road you walk,
+  the village that grows. Reduced motion gated 13 CSS rules and five JS
+  modules, which stripped the page rather than calming it, and a
+  visitor arriving from a token link saw four static pictures.
+- *What it costs, recorded so nobody has to rediscover it:*
+  `prefers-reduced-motion` is the one accessibility signal a browser
+  volunteers, and scroll-pinning and parallax genuinely cause nausea and
+  migraine for people with vestibular disorders. **We are overriding a
+  request those people made deliberately.** If anyone ever reports the
+  site making them unwell, this is the line to flip back, and it is a
+  one-line change documented in place in `index.html`.
+- `?motion=0` still serves the complete reduced-motion build, so that
+  path is live and testable rather than dead code.
+
+**The backdrop is global by default.** `BG_GLOBAL` in `js/journey.js`
+was built in this session as an opt-in `?bg=global` switch so VEN could
+judge it — and then not flipped, so the live site did not match what he
+had been shown in the dev server. It is now the default.
+
+The hero's landscape holds at ghost strength down the village,
+manifesto and ledger instead of fading to nothing at the journey's end.
+The curve, computed rather than eyeballed:
+
+| journey progress | now (global) | before (fade) |
+|---|---|---|
+| 0.00 → 0.07 | 1.00 → 0.26 | 1.00 → 0.26 (identical) |
+| 0.30 – 0.88 | 0.26 | 0.26 (identical) |
+| 1.00 and past it | **0.26** | 0.000 |
+
+Hero and journey are untouched; only the ending differs.
+`progressOf()` clamps to 1 and the scroll listener is not
+observer-gated, so the ghost persists to the footer.
+
+Knobs: **`?ghost=N`** sets the standing strength (0.26 default; try
+0.18 if it competes with the copy, 0.35 if it is too shy) and
+**`?bg=fade`** restores the old fade-out. `?ghost=` is the first thing
+to reach for — it decides whether the page reads as "one landscape" or
+as a watermark, and **VEN has not yet judged it on a real screen.**
+
+### The switch inventory, current
+
+| switch | default | what it does |
+|---|---|---|
+| `?motion=0` | off | the full reduced-motion build (static journey, no Z's) |
+| `?motion=1` | — | force motion on; now redundant, kept for QA |
+| `?bg=fade` | off | backdrop fades out at the journey's end (old behaviour) |
+| `?ghost=N` | 0.26 | standing strength of the global backdrop |
+| `?sleep=0` / `?sleep=N` | 0.3 | share of dwellings with sleeping Z's |
+| `?preview=0` | off | hide the market-cap slider |
+| `?dev` | off | build-order badges on the slider + console line |
+| `?seed=STR` | CA | re-roll which building lands on which plot |
+| `?plate=NAME` | field | swap the plate crop |
+| `?art=off` | off | inline SVG fallback instead of the paintings |
+
+### Verified at the end of the session
+
+- `https://tilesongiwa.com` → **200**, `https://www.tilesongiwa.com` →
+  **200**, `https://hanok-five.vercel.app` → **200**
+- Deployed site, motion on: `journey--split`, 4 stops, **0 broken
+  images**, 60 village plots, 11 sleeping Z's
+- Deployed site, `?motion=0`: static column, 4 figures, **all four
+  blurbs present**, 0 Z's
+- Only failing request anywhere is `state-00.png`, which is the states
+  engine probing for plates that were never generated and correctly
+  falling back to sprite mode. Pre-existing and by design (§9e).
+- Five commits, working tree clean, 75 files, 28MB of history
+- Push → auto-deploy verified across four separate deploys, 3–4s each
+
+### A tooling note for whoever picks this up
+
+**Chrome screenshots and any scroll- or animation-dependent measurement
+are useless while VEN's browser window is minimized.** A hidden tab
+freezes the compositor and rAF: screenshots return blank parchment,
+`getAnimations()` reports `currentTime: 0` forever, `outerHeight` is 0,
+and scroll-driven inline styles never update — which reads exactly like
+a layout bug that is not there. DOM queries, `getBoundingClientRect`
+and network checks still work fine. This is the same phenomenon
+`tools/render.js`'s header has always warned about; now it has a name.
+
+When something must be judged visually, either ask VEN to bring the
+window to the front, or do what this session did: compute the values
+(the opacity table above), render headless with `tools/render.js`, or
+stamp the geometry into a PNG with a scratchpad script.
+
+---
+
+## LAUNCH DAY — everything still outstanding
+
+VEN, 2026-08-16, wrapping the session: *"all adjustments will be made
+closer to token launch date when more token specific tweaks will be
+made like incorporation of the ticker and real token name and contract
+address and all that good stuff."*
+
+So the site is **done and live as a pre-launch site**. What remains is
+token-specific and waits on Zico.
+
+### 1. `js/config.js` — the whole launch checklist lives here
+
+- **`ca`** — the contract address. `null` today, which makes the hero
+  pill read "coming at launch". Setting it turns on copy-to-clipboard.
+  **It also re-seeds the village** (`assign()` hashes it), so the
+  building layout will change the moment the real CA lands. That is by
+  design — but if VEN ever falls in love with a particular arrangement,
+  pin it with `seed` instead.
+- **`links`** — buy / X / dexscreener / telegram. `null` hides each.
+- **`chart.pool`** — the GeckoTerminal pool address. `null` serves the
+  deterministic mock candles; setting it switches to live candles on a
+  2-minute refresh.
+- **`village.marketCap` / `holders`** — mock values. Note
+  `tools/build.js` **zeroes both in the deployed build** (`DEMO_ZERO`),
+  so the live site opens on an empty valley, which is launch-day truth.
+  The slider is how a visitor sees it grow.
+- **`perRoof` — STILL UNDECIDED, and it is a tokenomics decision, not a
+  layout one.** At $100k a roof, 60 plots means the field fills at
+  **$6.0M**. That number was chosen when the field held 20 plots and
+  filled at $2.0M, and it has never been re-decided. ~$33k a roof would
+  restore the original ceiling. Flagged in §9j at $4.2M, §9n at $6.0M,
+  and again here.
+
+### 2. The name and the ticker
+
+The site says HANOK / 한옥 throughout — hero title, footer word, page
+title, OG tags, the favicon glyph. If the token is not called HANOK,
+these are the places to change:
+
+- `index.html` — `<title>`, OG/Twitter meta, the inline favicon SVG,
+  the footer word
+- `js/hero.js` — `WORD` plus the per-letter stroke paths in `LETTERS`.
+  **This is the expensive one:** the title is hand-drawn strokes on a
+  100×140 grid, not text, so a new name means drawing new letters.
+  Budget real time for it.
+- `README.md` line 1 and `HANDOFF.md`'s brief
+
+### 3. Remove the market-cap slider
+
+When live pricing is wired, delete in one pass (the file header lists
+these too):
+1. `js/preview.js`
+2. the `<script src="js/preview.js">` line in `index.html`
+3. `"js/preview.js"` from `FILES` in `tools/build.js`
+
+Then feed real market cap through the same door it used —
+`window.HANOK.setVillage({ marketCap, holders })` — which is now a
+proven interface.
+
+### 4. Pre-deploy art optimisation, still not done
+
+`art/` is ~17MB and that is the one real cost left on a phone
+connection. `field.png` is 2.0MB; the ten `b-*.png` are 65–730KB.
+**The trap, and it has bitten this project before:** do not let
+`tools/optimize.js` give each sprite its own median-cut palette, or the
+buildings stop agreeing with each other on colour. Shared palette or no
+quantisation (§9h).
+
+### 5. Still open from earlier sessions, unchanged
+
+- **§9i block 2** — the full-screen plate.
+- **The manifesto and ledger redesign.** Untouched since session 3.
+  ~2,900px of the lower page is four centred stacks on flat paper with
+  no change of rhythm. The global backdrop (§9q.3) treats the symptom
+  nicely; this is the cause, and the two compose.
+- **PLAN.html phases 2 and 3** — villagers walking the lanes, birds
+  over the ridge. Phase 3B (sleeping Z's) is done (§9o).
+- **The two walk sheets** (`p-walk-a/b.png`) — phase 2's only art
+  dependency, and the edit-a-crop trick does NOT apply: there are no
+  villagers in the painting to cut out.
+- **Zico's outstanding deliverables** — name, copy, final art direction
+  sign-off, CA.
+
+### 6. Housekeeping worth doing sometime
+
+- **`tools/fakestates.js` is dead** (§9n) — a 15-plot-era `PLOTS` copy
+  and a stale `BAND`. Delete it or re-sync it; do not half-trust it.
+- **`tools/place.html`** likewise holds a hand-placed `PLOTS`. `PLOTS`
+  is generated now.
+- **The art masters are NOT in git** (§9p) — ~176MB of top-level
+  `valley*.png`, traced `*.svg`, and `art/village/_fake` `/alt`
+  `/_placeholder`. They exist only in VEN's working folder. **They want
+  a real backup somewhere** — git history is permanent and this repo
+  deliberately does not carry them.
