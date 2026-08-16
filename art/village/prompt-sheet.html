@@ -1,0 +1,853 @@
+<title>Hanok Village Prompt Sheet</title>
+
+<style>
+:root{
+  --paper:#DFCEA5;
+  --paper-light:#EBDDB9;
+  --paper-deep:#C7AE7E;
+  --ink:#211B11;
+  --ink-soft:#4E4636;
+  --ink-faint:#8A7C61;
+  --pine:#5C6648;
+  --seal:#8E4A38;
+
+  --ground:#EFE3C4;
+  --surface:#F6EDD6;
+  --surface-sunk:#E4D5AE;
+  --rule:rgba(33,27,17,.18);
+  --rule-soft:rgba(33,27,17,.09);
+  --text:var(--ink);
+  --text-dim:var(--ink-soft);
+  --text-faint:var(--ink-faint);
+  --accent:var(--pine);
+  --accent-ink:#3F4732;
+  --mark:rgba(92,102,72,.20);
+  --shadow:0 1px 0 rgba(33,27,17,.06);
+
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono","Cascadia Mono","Segoe UI Mono",Menlo,Consolas,monospace;
+}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#15120B;
+    --surface:#1D190F;
+    --surface-sunk:#100E08;
+    --rule:rgba(223,206,165,.20);
+    --rule-soft:rgba(223,206,165,.10);
+    --text:#E7DABA;
+    --text-dim:#B7A883;
+    --text-faint:#8A7C61;
+    --accent:#93A173;
+    --accent-ink:#B3BF95;
+    --paper-deep:#6E6045;
+    --mark:rgba(147,161,115,.20);
+    --seal:#B96A54;
+    --shadow:0 1px 0 rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#15120B;
+  --surface:#1D190F;
+  --surface-sunk:#100E08;
+  --rule:rgba(223,206,165,.20);
+  --rule-soft:rgba(223,206,165,.10);
+  --text:#E7DABA;
+  --text-dim:#B7A883;
+  --text-faint:#8A7C61;
+  --accent:#93A173;
+  --accent-ink:#B3BF95;
+  --paper-deep:#6E6045;
+  --mark:rgba(147,161,115,.20);
+  --seal:#B96A54;
+  --shadow:0 1px 0 rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--text);
+  font-family:var(--serif);
+  font-size:17px;
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+
+.wrap{
+  max-width:900px;
+  margin:0 auto;
+  padding:0 28px 120px;
+  display:flex;
+  flex-direction:column;
+  gap:56px;
+}
+
+/* ---------- masthead ---------- */
+
+.masthead{
+  padding:72px 0 0;
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+}
+.seal{
+  width:44px;height:44px;
+  display:grid;place-items:center;
+  border:1.5px solid var(--seal);
+  color:var(--seal);
+  border-radius:3px;
+  font-size:22px;
+  line-height:1;
+  font-family:var(--serif);
+  user-select:none;
+}
+h1{
+  margin:0;
+  font-size:clamp(38px,6vw,60px);
+  line-height:1.04;
+  font-weight:400;
+  letter-spacing:-.015em;
+  text-wrap:balance;
+}
+h1 em{
+  font-style:italic;
+  color:var(--text-dim);
+}
+.standfirst{
+  margin:0;
+  max-width:62ch;
+  font-size:19px;
+  color:var(--text-dim);
+  text-wrap:pretty;
+}
+.facts{
+  display:flex;
+  flex-wrap:wrap;
+  gap:0;
+  border-top:1px solid var(--rule);
+  border-bottom:1px solid var(--rule);
+  margin-top:8px;
+}
+.fact{
+  flex:1 1 150px;
+  padding:14px 20px 14px 0;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.fact + .fact{padding-left:20px;border-left:1px solid var(--rule-soft)}
+.fact dt{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--text-faint);
+}
+.fact dd{
+  margin:0;
+  font-size:16px;
+  color:var(--text);
+}
+
+/* ---------- sections ---------- */
+
+section{display:flex;flex-direction:column;gap:20px}
+
+.sec-head{
+  display:flex;
+  align-items:baseline;
+  gap:14px;
+  border-bottom:2px solid var(--text);
+  padding-bottom:8px;
+}
+.sec-num{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.1em;
+  color:var(--accent);
+  padding-top:2px;
+}
+h2{
+  margin:0;
+  font-size:26px;
+  font-weight:400;
+  letter-spacing:-.01em;
+  flex:1;
+}
+.sec-note{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--text-faint);
+}
+
+p{margin:0;max-width:68ch;text-wrap:pretty}
+p + p{margin-top:-6px}
+a{color:var(--accent-ink)}
+
+code{
+  font-family:var(--mono);
+  font-size:.86em;
+  background:var(--surface-sunk);
+  border:1px solid var(--rule-soft);
+  border-radius:2px;
+  padding:1px 5px;
+  white-space:nowrap;
+}
+
+/* ---------- callout ---------- */
+
+.callout{
+  background:var(--surface);
+  border:1px solid var(--rule);
+  border-left:3px solid var(--accent);
+  padding:22px 26px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.callout h3{
+  margin:0;
+  font-size:19px;
+  font-weight:400;
+}
+.callout.warn{border-left-color:var(--seal)}
+
+ul.plain{
+  margin:0;
+  padding-left:20px;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  max-width:66ch;
+}
+ul.plain li::marker{color:var(--text-faint)}
+
+/* ---------- asset card ---------- */
+
+.asset{
+  background:var(--surface);
+  border:1px solid var(--rule);
+  box-shadow:var(--shadow);
+  display:flex;
+  flex-direction:column;
+}
+.asset-head{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:12px;
+  padding:16px 20px;
+  border-bottom:1px solid var(--rule-soft);
+}
+.file{
+  font-family:var(--mono);
+  font-size:14px;
+  font-weight:600;
+  color:var(--text);
+  letter-spacing:-.01em;
+}
+.asset-desc{
+  flex:1 1 220px;
+  font-size:15px;
+  color:var(--text-dim);
+}
+.chip{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--accent-ink);
+  border:1px solid var(--rule);
+  border-radius:99px;
+  padding:3px 9px;
+  white-space:nowrap;
+}
+.chip.solid{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:var(--surface);
+}
+
+.specs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:0 26px;
+  padding:11px 20px;
+  border-bottom:1px solid var(--rule-soft);
+  background:var(--surface-sunk);
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.03em;
+  color:var(--text-dim);
+  font-variant-numeric:tabular-nums;
+}
+.specs b{color:var(--text);font-weight:600}
+
+.prompt-wrap{position:relative}
+pre{
+  margin:0;
+  padding:22px 20px 24px;
+  font-family:var(--mono);
+  font-size:12.5px;
+  line-height:1.72;
+  white-space:pre-wrap;
+  word-break:break-word;
+  color:var(--text);
+  max-height:none;
+}
+pre mark{
+  background:var(--mark);
+  color:inherit;
+  padding:1px 0;
+  box-decoration-break:clone;
+  -webkit-box-decoration-break:clone;
+}
+
+.copy{
+  position:absolute;
+  top:12px;right:12px;
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  background:var(--surface);
+  color:var(--text-dim);
+  border:1px solid var(--rule);
+  border-radius:2px;
+  padding:6px 11px;
+  cursor:pointer;
+  transition:background .15s,color .15s,border-color .15s;
+}
+.copy:hover{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.copy:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.copy[data-state="done"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+
+/* ---------- tables ---------- */
+
+.tbl-scroll{overflow-x:auto;border:1px solid var(--rule);background:var(--surface)}
+table{
+  border-collapse:collapse;
+  width:100%;
+  min-width:520px;
+  font-size:15px;
+}
+th,td{
+  text-align:left;
+  padding:11px 16px;
+  border-bottom:1px solid var(--rule-soft);
+  vertical-align:top;
+}
+th{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--text-faint);
+  font-weight:400;
+  background:var(--surface-sunk);
+}
+tbody tr:last-child td{border-bottom:0}
+td code{background:transparent;border:0;padding:0}
+
+/* ---------- checklist ---------- */
+
+.checks{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:1px;
+  background:var(--rule-soft);
+  border:1px solid var(--rule);
+}
+.check{
+  background:var(--surface);
+  padding:16px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+.check dt{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--accent-ink);
+}
+.check dd{margin:0;font-size:15px;color:var(--text-dim);line-height:1.5}
+
+footer{
+  border-top:1px solid var(--rule);
+  padding-top:20px;
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.06em;
+  color:var(--text-faint);
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 20px;
+}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  .wrap{padding:0 18px 80px;gap:44px}
+  .masthead{padding-top:48px}
+  .fact + .fact{padding-left:14px}
+  pre{font-size:12px;padding-top:46px}
+  .copy{top:10px;right:10px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important}
+}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="seal" aria-hidden="true">韓</div>
+  <h1>Seven images, and the village <em>builds itself</em></h1>
+  <p class="standfirst">One painted valley plate with a branching footpath, and six buildings on fully transparent backgrounds that get laid over it. Every prompt below is paste-ready — nothing to assemble.</p>
+  <dl class="facts">
+    <div class="fact"><dt>Tool</dt><dd>Recraft, custom style</dd></div>
+    <div class="fact"><dt>Canvas</dt><dd>1024 × 1024, all seven</dd></div>
+    <div class="fact"><dt>Buildings</dt><dd>Transparent PNG</dd></div>
+    <div class="fact"><dt>Plate</dt><dd>Opaque — it's the ground</dd></div>
+  </dl>
+</header>
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">STEP 00</span>
+    <h2>The reference images</h2>
+    <span class="sec-note">no style step</span>
+  </div>
+  <p><strong>Custom styles sit behind a higher Recraft tier than this account has</strong>, so there is no style to build. Attach the matching <code>art/village/ref/matted/ref-*.png</code> as an <strong>image reference on every building generation</strong> instead.</p>
+  <p>That is a smaller loss than it sounds. The per-generation reference was always the thing that actually held the viewing angle — wording never did it alone. What a style bought on top was <em>agreement across the set</em>, and that now gets checked by eye instead: accept one building, then hold every later one against it. If they stop agreeing after three or four rolls each, take the one-generation fallback in step 06 — it buys the agreement back in a single image.</p>
+  <div class="callout">
+    <h3>Use the <code>matted/</code> versions, not the raw crops</h3>
+    <p><code>node tools/refmat.js</code> floats each building on flat mid-grey, feathers away the rectangular crop edge so there is no box for the model to copy, and scales it to <strong>exactly the frame fill its own prompt asks for</strong>. The raw crops sit the building at ~60% of frame against prompts asking for 25–46% — and a reference wins that argument every time.</p>
+  </div>
+  <div class="callout warn">
+    <h3>Never reference <code>hand drawn reference.jpg</code> or the four journey paintings</h3>
+    <p>The old instruction was to build the style from them, and it is what broke the last set. Those are close-up, near-eye-level architectural studies, and the rejected <code>b-*.png</code> files are faithful reproductions of them — the model did exactly what it was told. The matted crops make its target “a small pale hanok seen from above” instead.</p>
+  </div>
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>Attach this</th><th>What it is</th><th>On which generation</th></tr></thead>
+      <tbody>
+        <tr><td><code>matted/ref-house.png</code></td><td>the centre hanok</td><td><code>b-house</code></td></tr>
+        <tr><td><code>matted/ref-house2.png</code></td><td>the right-hand hanok</td><td><code>b-house</code> alt</td></tr>
+        <tr><td><code>matted/ref-lhouse.png</code></td><td>the L-shaped hanok</td><td><code>b-lhouse</code></td></tr>
+        <tr><td><code>matted/ref-thatch.png</code></td><td>the thatched farmhouse</td><td><code>b-thatch</code></td></tr>
+        <tr><td><code>matted/ref-pavilion.png</code></td><td>the open pavilion</td><td><code>b-pavilion</code></td></tr>
+        <tr><td><code>matted/ref-gate.png</code></td><td>the two-storey gate</td><td><code>b-gate</code></td></tr>
+        <tr><td>your accepted <code>b-lhouse.png</code></td><td>no crop exists for it</td><td><code>b-walled</code> — generate last</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">STEP 01</span>
+    <h2>The background plate</h2>
+    <span class="sec-note">image-to-image</span>
+  </div>
+  <p>Run this <strong>image-to-image from <code>valley0.png</code></strong> at a strength <strong>clearly lower than feels right</strong>. The whole job is to touch the valley floor and nothing else.</p>
+  <p>This one is <strong>opaque on purpose</strong> — it is the ground everything else sits on. Transparency toggle off, and do <em>not</em> run it through <code>prep.html</code>.</p>
+
+  <div class="callout warn">
+    <h3>What v1 got wrong, and the tell to watch</h3>
+    <p>The first roll asked for ~20 clearings and 15+ spurs and delivered exactly that: two near-mirrored halves of path, clearings scattered as even pale discs with no spur attached — a circuit board. Worse, the strength was high enough to regenerate the whole frame. The mist between the ridges went, the mountains flattened into a back wall, the bowl became a plain and the celadon went bright green. Held against <code>valley0.png</code>, the original won.</p>
+    <p><strong>The tell is never the paths — it is the mountains.</strong> If the ridges, the mist or the green have changed at all, the strength is too high, whatever the floor looks like.</p>
+  </div>
+
+  <article class="asset">
+    <div class="asset-head">
+      <span class="file">field-square.png</span>
+      <span class="asset-desc">The same valley, with four or five worn lanes and about ten scuffed clearings on them</span>
+      <span class="chip">v2</span>
+      <span class="chip">opaque</span>
+    </div>
+    <div class="specs"><span><b>Mode</b> image-to-image</span><span><b>Source</b> valley0.png</span><span><b>Strength</b> low</span><span><b>Lanes</b> 4–5</span><span><b>Clearings</b> ~10, all on a path</span></div>
+    <div class="prompt-wrap">
+      <button class="copy" type="button">Copy</button>
+<pre>A traditional Korean ink-and-watercolour landscape on aged parchment, seen from high above and looking steeply down into a wide empty highland valley. Keep the source picture almost exactly as it is: the same layered grey granite ridges and crags fading into soft mist along the top, the same dark pines and pale boulders crowding down both side edges and both bottom corners, the same deep enclosed bowl, the same muted sepia, celadon and blue-grey palette, the same thin grey-brown ink line over flat translucent washes, the same soft diffuse overcast light and the same warm parchment showing through every wash. Do not flatten the valley, do not push the mountains back into a wall, do not clear the mist, do not brighten or saturate the green. The only thing that changes anywhere in the picture is the floor of the valley.
+
+Worn into the meadow floor is a small network of pale sandy footpaths, painted as soft dry-brush strokes with broken feathered edges. One trunk path enters at the very bottom edge of the picture, exactly at the centre, and climbs a short way before dividing low into two unequal lanes. The left lane wanders out and up and divides once; the right lane runs further and divides twice, at heights clearly different from the left. Four or five lanes in all, no more. Every lane is a soft irregular curve, never straight, thinning and paling as it climbs until it dissolves into the grass short of the mist. The two sides of the picture must not mirror each other.
+
+Along these lanes the grass opens into about ten small flat clearings of bare worn pale earth — a scuff of paler ground with a soft trodden edge, barely more than a thinning of the grass, never a bright disc and never a hard oval. Each one sits at the end of a short thin spur or tucked directly against the side of a lane; not one of them floats alone in open grass. They are unevenly spaced, some close together, some far apart. The clearings low in the picture are the largest, those higher up much smaller, so the field falls away with distance. Every clearing is empty and level, cleared and waiting, with nothing standing on it.
+
+The valley is otherwise completely empty and unbuilt: no houses, no roofs, no walls, no fences, no gates, no bridges, no people, no animals. The paths never cross one another, never loop back, never close a circuit and never form a ladder of matching pairs facing each other across a lane. Only the trunk touches the bottom edge; no path reaches the left, right or top edge. All the clearings sit well below the middle of the picture, and the whole upper third stays misty ridge, crag and pine.</pre>
+    </div>
+  </article>
+
+  <article class="asset">
+    <div class="asset-head">
+      <span class="file">Plate negative prompt</span>
+      <span class="asset-desc">This one only — the buildings get a different one</span>
+      <span class="chip">negative</span>
+    </div>
+    <div class="prompt-wrap">
+      <button class="copy" type="button">Copy</button>
+<pre>buildings, houses, huts, roofs, hanok, temples, pagodas, walls, fences, gates, bridges, boats, rice paddies, cultivated fields, straight lines, grid, ladder pattern, crossing paths, closed loops, symmetrical, mirrored halves, branching diagram, circuit board, tree diagram, root system, veins, polka dots, evenly spaced spots, scattered white discs, bright white patches, paved road, river, stream, water, lake, people, figures, animals, text, watermark, signature, border, frame, eye-level view, low angle, horizon, blue sky, sunset, snow, autumn foliage, hard shadows, heavy saturation, vivid green, flat plain, open plateau, aerial map, plan view, aerial photograph, 3d render</pre>
+    </div>
+  </article>
+
+  <div class="callout">
+    <h3>Judging the plate — in this order</h3>
+    <ul class="plain">
+      <li><strong>The mountains, the mist and the green.</strong> Hold it against <code>valley0.png</code>. Changed? Strength too high, re-roll lower. Nothing about the floor is worth losing the atmosphere for.</li>
+      <li><strong>Symmetry.</strong> Do the two halves mirror each other? Re-roll — worn paths never do.</li>
+      <li><strong>The clearings.</strong> Do they sit <em>on</em> the paths, or float in the grass? Floating ones are polka dots and read as a diagram.</li>
+      <li><strong>The trunk enters at the bottom centre</strong> — the journey's road arrives there, and the gate stands on it.</li>
+      <li><strong>Clearings sit below the middle.</strong> Anything higher gets cropped, then feathered away.</li>
+      <li>Don't count them. A network that reads as village lanes beats an accurate one. <strong>Spare clearings are the feature:</strong> an empty pad beside a full one is what makes the field read as room to grow.</li>
+    </ul>
+  </div>
+
+  <div class="callout warn">
+    <h3>If two lower-strength rolls still drift</h3>
+    <p>Stop re-rolling and switch to the <strong>area-edit brush</strong> on <code>valley0.png</code>: mask just the meadow floor and paint the lanes in, one at a time. A brush cannot drift by construction — that is the same reason <code>patch.js</code> exists. Slower, and it keeps the painting you already like.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">STEP 02</span>
+    <h2>Shared negative prompt</h2>
+    <span class="sec-note">paste on all six buildings</span>
+  </div>
+  <p>It bans <em>hard / long / black</em> shadow but never plain “shadow” — each building needs its own soft one. It deliberately leaves “wall” and “fence” alone, because <code>b-walled</code> needs a boundary wall; the other five ban those in their own text.</p>
+  <article class="asset">
+    <div class="asset-head">
+      <span class="file">Buildings — negative prompt</span>
+      <span class="asset-desc">Kills the four faults that broke the last set: angle, density, attached scenery, ground discs</span>
+      <span class="chip">negative</span>
+    </div>
+    <div class="prompt-wrap">
+      <button class="copy" type="button">Copy</button>
+<pre>eye-level view, low angle, worm's eye view, looking up at the eaves, seen from below, soffit visible, close-up, architectural study, elevation drawing, photograph, photorealistic, 3d render, cgi, sharp focus, dense detail, intricate detail, individually drawn roof tiles, tile ends, dancheong, polychrome brackets, carved bracket sets, painted rafters, wood grain, lattice windows, individual stone courses, ground, grass, meadow, earth, soil, dirt, gravel, rocks, boulders, cliff, hillside, stone terrace, retaining wall, stone stairway climbing a hillside, path, road, trees, pine trees, bushes, shrubs, fruit trees, foliage, garden, vegetable plot, jars, landscape, background scenery, mountains, mist, clouds, sky, horizon, circular ground patch, oval of grass beneath, base plate, diorama base, tabletop, hard drop shadow, long cast shadow, black shadow, sticker edge, white halo, outline glow, paper texture, parchment grain, vignette, darkened corners, stained paper, torn paper edge, border, frame, people, figures, animals, lanterns, banners, text, watermark, signature, second building, cropped, cut off</pre>
+    </div>
+  </article>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">STEP 03</span>
+    <h2>The six buildings</h2>
+    <span class="sec-note">generate in this order</span>
+  </div>
+  <p>The first and last paragraphs are near-identical across all six <strong>on purpose</strong> — that repetition is what makes them agree with each other and with the plate. Don't trim or reword it per building. Every one carries the transparency clause, highlighted below.</p>
+  <p>The frame-fill percentage at the end of each is the building's real size, not a composition preference. All six are painted at the same apparent distance, so the compound doesn't get more detail per metre than the hut. <strong>Don't equalise them, and don't rescale afterwards in an editor</strong> — that reintroduces exactly the density mismatch that killed the last set.</p>
+
+  <article class="asset">
+    <div class="asset-head">
+      <span class="file">b-house.png</span>
+      <span class="asset-desc">Small hanok — pale hanji walls, blue-grey tiled roof</span>
+      <span class="chip solid">transparent</span>
+    </div>
+    <div class="specs"><span><b>Frame fill</b> 30%</span><span><b>Height</b> 0.6 × width</span><span><b>Reference</b> ref-house.png</span><span><b>Engine scale</b> 1.00</span></div>
+    <div class="prompt-wrap">
+      <button class="copy" type="button">Copy</button>
+<pre>Traditional Korean ink-and-watercolour painting, the same hand as a wide misty valley landscape: thin dry grey-brown ink outlines of even, modest weight, flat translucent washes inside them, soft brush edges, muted sepia and celadon palette, no gloss, no gradients, no digital shading. Seen from high above at a steep angle, looking down onto it from the hillside opposite — the whole roof plane is visible as one broad foreshortened shape including its far slope, the ridge sits high in the silhouette, the vertical timber posts stay vertical, and only a shallow band of the front wall and one gable end shows beneath the eaves. The underside of the eaves, the soffit and the bracket sets are never visible. One soft diffuse overcast light with no sun and no lit side and shadow side; the darkest tone anywhere in the picture is a mid grey-brown, never black.
+
+A single small one-storey hanok house, three bays wide and one room deep, standing on a low pale grey-buff stone platform with three shallow steps at the front. A hipped-and-gabled tiled roof in slate blue-grey with a darker charcoal ridge, deep overhanging eaves, corners sweeping gently upward into small pointed tips, and a small triangular ochre timber gable panel at each end, so the whole building reads as one low wide chevron sitting on a pale bar. Walls of pale warm hanji buff panelled between slim reddish-brown timber posts and lintels, with three plain sliding doors along the long front side and a narrow raised timber verandah in front of them. About three fifths as tall as it is wide.
+
+Painted small and loose, the way one small building is painted inside a wide landscape, not as an architectural study: a whole roof slope is about a dozen fine ruled parallel strokes and never tile by tile, doors and windows are plain rectangles with a simple frame, no lattice weave, no carved brackets, no dancheong colour, no signboards, no people. Pale and high-key, as though seen across a wide valley in soft misty air — hanji walls barely darker than cream, light blue-grey roof with a faint green cast, warm mid-brown timber, pale grey stone. Beneath it and touching its base, one soft grey-green watercolour shadow pooled tight under the eaves and against the stone platform, nearly symmetrical, leaning only very slightly forward and to the left, no wider than the roof above it and never spreading downward into a pool, a disc or a patch; its lowest edge is directly under the front of the building. The house stands on level unseen ground with the foot of its far side visible, so its footprint closes into a flat shape. Nothing else is in the picture at all: no ground, no grass, no earth, no rocks, no trees, no bushes, no garden, no fence, no wall, no path, no mist, no sky, no horizon, no second building. <mark>Completely transparent background; if transparency is not possible, one flat even mid-grey field, the same tone from corner to corner and right out to all four edges, with no texture, no paper grain, no vignette and no border.</mark> The house stands dead centre with its footprint balanced left and right about the centre of the frame, filling about 30% of the frame's width, with a wide empty margin on all four sides — every eave tip and roof corner well clear of the edges, nothing cropped, nothing touching any edge.</pre>
+    </div>
+  </article>
+
+  <article class="asset">
+    <div class="asset-head">
+      <span class="file">b-gate.png</span>
+      <span class="asset-desc">Two-storey gate pavilion — straddles the path, tallest of the set</span>
+      <span class="chip solid">transparent</span>
+    </div>
+    <div class="specs"><span><b>Frame fill</b> 36%</span><span><b>Height</b> 0.9 × width</span><span><b>Reference</b> ref-gate.png</span><span><b>Engine scale</b> 1.20</span></div>
+    <div class="prompt-wrap">
+      <button class="copy" type="button">Copy</button>
+<pre>Traditional Korean ink-and-watercolour painting, the same hand as a wide misty valley landscape: thin dry grey-brown ink outlines of even, modest weight, flat translucent washes inside them, soft brush edges, muted sepia and celadon palette, no gloss, no gradients, no digital shading. Seen from high above at a steep angle, looking down onto it from the hillside opposite — the whole upper roof plane is visible as one broad foreshortened shape including its far slope, the ridge sits high in the silhouette, the vertical timber posts stay vertical, and only a shallow band of the front face and one side face shows beneath each roof. The underside of the eaves, the soffit and the bracket sets are never visible. One soft diffuse overcast light with no sun and no lit side and shadow side; the darkest tone anywhere in the picture is a mid grey-brown, never black.
+
+A single two-storey Korean gate pavilion built to straddle a village path. Its lower storey is four heavy reddish-brown timber posts standing on low pale grey-buff stone footings, with pale warm hanji panels to either side of one wide central passage; the passage is painted as a deep cool shaded recess with the far door frame visible inside it, so it is never a see-through hole. Above sits an open upper storey with a plain low timber balustrade and pale panels between slender posts, and a small skirt roof projects over the passage below it. Two tiled roofs, both slate blue-grey with darker charcoal ridges, deep overhanging eaves and corners sweeping upward into small pointed tips, so the whole building reads as a compact tower with two stacked chevrons and a dark doorway at its foot. The tallest building of the set: about nine tenths as tall as it is wide.
+
+Painted small and loose, the way one small building is painted inside a wide landscape, not as an architectural study: a whole roof slope is about a dozen fine ruled parallel strokes and never tile by tile, the balustrade is a few short verticals, no lattice weave, no carved brackets, no dancheong colour, no signboards, no people. Pale and high-key, as though seen across a wide valley in soft misty air — hanji panels barely darker than cream, light blue-grey roofs with a faint green cast, warm mid-brown timber, pale grey stone. Beneath it and touching its base, one soft grey-green watercolour shadow pooled tight against the stone footings, nearly symmetrical, leaning only very slightly forward and to the left, no wider than the roof above it and never spreading downward into a pool, a disc or a patch; its lowest edge is directly under the front of the gate. The gate stands on level unseen ground with the foot of its far posts visible, so its footprint closes into a flat shape. Nothing else is in the picture at all: no ground, no grass, no earth, no rocks, no trees, no bushes, no garden, no fence, no wall running away from it on either side, no path, no mist, no sky, no horizon, no second building. <mark>Completely transparent background; if transparency is not possible, one flat even mid-grey field, the same tone from corner to corner and right out to all four edges, with no texture, no paper grain, no vignette and no border.</mark> The gate stands dead centre with its footprint balanced left and right about the centre of the frame, filling about 36% of the frame's width, with a wide empty margin on all four sides — every eave tip and roof corner well clear of the edges, nothing cropped, nothing touching any edge.</pre>
+    </div>
+  </article>
+
+  <article class="asset">
+    <div class="asset-head">
+      <span class="file">b-thatch.png</span>
+      <span class="asset-desc">Farmhouse under a rounded golden thatched roof</span>
+      <span class="chip solid">transparent</span>
+    </div>
+    <div class="specs"><span><b>Frame fill</b> 28%</span><span><b>Height</b> 0.75 × width</span><span><b>Reference</b> ref-thatch.png</span><span><b>Engine scale</b> 0.95</span></div>
+    <div class="prompt-wrap">
+      <button class="copy" type="button">Copy</button>
+<pre>Traditional Korean ink-and-watercolour painting, the same hand as a wide misty valley landscape: thin dry grey-brown ink outlines of even, modest weight, flat translucent washes inside them, soft brush edges, muted sepia and celadon palette, no gloss, no gradients, no digital shading. Seen from high above at a steep angle, looking down onto it from the hillside opposite — the whole roof is visible as one broad foreshortened shape including its far side, the rounded ridge sits high in the silhouette, the vertical timber posts stay vertical, and only a shallow band of the front wall and one end wall shows beneath the overhang. The underside of the overhang and the soffit are never visible. One soft diffuse overcast light with no sun and no lit side and shadow side; the darkest tone anywhere in the picture is a mid grey-brown, never black.
+
+A single small farmhouse under a thick rounded golden thatched roof: a soft heavy dome of wheat-coloured straw with rounded corners and a rounded ridge, no ridge tiles and no pointed tips anywhere, its lower edge slightly ragged, one or two horizontal binding ropes, brimming well out over the walls on every side, so the whole building reads as a soft golden loaf resting on a low pale bar. Beneath it a low one-storey building three bays wide, its walls pale warm hanji buff and earth-toned mud plaster panelled between slim reddish-brown timber posts, with two plain doors along the long front side, standing on a low pale grey-buff stone footing. The thatch is the only warm gold in the picture and the ink line drawn around it stays thin. About three quarters as tall as it is wide.
+
+Painted small and loose, the way one small building is painted inside a wide landscape, not as an architectural study: the thatch is a flat golden wash with a dozen or so sweeping strokes and never straw by straw, doors and windows are plain rectangles with a simple frame, no lattice weave, no individual stones, no people. Pale and high-key, as though seen across a wide valley in soft misty air — warm pale ochre-gold thatch, walls barely darker than cream, warm mid-brown timber, pale grey stone. Beneath it and touching its base, one soft grey-green watercolour shadow pooled tight under the overhang and against the stone footing, nearly symmetrical, leaning only very slightly forward and to the left, no wider than the roof above it and never spreading downward into a pool, a disc or a patch; its lowest edge is directly under the front of the house. The house stands on level unseen ground with the foot of its far side visible, so its footprint closes into a flat shape. Nothing else is in the picture at all: no ground, no grass, no earth, no rocks, no dry stone walls, no trees, no fruit trees, no bushes, no vegetable garden, no jars, no fence, no path, no mist, no sky, no horizon, no second building. <mark>Completely transparent background; if transparency is not possible, one flat even mid-grey field, the same tone from corner to corner and right out to all four edges, with no texture, no paper grain, no vignette and no border.</mark> The house stands dead centre with its footprint balanced left and right about the centre of the frame, filling about 28% of the frame's width, with a wide empty margin on all four sides — the full overhang of the thatch on every side well clear of the edges, nothing cropped, nothing touching any edge.</pre>
+    </div>
+  </article>
+
+  <article class="asset">
+    <div class="asset-head">
+      <span class="file">b-pavilion.png</span>
+      <span class="asset-desc">Open pavilion on bare timber posts, no walls — smallest of the set</span>
+      <span class="chip solid">transparent</span>
+    </div>
+    <div class="specs"><span><b>Frame fill</b> 25%</span><span><b>Height</b> 0.67 × width</span><span><b>Reference</b> ref-pavilion.png</span><span><b>Engine scale</b> 0.85</span></div>
+    <div class="prompt-wrap">
+      <button class="copy" type="button">Copy</button>
+<pre>Traditional Korean ink-and-watercolour painting, the same hand as a wide misty valley landscape: thin dry grey-brown ink outlines of even, modest weight, flat translucent washes inside them, soft brush edges, muted sepia and celadon palette, no gloss, no gradients, no digital shading. Seen from high above at a steep angle, looking down onto it from the hillside opposite — the whole roof plane is visible as one broad foreshortened shape including its far slope, it dominates the silhouette, the vertical timber posts stay vertical, and the posts and deck read as a shallow band beneath it. The underside of the eaves, the soffit and the bracket sets are never visible. One soft diffuse overcast light with no sun and no lit side and shadow side; the darkest tone anywhere in the picture is a mid grey-brown, never black.
+
+A single small open pavilion with no walls at all: six slim reddish-brown timber posts standing on a raised pale timber deck, which stands in turn on a low pale grey-buff stone platform with two shallow steps. Over them a hipped-and-gabled tiled roof in slate blue-grey with a darker charcoal ridge, deep overhanging eaves, corners sweeping upward into small pointed tips, and a small triangular ochre gable panel at each end, so the whole building reads as one chevron roof resting on thin legs. Between the near posts, paint the shaded timber underside of the roof, the far posts and the far edge of the deck in soft mid-brown, clearly darker than the background, so that no part of the pavilion is see-through and there is no hole anywhere in its silhouette. The smallest building of the set: about two thirds as tall as it is wide.
+
+Painted small and loose, the way one small building is painted inside a wide landscape, not as an architectural study: the roof slope is about a dozen fine ruled parallel strokes and never tile by tile, the posts and railing are plain tapering strokes, no carved brackets, no dancheong colour, no individual stones, no people. Pale and high-key, as though seen across a wide valley in soft misty air — light blue-grey roof with a faint green cast, warm mid-brown timber posts and deck, pale grey stone. Beneath it and touching its base, one soft grey-green watercolour shadow pooled tight under the deck and against the stone platform, nearly symmetrical, leaning only very slightly forward and to the left, no wider than the roof above it and never spreading downward into a pool, a disc or a patch; its lowest edge is directly under the front of the pavilion. The pavilion stands on level unseen ground with the foot of its far posts visible, so its footprint closes into a flat shape. Nothing else is in the picture at all: no ground, no grass, no earth, no rocks, no trees, no bushes, no garden, no fence, no wall, no path, no mist, no sky, no horizon, no second building. <mark>Completely transparent background; if transparency is not possible, one flat even mid-grey field, the same tone from corner to corner and right out to all four edges, with no texture, no paper grain, no vignette and no border.</mark> The pavilion stands dead centre with its footprint balanced left and right about the centre of the frame, filling about 25% of the frame's width, with a wide empty margin on all four sides — every eave tip and roof corner well clear of the edges, nothing cropped, nothing touching any edge.</pre>
+    </div>
+  </article>
+
+  <article class="asset">
+    <div class="asset-head">
+      <span class="file">b-lhouse.png</span>
+      <span class="asset-desc">L-shaped hanok — two wings meeting at a corner</span>
+      <span class="chip solid">transparent</span>
+    </div>
+    <div class="specs"><span><b>Frame fill</b> 46%</span><span><b>Height</b> 0.5 × width</span><span><b>Reference</b> ref-lhouse.png</span><span><b>Engine scale</b> 1.55</span></div>
+    <div class="prompt-wrap">
+      <button class="copy" type="button">Copy</button>
+<pre>Traditional Korean ink-and-watercolour painting, the same hand as a wide misty valley landscape: thin dry grey-brown ink outlines of even, modest weight, flat translucent washes inside them, soft brush edges, muted sepia and celadon palette, no gloss, no gradients, no digital shading. Seen from high above at a steep angle, looking down onto it from the hillside opposite — both roof planes are visible as broad foreshortened shapes including their far slopes, both ridges read clearly, the vertical timber posts stay vertical, and only a shallow band of wall shows beneath the eaves. The underside of the eaves, the soffit and the bracket sets are never visible. One soft diffuse overcast light with no sun and no lit side and shadow side; the darkest tone anywhere in the picture is a mid grey-brown, never black.
+
+A single L-shaped one-storey hanok: two wings of unequal length meeting at a right-angled corner, the longer wing running away to the left and the shorter wing turning towards the viewer, so the whole building reads as an angular wedge with a clearly visible inner corner. One continuous tiled roof in slate blue-grey follows the L, a darker charcoal ridge along each wing, a valley where the two ridges meet, deep overhanging eaves, corners sweeping upward into small pointed tips, and a small triangular ochre gable panel at each open end. Walls of pale warm hanji buff panelled between slim reddish-brown timber posts, a row of plain sliding doors along the inner face of each wing, and a narrow raised timber verandah running in front of them, the inner corner sitting in soft shade. The whole house stands on one low pale grey-buff stone platform with a short flight of steps in the crook of the L. About half as tall as it is wide.
+
+Painted small and loose, the way one small building is painted inside a wide landscape, not as an architectural study: a whole roof slope is about a dozen fine ruled parallel strokes and never tile by tile, doors and windows are plain rectangles with a simple frame, no lattice weave, no carved brackets, no dancheong colour, no signboards, no people. Pale and high-key, as though seen across a wide valley in soft misty air — hanji walls barely darker than cream, light blue-grey roofs with a faint green cast, warm mid-brown timber, pale grey stone. Beneath it and touching its base, one soft grey-green watercolour shadow pooled tight under the eaves of both wings and against the stone platform, balanced across the whole footprint and nearly symmetrical, leaning only very slightly forward and to the left, never spreading downward into a pool, a disc or a patch; its lowest edge is directly under the front of the nearer wing. The house stands on level unseen ground with the foot of its far side visible, so its footprint closes into a flat shape. Nothing else is in the picture at all: no ground, no grass, no earth, no rocks, no trees, no bushes, no garden, no paved courtyard, no fence, no wall, no path, no mist, no sky, no horizon, no second building. <mark>Completely transparent background; if transparency is not possible, one flat even mid-grey field, the same tone from corner to corner and right out to all four edges, with no texture, no paper grain, no vignette and no border.</mark> The house stands dead centre with its footprint balanced left and right about the centre of the frame, filling about 46% of the frame's width, with a wide empty margin on all four sides — every eave tip and roof corner of both wings well clear of the edges, nothing cropped, nothing touching any edge.</pre>
+    </div>
+  </article>
+
+  <article class="asset">
+    <div class="asset-head">
+      <span class="file">b-walled.png</span>
+      <span class="asset-desc">Grand hanok compound behind its own boundary wall — generate this one last</span>
+      <span class="chip solid">transparent</span>
+    </div>
+    <div class="specs"><span><b>Frame fill</b> 60%</span><span><b>Height</b> 0.5 × width</span><span><b>Reference</b> your accepted b-lhouse.png</span><span><b>Engine scale</b> 2.00</span></div>
+    <div class="prompt-wrap">
+      <button class="copy" type="button">Copy</button>
+<pre>Traditional Korean ink-and-watercolour painting, the same hand as a wide misty valley landscape: thin dry grey-brown ink outlines of even, modest weight, flat translucent washes inside them, soft brush edges, muted sepia and celadon palette, no gloss, no gradients, no digital shading. Seen from high above at a steep angle, looking down onto it from the hillside opposite — the whole roof plane is visible as one broad foreshortened shape including its far slope, the ridge sits high in the silhouette, the vertical timber posts stay vertical, you look down over the top of the boundary wall into the courtyard, and only a shallow band of hall wall shows beneath the eaves. The underside of the eaves, the soffit and the bracket sets are never visible. One soft diffuse overcast light with no sun and no lit side and shadow side; the darkest tone anywhere in the picture is a mid grey-brown, never black.
+
+A single grand hanok compound, the finest house in a village. In the middle a large stately one-storey hanok with a wide tiled roof in slate blue-grey, a heavy charcoal ridge, deep overhanging eaves and corners sweeping well upward into pointed tips, standing on a tall pale grey-buff stone platform with a broad flight of steps; walls of pale warm hanji buff panelled between reddish-brown timber posts, a long row of plain sliding doors and a narrow verandah across the front, and one smaller subsidiary roof set back to one side. Around it on all four sides a low boundary wall of pale plastered stone capped with a thin run of the same slate blue-grey tile, enclosing a courtyard of pale swept bare earth, with one small tiled gateway in the middle of the near wall whose timber doors are closed, so the wall forms an unbroken ring. The wall is low enough that the whole hall stands clear above it, and it stops well short of the picture's sides so it never runs out of frame. Nothing at all outside the boundary wall, and nothing in the courtyard: no trees, no plants, no jars, no paving pattern. The largest building of the set, reading as a long low pale band with a broad roof rising behind it. About half as tall as it is wide.
+
+Painted small and loose, the way one building is painted inside a wide landscape, not as an architectural study: a whole roof slope is about a dozen fine ruled parallel strokes and never tile by tile, the boundary wall is a flat pale wash with one ink line for its tiled cap and never stone by stone, doors and windows are plain rectangles with a simple frame, no lattice weave, no carved brackets, no dancheong colour, no signboards, no people. Pale and high-key, as though seen across a wide valley in soft misty air — hanji walls and boundary wall barely darker than cream, light blue-grey roofs and coping with a faint green cast, warm mid-brown timber, pale grey stone. Along the foot of the boundary wall and touching it, one soft grey-green watercolour shadow tucked tight against the wall, nearly symmetrical, leaning only very slightly forward and to the left, never spreading downward into a pool, a disc or a patch; its lowest edge is directly under the front of the wall. The compound stands on level unseen ground with the foot of its far wall visible, so its footprint closes into a flat shape. Nothing else is in the picture at all: no ground, no grass, no earth, no rocks, no trees, no bushes, no garden, no outer fence, no second wall, no outbuildings, no path, no mist, no sky, no horizon. <mark>Completely transparent background; if transparency is not possible, one flat even mid-grey field, the same tone from corner to corner and right out to all four edges, with no texture, no paper grain, no vignette and no border.</mark> The compound stands dead centre with its footprint balanced left and right about the centre of the frame, filling about 60% of the frame's width, with a clear empty margin on all four sides — every eave tip, roof corner and both ends of the boundary wall well clear of the edges, nothing cropped, nothing touching any edge.</pre>
+    </div>
+  </article>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">STEP 04</span>
+    <h2>Transparency — all three, every time</h2>
+  </div>
+  <div class="callout">
+    <ul class="plain">
+      <li><strong>Turn Recraft's transparent-background toggle ON.</strong> It controls the alpha channel.</li>
+      <li><strong>Keep the background clause in the prompt anyway.</strong> The toggle controls alpha; the prompt controls what gets <em>painted</em>. A model that paints a patch of grass hands you grass at full opacity.</li>
+      <li><strong>Run every export through <code>tools/prep.html</code> regardless.</strong> That is what trims each building so it stands on the bottom edge of its own canvas — the contract the layout engine depends on.</li>
+    </ul>
+  </div>
+  <p><strong>If the toggle fails, the fallback background is flat MID GREY — never cream or parchment.</strong> <code>prep.html</code> keys by flooding inward from the border, and cream sits so close to the hanji walls that the tolerance has to be tight, leaving a rim. Grey is a colour no part of the building uses, so it keys clean.</p>
+  <p>If Recraft's own <strong>Remove Background</strong> is available, prefer it over prep.html's keyer — it's segmentation, so it can also clear enclosed holes, which a flood fill structurally cannot. <code>prep.html</code> detects existing alpha and skips keying automatically, so matted and un-matted exports can be dropped in together.</p>
+  <p><strong>The shadow goes in the PNG, not in code.</strong> A CSS shadow follows the alpha silhouette, so it would trace the flared eave tips as a dark fringe in mid-air. That is why every prompt asks for it soft, tight to the base and nearly symmetrical: <code>prep.html</code> trims at the lowest visible pixel, so the shadow's bottom edge becomes the ground line — and roughly 45% of buildings get mirrored, which mirrors the shadow with them.</p>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">STEP 05</span>
+    <h2>Check each one before generating the next</h2>
+    <span class="sec-note">the first accepted file sets the standard</span>
+  </div>
+  <dl class="checks">
+    <div class="check"><dt>Angle</dt><dd>Can you see the underside of any eave, or a bracket set? Reject. You must be looking down onto the top of the roof.</dd></div>
+    <div class="check"><dt>Density</dt><dd>Individual tiles, dancheong, or a door lattice drawn? Reject.</dd></div>
+    <div class="check"><dt>Key</dt><dd>Hold it next to <code>valley6 (2).png</code>. Darker or more saturated than the buildings in that painting? Reject — the rejected set measured roughly half their brightness.</dd></div>
+    <div class="check"><dt>Isolation</dt><dd>Any grass, earth, rock, tree, bush or fence attached to it? Reject.</dd></div>
+    <div class="check"><dt>Ground</dt><dd>Any disc, patch, plate or rectangle of ground <em>under</em> it? Reject. Its own stone plinth is fine — it should have one.</dd></div>
+    <div class="check"><dt>Shadow</dt><dd>Hard-edged, offset, long or black? Reject.</dd></div>
+    <div class="check"><dt>Holes</dt><dd>The gate passage and the gaps between pavilion posts must be painted dark, not see-through.</dd></div>
+    <div class="check"><dt>Frame</dt><dd>Anything touching an edge, especially an eave tip? Reject — it crops the silhouette and poisons the border colour the keyer samples.</dd></div>
+  </dl>
+  <div class="callout warn">
+    <h3>Then, in <code>tools/prep.html</code></h3>
+    <ul class="plain">
+      <li><strong>Check the filename dropdown on every card.</strong> <code>b-lhouse</code> is a trap: the auto-guess matches on substring and “lhouse” contains “house”, so the L-house selects the <code>b-house.png</code> slot. Miss it and you ship two houses and no L-house.</li>
+      <li>At 400%, the cut edge should be one soft pixel — not a fringe of leaf and rock shapes.</li>
+      <li><strong>Nothing survives below the base.</strong> One speck 20px down sets the trim and floats the whole building 20px above its plot.</li>
+      <li><strong>Nothing survives on one side only.</strong> Asymmetric residue slides the building sideways off its plot.</li>
+      <li>No holes punched through walls, roof or deck.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">STEP 06</span>
+    <h2>If it comes back wrong</h2>
+  </div>
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>What you got</th><th>What to do</th></tr></thead>
+      <tbody>
+        <tr><td>Standing on grass, a rock or a garden</td><td>Re-roll. Neither the keyer nor Remove Background can rescue it — the scenery is welded to the building's foot. If it happens every roll, the style is winning: rebuild it from the <code>ref-*.png</code> crops only.</td></tr>
+        <tr><td>Eye-level, soffits and brackets visible</td><td>Re-roll with the matching <code>ref-*.png</code> attached as an image reference. This is fault #1 from last time and wording alone does not fix it.</td></tr>
+        <tr><td>Tile-by-tile roof, dancheong, lattice</td><td>It's filling too much of the frame. Cut the frame fill and re-roll.</td></tr>
+        <tr><td>Dark, saturated, high contrast</td><td>Re-roll against the “pale and high-key” clause. Don't fix it later with <code>?haze=</code> — haze is a depth cue, not colour correction.</td></tr>
+        <tr><td>A rim survives after keying</td><td>That's a vignette or a paper stain. Push key strength to 70–90; past that it starts eating pale wall. If it still rims, re-roll on flat grey.</td></tr>
+        <tr><td>Holes punched in the walls</td><td>Key strength too high, or the background too close to the hanji cream. Drop to 25–30, or re-roll on flat grey.</td></tr>
+        <tr><td>Already transparent, but with an opaque ground disc</td><td>The trap. <code>prep.html</code> sees the alpha and skips keying entirely, so the disc sails through. Flatten onto a solid colour first, then key.</td></tr>
+        <tr><td>Nothing agrees after three or four rolls each</td><td>Fall back to <strong>one</strong> generation of all six: same style, same negative, subject “six separate Korean village buildings standing in a row on a flat empty background, well apart, none touching, each with its own soft shadow at its base”, in the sizes above. Cut them apart roughly in any viewer — <code>prep.html</code> trims. One manual step, guaranteed agreement on angle, light and density.</td></tr>
+        <tr><td>Plate reads as a circuit board</td><td>The forks are too high and too symmetric. Re-run at lower strength, insisting on the low first fork and different fork heights.</td></tr>
+        <tr><td>Plate's clearings sit above halfway</td><td>Unusable — they get cropped, then feathered away. Re-roll.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">STEP 07</span>
+    <h2>Where everything goes</h2>
+  </div>
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>File</th><th>Path</th><th>Then</th></tr></thead>
+      <tbody>
+        <tr><td>The plate</td><td><code>art/village/field-square.png</code></td><td><code>node tools/crop.js</code> — never through prep.html</td></tr>
+        <tr><td>The six buildings</td><td><code>art/village/b-*.png</code></td><td>through <code>tools/prep.html</code>, which saves them under these names</td></tr>
+        <tr><td>The two villager sheets <em>(step 08)</em></td><td><code>art/village/people/p-01a…08b.png</code></td><td>cut each into eight loose crops, same numbering, then through <code>tools/prep.html</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Preview at <code>localhost:8137/index.html?motion=1&amp;village=sprites</code> — the <code>&amp;village=sprites</code> matters, because <code>state-00.png</code> still exists and the engine prefers it otherwise.</p>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">STEP 08</span>
+    <h2>Village life</h2>
+    <span class="sec-note">two extra generations</span>
+  </div>
+  <p><strong>Everything above comes first.</strong> This is only worth doing while the custom style is already built and loaded — walking villagers and birds over the finished valley. Full build plan in <code>PLAN.html</code>.</p>
+
+  <div class="callout">
+    <h3>The birds need no art at all</h3>
+    <p>At the size a bird reads on this page it is two ink strokes — a flick, not a picture — and a painted PNG cannot flap its wings. They get drawn in code, in the same ink, over the plate. If they come back looking wrong the fallback is a three-pose bird sheet in this style, and the swap costs nothing.</p>
+  </div>
+
+  <div class="callout warn">
+    <h3>Eight figures in two poses, not sixteen generations</h3>
+    <p>Eight separate rolls would never agree with each other. One sheet is the same trick the “if nothing agrees” fallback recommends for the six buildings — except here it is the <em>first</em> choice, because these figures are far too small for per-image tuning to buy anything. <strong>Sheet A is the left leg forward, sheet B the right; alternating them is the walk cycle.</strong> The code adds the bob and the sway on top.</p>
+    <p>At the shipped plate width a hanok is 130–190px across, so a villager lands at roughly <strong>10 × 25px</strong> — about <strong>4 × 9px</strong> on a phone. Silhouette and tone are the whole game; detail is a liability. That also means the “never rescale afterwards” rule from step 03 <strong>does not apply here</strong>: these are generated large and shrunk hard on purpose, because nothing at 25px survives being painted at 25px.</p>
+  </div>
+
+  <article class="asset">
+    <div class="asset-head">
+      <span class="file">p-walk-a.png</span>
+      <span class="asset-desc">Sheet A — eight villagers mid-stride, left leg forward, seen from straight above</span>
+      <span class="chip solid">transparent</span>
+      <span class="chip">1024²</span>
+    </div>
+    <div class="specs"><span><b>Style</b> same as the buildings</span><span><b>Layout</b> two rows of four</span><span><b>Each adult</b> ⅐ of frame height</span><span><b>On page</b> ~10 × 25px</span></div>
+    <div class="prompt-wrap">
+      <button class="copy" type="button">Copy</button>
+<pre>Traditional Korean ink-and-watercolour painting, the same hand as a wide misty valley landscape: thin dry grey-brown ink outlines of even, modest weight, flat translucent washes inside them, soft brush edges, muted sepia and celadon palette, no gloss, no gradients, no digital shading. Seen from high above at a steep angle, looking down onto them from the hillside opposite — you look down onto the tops of their hats and shoulders, every figure is strongly foreshortened, the head sits high in the silhouette and the feet are tucked close in beneath the body. No face is visible on anyone. One soft diffuse overcast light with no sun and no lit side and shadow side; the darkest tone anywhere in the picture is a mid grey-brown, never black.
+
+Eight small Korean villagers in plain Joseon-era country dress, standing well apart in two even rows of four, each one alone and completely separate from the others. Every figure is caught mid-stride walking, the left leg clearly forward and the right arm swung forward with it, the body turned slightly to one side. Top row, left to right: a man in pale off-white hanbok under a wide flat dark horsehair hat; a woman in a pale cream jacket and a full dust-blue skirt; a farmer in dun hemp under a broad conical straw hat that reads from above as a pale disc; a man carrying a wooden A-frame back-rack loaded with a bundle of firewood. Bottom row, left to right: a woman with a shallow bundle balanced flat on her head and her arms half raised to it; a man in a faded indigo coat walking slowly with his hands behind his back; a small child in a short pale tunic, two thirds the height of the adults, running; an old man in a long pale robe leaning on a thin stick. Each figure is one closed silhouette with no gap showing between the arms and the body.
+
+Painted very small and very loose, the way distant figures are flicked into a wide landscape, never as figure studies: each person is five or six brush marks — a soft blot for the hat or head, one broad wash for the body, two short tapering strokes for the legs — with no face, no eyes, no hands, no fingers, no hair detail, no fabric folds, no pattern and no outline drawn any tighter than the ink line on a distant roof. Pale and high-key, as though seen across a wide valley in soft misty air: off-white and cream cloth barely darker than the paper, dusty indigo and faded dun as the only accents, and a single small dark hat as the one near-black note on the figures that wear one. Beneath each figure and touching its feet, one small soft grey-green watercolour shadow, no wider than the figure and pooled tight beneath it, never a hard disc, never offset to one side, never long. Nothing else is in the picture at all: no ground, no grass, no earth, no path, no rocks, no trees, no buildings, no animals, no baskets or jars set down on the ground, no mist, no sky, no horizon. <mark>Completely transparent background; if transparency is not possible, one flat even mid-grey field, the same tone from corner to corner and right out to all four edges, with no texture, no paper grain, no vignette and no border.</mark> The eight figures stand in two clean rows with wide empty space all around each one, no figure touching another and no figure touching any edge; each adult stands about one seventh of the picture's height.</pre>
+    </div>
+  </article>
+
+  <article class="asset">
+    <div class="asset-head">
+      <span class="file">Villagers — negative prompt</span>
+      <span class="asset-desc">Its own, because the buildings' shared negative bans “people, figures”</span>
+      <span class="chip">negative</span>
+    </div>
+    <div class="prompt-wrap">
+      <button class="copy" type="button">Copy</button>
+<pre>eye-level view, low angle, worm's eye view, seen from below, front view, portrait, close-up, character sheet, turnaround, model sheet, face, eyes, nose, mouth, facial features, hair detail, hands, fingers, detailed clothing, fabric folds, embroidery, pattern, silk, gold, dancheong, bright colours, red, orange, heavy saturation, sharp focus, dense detail, photorealistic, photograph, 3d render, cgi, anime, cartoon, chibi, outline glow, sticker edge, white halo, ground, grass, earth, dirt, path, road, rocks, buildings, houses, roofs, trees, foliage, landscape, background scenery, mountains, mist, sky, horizon, shadow disc, oval of ground beneath, hard drop shadow, long cast shadow, black shadow, base plate, diorama base, tabletop, paper texture, parchment grain, vignette, border, frame, text, watermark, signature, numbers, labels, figures touching, overlapping figures, crowd, group, row of identical figures, cropped, cut off</pre>
+    </div>
+  </article>
+
+  <dl class="checks">
+    <div class="check"><dt>Angle</dt><dd>Can you see anyone's face? Reject. You should be looking down onto hats and shoulders.</dd></div>
+    <div class="check"><dt>Density</dt><dd>Anyone painted with fingers, eyes or folds of cloth? Reject — at 25px that becomes a dark smudge, and a dark smudge is exactly the mismatch that killed the first sprite set.</dd></div>
+    <div class="check"><dt>Key</dt><dd>Hold it against <code>valley6 (2).png</code>. Any figure darker or more saturated than the buildings in that painting? Reject.</dd></div>
+    <div class="check"><dt>Isolation</dt><dd>Grass, a basket on the ground, a dog, or a disc of ground under anyone? Reject.</dd></div>
+    <div class="check"><dt>Separation</dt><dd>Any two figures touching or overlapping? Reject — they have to be cut apart.</dd></div>
+    <div class="check"><dt>Shadow</dt><dd>Soft, tight, directly underneath. Offset, hard or long → reject. As with the buildings, the shadow's bottom edge becomes the ground line.</dd></div>
+  </dl>
+
+  <article class="asset">
+    <div class="asset-head">
+      <span class="file">p-walk-b.png</span>
+      <span class="asset-desc">Sheet B — the same eight, right leg forward. This is the second frame of the walk cycle</span>
+      <span class="chip solid">transparent</span>
+      <span class="chip">1024²</span>
+    </div>
+    <div class="specs"><span><b>Start</b> only once A is accepted</span><span><b>Reference</b> sheet A itself</span><span><b>Negative</b> same as A</span><span><b>Change</b> one clause</span></div>
+    <div class="prompt-wrap">
+      <button class="copy" type="button">Copy</button>
+<pre>Every figure is caught mid-stride walking, the right leg clearly forward and the left arm swung forward with it, the body turned slightly to one side.</pre>
+    </div>
+  </article>
+  <p>Paste sheet A's full prompt again with <strong>only that one sentence swapped in</strong> — the eight descriptions in the same left-to-right order, the same two rows, the same sizes, word for word. What matters is that figure 3 on sheet B is recognisably the same farmer as figure 3 on sheet A. If the cast comes back reshuffled or redressed, re-roll B; never renumber A to match it.</p>
+  <div class="callout">
+    <h3>Judging B against A</h3>
+    <p>Flick between the two sheets at 100%. Same eight people, same clothes, same hats, same heights, only the legs and arms changed? Accept. If the two disagree on anything else, the swap reads as a twitch rather than a step — and one sheet used alone with the code bob is then the better fallback.</p>
+    <p><strong>Cut both sheets with the same numbering</strong> — <code>p-01a…p-08a</code> from A, <code>p-01b…p-08b</code> from B, into <code>art/village/people/</code>. Both go through <code>prep.html</code>, and <strong>A and B must trim to the same ground line</strong>: one stray speck under either makes the walker jump on every step.</p>
+  </div>
+</section>
+
+<footer>
+  <span>Seven images · 1024 × 1024 · six transparent, one opaque</span>
+  <span>Plus two villager sheets — step 08</span>
+  <span>Full context: HANDOFF §9e</span>
+</footer>
+
+</div>
+
+<script>
+document.querySelectorAll(".copy").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var pre = btn.parentElement.querySelector("pre");
+    var text = pre.textContent;
+    var done = function (label) {
+      btn.textContent = label;
+      btn.dataset.state = "done";
+      setTimeout(function () {
+        btn.textContent = "Copy";
+        delete btn.dataset.state;
+      }, 1800);
+    };
+    var fallback = function () {
+      var sel = window.getSelection();
+      var range = document.createRange();
+      range.selectNodeContents(pre);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      done(ok ? "Copied" : "Selected — press Ctrl+C");
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done("Copied"); }, fallback);
+    } else {
+      fallback();
+    }
+  });
+});
+</script>

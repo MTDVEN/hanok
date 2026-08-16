@@ -1,0 +1,56 @@
+# ===================================================================
+# What is NOT in this repo, and why.
+#
+# The working folder is ~274MB; this repo is ~30MB. The difference is
+# entirely SOURCE ART MASTERS and regenerable output. Everything needed
+# to build, run, understand and re-derive the site is committed.
+#
+# THE MASTERS ARE NOT BACKED UP BY THIS REPO. They live in the working
+# folder on VEN's machine (and wherever he keeps them). If they matter
+# long-term they want a real backup — Drive, an external disk, a
+# separate LFS repo — because git history is forever and 176MB of PNG
+# and traced SVG in it is a cost every clone pays for good.
+# ===================================================================
+
+# ---- the deployable, rebuilt by `node tools/build.js` --------------
+# Vercel runs that build itself (vercel.json), so a committed copy
+# would only ever be a stale duplicate of the real thing.
+/dist/
+
+# ---- top-level source masters (~176MB) -----------------------------
+# The originals and their traced vector exports. Leading slashes
+# matter: art/village/b-*.png are the SHIPPED sprites and are kept.
+/Background.svg
+/BackgroundPNG.png
+/*.svg
+/Changdeokgung*
+/Gyeongbokgung*
+/Jeonju*
+/Namsangol*
+/b-*.png
+/field-square.png
+/valley*.png
+/valley*
+/hand drawn reference.jpg
+
+# ---- village art that is not the village art -----------------------
+# _fake:        placeholder state plates from the abandoned states
+#               route (HANDOFF §9e). Dead — see §9n.
+# _placeholder: the pre-painting stand-in sprites.
+# alt:          alternative plate treatments, kept for comparison.
+art/village/_fake/
+art/village/_placeholder/
+art/village/alt/
+
+# ---- regenerable tool output ---------------------------------------
+# All of these come back with one command:
+#   node tools/plots.js --want 60      -> plots-debug.png, plots-reject.png
+#   node tools/render.js 60 tools/render.png
+tools/*.png
+
+# ---- local / machine ------------------------------------------------
+.vercel
+.DS_Store
+Thumbs.db
+node_modules/
+.claude/settings.local.json

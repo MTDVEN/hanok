@@ -1,0 +1,10 @@
+# Store text with LF in the repo whatever the checkout platform does,
+# so a file edited on Windows and one edited anywhere else do not show
+# up as a whole-file diff. Binaries are marked so git never tries.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.svg binary
+*.ico binary
+*.webp binary

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HANOK — village plot placer</title>
+<!--
+  DEV TOOL, not part of the site. Keep tools/ out of the deploy folder.
+
+  Drag the buildings onto the base plate, then copy the array at the
+  bottom into PLOTS in js/village.js.
+
+  Why this exists: a plot's x/y/w are fractions of the base plate, so
+  they change completely the moment the real Recraft art replaces the
+  placeholder (different aspect, different terrain, different places a
+  building can plausibly stand). Hand-editing fifteen sets of three
+  numbers against a painting you cannot see is miserable and wrong.
+
+  It draws the village exactly the way the site does — same seeded type
+  assignment, same mirroring, same painter order — so what you arrange
+  here is what ships.
+
+    ?plate=field-wall   place against a different base plate
+    ?seed=STRING        same as the site's ?seed=
+-->
+<style>
+  :root{
+    --paper:#DFCEA5; --ink:#211B11; --line:#8A7C61;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:#2b2721; color:#e8ddc4;
+    font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;
+  }
+  header{
+    position:sticky; top:0; z-index:5; background:#211d18;
+    border-bottom:1px solid #4a4238; padding:10px 14px;
+    display:flex; gap:14px; align-items:center; flex-wrap:wrap;
+  }
+  header b{ color:#fff; font-weight:600; }
+  header .sp{ flex:1; }
+  button{
+    font:inherit; background:#3a342b; color:#e8ddc4; border:1px solid #5b5245;
+    border-radius:4px; padding:4px 10px; cursor:pointer;
+  }
+  button:hover{ background:#4a4238; }
+  kbd{
+    background:#3a342b; border:1px solid #5b5245; border-bottom-width:2px;
+    border-radius:3px; padding:0 4px; color:#fff;
+  }
+  #wrap{ padding:16px; }
+  #stage{
+    position:relative; margin:0 auto; background:var(--paper);
+    box-shadow:0 0 0 1px #5b5245, 0 8px 40px rgba(0,0,0,.5);
+    user-select:none;
+  }
+  #plate{ display:block; width:100%; height:100%; }
+  #plate.miss{ opacity:.15; }
+  .plot{
+    position:absolute; transform:translate(-50%,-100%);
+    transform-origin:50% 100%; cursor:grab;
+  }
+  .plot img{ display:block; width:100%; height:auto; pointer-events:none; }
+  .plot.flip img{ transform:scaleX(-1); }
+  .plot::after{
+    content:attr(data-i); position:absolute; left:50%; top:100%;
+    transform:translate(-50%,2px);
+    font:10px/1 ui-monospace,monospace; color:#211B11;
+    background:rgba(255,255,255,.75); border-radius:8px; padding:2px 5px;
+    pointer-events:none;
+  }
+  .plot .base{
+    position:absolute; left:50%; bottom:0; width:100%; height:0;
+    border-top:1px dashed rgba(33,27,17,.5); transform:translateX(-50%);
+  }
+  .plot.sel{ outline:2px solid #E0B341; outline-offset:3px; cursor:grabbing; }
+  .plot.sel::after{ background:#E0B341; }
+  .rowline{
+    position:absolute; left:0; right:0; height:0;
+    border-top:1px dashed rgba(224,179,65,.35); pointer-events:none;
+  }
+  .rowline span{
+    position:absolute; left:4px; top:-14px; font-size:10px; color:#E0B341;
+  }
+  #out{
+    width:100%; height:230px; margin-top:14px; background:#1b1814;
+    color:#cfe8b8; border:1px solid #4a4238; border-radius:5px;
+    padding:10px; font:12px/1.55 ui-monospace,monospace; resize:vertical;
+  }
+  #note{ margin-top:8px; color:#a89b80; }
+  #note b{ color:#E0B341; }
+</style>
+</head>
+<body>
+
+<header>
+  <b>plot placer</b>
+  <span id="info">—</span>
+  <span class="sp"></span>
+  <button id="bLevel">level rows</button>
+  <button id="bAdd">add plot</button>
+  <button id="bGrid">rows: on</button>
+  <button id="bLoad">load from box</button>
+  <button id="bCopy">copy array</button>
+</header>
+
+<div id="wrap">
+  <div id="stage">
+    <img id="plate" alt="">
+  </div>
+
+  <textarea id="out" spellcheck="false"></textarea>
+  <p id="note">
+    <b>drag</b> to move · <b>wheel</b> resize · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> set row
+    · <kbd>[</kbd><kbd>]</kbd> move earlier/later in build order
+    · <kbd>⌫</kbd> delete · arrows nudge (<kbd>shift</kbd> = 10x)
+    <br>
+    Build order is the array order — plot <b>0</b> is raised first, at $100k.
+    Painter order is computed from y, so a plot raised late can still stand behind one raised early.
+  </p>
+</div>
+
+<script>
+/* ---- the same deterministic choices js/village.js makes ---------- */
+
+/* MUST match TYPES in js/village.js (files, rows, scale) or the
+   placer shows a different village than the site ships. */
+var TYPES = [
+  { file:"b-house.png",    scale:1.0,  rows:[0,1,2] },
+  { file:"b-lhouse.png",   scale:1.35, rows:[1,2]   },
+  { file:"b-pavilion.png", scale:0.95, rows:[0,1,2] },
+  { file:"b-walled.png",   scale:1.5,  rows:[1,2]   },
+  { file:"b-thatch.png",   scale:1.45, rows:[0,1]   },
+  { file:"b-gate.png",     scale:1.1,  rows:[]      }   // pin-only
+];
+
+function qs(k){
+  var m = new RegExp("[?&]" + k + "=([^&]+)").exec(location.search);
+  return m ? decodeURIComponent(m[1]) : null;
+}
+function hash32(s){
+  var h = 2166136261 >>> 0, i;
+  for (i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return h >>> 0;
+}
+function rnd(seed){
+  var t = (seed + 0x6D2B79F5) >>> 0;
+  t = Math.imul(t ^ (t >>> 15), t | 1) >>> 0;
+  t = (t ^ (t + Math.imul(t ^ (t >>> 7), t | 61))) >>> 0;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+var SEED = hash32(qs("seed") || "hanok");
+
+function assign(){
+  var order = PLOTS.map(function(_, i){ return i; }).sort(function(a, b){
+    return PLOTS[a].row - PLOTS[b].row || PLOTS[a].x - PLOTS[b].x;
+  });
+  var out = [], prev = null, prevRow = -1;
+  order.forEach(function(i){
+    if (PLOTS[i].pin){
+      var pinned = TYPES.filter(function(t){ return t.file === PLOTS[i].pin; })[0];
+      if (pinned){ out[i] = pinned; return; }
+    }
+    var ok = TYPES.filter(function(t){ return t.rows.indexOf(PLOTS[i].row) >= 0; });
+    if (!ok.length) ok = TYPES.filter(function(t){ return t.rows.length; });
+    var at = Math.floor(rnd(SEED ^ Math.imul(i + 1, 2654435761)) * ok.length) % ok.length;
+    if (ok.length > 1 && PLOTS[i].row === prevRow && ok[at] === prev) at = (at + 1) % ok.length;
+    out[i] = ok[at];
+    prev = ok[at]; prevRow = PLOTS[i].row;
+  });
+  return out;
+}
+function flipped(i){ return rnd(SEED ^ Math.imul(i + 101, 40503)) < 0.45; }
+
+/* ---- starting positions ----------------------------------------- */
+/* Paste the live array from js/village.js into the box and hit
+   "load from box" to edit what is actually shipping.
+
+   Coordinates are in the SQUARE MASTER's space (field-square.png),
+   exactly as js/village.js stores them; the crop table below remaps
+   for whichever band is being displayed. MUST match PLATE_CROP in
+   js/village.js. */
+
+var PLATE_CROP = {
+  "field":        [0.410, 1],
+  "field-tall":   [0.195, 1],
+  "field-wide":   [0.547, 1],
+  "field-square": [0, 1]
+};
+var CROP = PLATE_CROP[(qs("plate") || "field")] || [0, 1];
+function toPlate(y){ return (y - CROP[0]) / (CROP[1] - CROP[0]); }
+function toMaster(y){ return CROP[0] + y * (CROP[1] - CROP[0]); }
+
+var PLOTS = [
+  { x:.585, y:.670, w:.095, row:1 },
+  { x:.500, y:.845, w:.110, row:2, pin:"b-gate.png" },
+  { x:.440, y:.663, w:.095, row:1 },
+  { x:.360, y:.810, w:.125, row:2 },
+  { x:.570, y:.585, w:.070, row:0 },
+  { x:.650, y:.815, w:.125, row:2 },
+  { x:.300, y:.677, w:.095, row:1 },
+  { x:.460, y:.578, w:.070, row:0 },
+  { x:.728, y:.688, w:.095, row:1 },
+  { x:.225, y:.835, w:.125, row:2 },
+  { x:.345, y:.592, w:.070, row:0 },
+  { x:.212, y:.712, w:.090, row:1 },
+  { x:.660, y:.598, w:.070, row:0 },
+  { x:.770, y:.800, w:.115, row:2 },
+  { x:.620, y:.573, w:.070, row:0 },
+  { x:.395, y:.738, w:.100, row:1 },
+  { x:.545, y:.712, w:.095, row:1 },
+  { x:.408, y:.607, w:.072, row:0 },
+  { x:.302, y:.772, w:.115, row:2 },
+  { x:.700, y:.760, w:.110, row:2 }
+];
+
+/* ---- wiring ----------------------------------------------------- */
+
+var stage = document.getElementById("stage"),
+    plate = document.getElementById("plate"),
+    out   = document.getElementById("out"),
+    info  = document.getElementById("info"),
+    sel   = 0, showRows = true, drag = null;
+
+var BASE = (qs("plate") || "field") + ".png";
+plate.onerror = function(){
+  plate.classList.add("miss");
+  stage.style.aspectRatio = "900 / 380";
+  info.textContent = "art/village/" + BASE + " missing — placing on a blank field";
+  draw();
+};
+plate.onload = function(){
+  stage.style.aspectRatio = plate.naturalWidth + " / " + plate.naturalHeight;
+  info.textContent = BASE + "  " + plate.naturalWidth + "x" + plate.naturalHeight;
+  fit();
+  draw();
+};
+plate.src = "../art/village/" + BASE;
+
+/* Fit the whole plate on screen. You cannot judge where a building
+   stands while scrolling past half the field. */
+function fit(){
+  var ar = (plate.naturalWidth && plate.naturalHeight)
+         ? plate.naturalWidth / plate.naturalHeight : 900 / 380;
+  var w = Math.min(window.innerWidth - 32, 1500, (window.innerHeight - 330) * ar);
+  stage.style.width = Math.max(420, w) + "px";
+}
+window.addEventListener("resize", fit);
+fit();
+
+function rowY(r){
+  var ys = PLOTS.filter(function(p){ return p.row === r; }).map(function(p){ return p.y; });
+  return ys.length ? ys.reduce(function(a, b){ return a + b; }, 0) / ys.length : null;
+}
+
+function draw(){
+  var chosen = assign();
+  Array.prototype.slice.call(stage.querySelectorAll(".plot,.rowline"))
+    .forEach(function(n){ n.remove(); });
+
+  if (showRows){
+    [0, 1, 2].forEach(function(r){
+      var y = rowY(r);
+      if (y === null) return;
+      var l = document.createElement("div");
+      l.className = "rowline";
+      l.style.top = (toPlate(y) * 100) + "%";
+      l.innerHTML = "<span>row " + r + "</span>";
+      stage.appendChild(l);
+    });
+  }
+
+  PLOTS.map(function(_, i){ return i; })
+    .sort(function(a, b){ return PLOTS[a].y - PLOTS[b].y; })
+    .forEach(function(i){
+      var p = PLOTS[i], d = document.createElement("div");
+      d.className = "plot" + (i === sel ? " sel" : "") + (flipped(i) ? " flip" : "");
+      d.style.left  = (p.x * 100) + "%";
+      d.style.top   = (toPlate(p.y) * 100) + "%";
+      d.style.width = (p.w * (chosen[i].scale || 1) * 100) + "%";
+      d.setAttribute("data-i", i);
+      d.innerHTML = '<img src="../art/village/' + chosen[i].file + '" alt=""><i class="base"></i>';
+      d.addEventListener("mousedown", function(e){
+        e.preventDefault();
+        sel = i;
+        var r = stage.getBoundingClientRect();
+        drag = { i: i, dx: p.x - (e.clientX - r.left) / r.width,
+                       dy: toPlate(p.y) - (e.clientY - r.top) / r.height };
+        draw();
+      });
+      stage.appendChild(d);
+    });
+
+  emit();
+}
+
+window.addEventListener("mousemove", function(e){
+  if (!drag) return;
+  var r = stage.getBoundingClientRect(), p = PLOTS[drag.i];
+  p.x = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width + drag.dx));
+  p.y = toMaster(Math.max(0, Math.min(1, (e.clientY - r.top) / r.height + drag.dy)));
+  place();
+});
+window.addEventListener("mouseup", function(){
+  if (drag){ drag = null; draw(); }
+});
+
+/* move only, without rebuilding the DOM — keeps dragging smooth */
+function place(){
+  var chosen = assign();
+  Array.prototype.slice.call(stage.querySelectorAll(".plot")).forEach(function(d){
+    var i = +d.getAttribute("data-i"), p = PLOTS[i];
+    d.style.left = (p.x * 100) + "%";
+    d.style.top  = (toPlate(p.y) * 100) + "%";
+    d.style.width = (p.w * (chosen[i].scale || 1) * 100) + "%";
+  });
+  emit();
+}
+
+stage.addEventListener("wheel", function(e){
+  if (!PLOTS[sel]) return;
+  e.preventDefault();
+  PLOTS[sel].w = Math.max(.02, Math.min(.6, PLOTS[sel].w * (e.deltaY > 0 ? .96 : 1.042)));
+  place();
+}, { passive: false });
+
+window.addEventListener("keydown", function(e){
+  var p = PLOTS[sel];
+  if (document.activeElement === out) return;
+  var step = (e.shiftKey ? .01 : .001);
+  if (e.key === "ArrowLeft"  && p){ p.x -= step; place(); e.preventDefault(); }
+  else if (e.key === "ArrowRight" && p){ p.x += step; place(); e.preventDefault(); }
+  else if (e.key === "ArrowUp"    && p){ p.y -= step; place(); e.preventDefault(); }
+  else if (e.key === "ArrowDown"  && p){ p.y += step; place(); e.preventDefault(); }
+  else if (e.key === "1" && p){ p.row = 0; draw(); }
+  else if (e.key === "2" && p){ p.row = 1; draw(); }
+  else if (e.key === "3" && p){ p.row = 2; draw(); }
+  else if (e.key === "[" && sel > 0){
+    PLOTS.splice(sel - 1, 0, PLOTS.splice(sel, 1)[0]); sel--; draw();
+  }
+  else if (e.key === "]" && sel < PLOTS.length - 1){
+    PLOTS.splice(sel + 1, 0, PLOTS.splice(sel, 1)[0]); sel++; draw();
+  }
+  else if (e.key === "Backspace" || e.key === "Delete"){
+    if (PLOTS.length > 1){ PLOTS.splice(sel, 1); sel = Math.max(0, sel - 1); draw(); }
+  }
+});
+
+document.getElementById("bAdd").onclick = function(){
+  var p = PLOTS[sel] || { x:.5, y:.7, w:.17, row:1 };
+  PLOTS.push({ x: Math.min(.95, p.x + .06), y: p.y, w: p.w, row: p.row });
+  sel = PLOTS.length - 1;
+  draw();
+};
+document.getElementById("bGrid").onclick = function(){
+  showRows = !showRows;
+  this.textContent = "rows: " + (showRows ? "on" : "off");
+  draw();
+};
+/* Snap every plot in a row onto that row's mean ground line. Buildings
+   in one depth band must share a ground line or the perspective reads
+   as broken — much easier to enforce with a button than by eye. */
+document.getElementById("bLevel").onclick = function(){
+  [0, 1, 2].forEach(function(r){
+    var y = rowY(r);
+    if (y === null) return;
+    PLOTS.forEach(function(p){ if (p.row === r) p.y = y; });
+  });
+  draw();
+};
+document.getElementById("bLoad").onclick = function(){
+  try {
+    var txt = out.value.trim().replace(/^var\s+PLOTS\s*=\s*/, "").replace(/;\s*$/, "");
+    var v = JSON.parse(txt.replace(/(\w+)\s*:/g, '"$1":').replace(/,\s*([\]}])/g, "$1"));
+    if (!Array.isArray(v) || !v.length) throw new Error("not an array of plots");
+    PLOTS = v.map(function(p){
+      var o = { x:+p.x, y:+p.y, w:+p.w, row: p.row | 0 };
+      if (p.pin) o.pin = String(p.pin);
+      return o;
+    });
+    sel = 0;
+    draw();
+  } catch (err){
+    info.textContent = "could not parse: " + err.message;
+  }
+};
+document.getElementById("bCopy").onclick = function(){
+  out.select();
+  document.execCommand("copy");
+  info.textContent = "copied " + PLOTS.length + " plots";
+};
+
+function emit(){
+  var w = Math.max.apply(null, PLOTS.map(function(p){ return p.w.toFixed(3).length; }));
+  out.value = "var PLOTS = [\n" + PLOTS.map(function(p, i){
+    return "    { x: " + p.x.toFixed(3).replace(/^0/, "") +
+           ", y: " + p.y.toFixed(3).replace(/^0/, "") +
+           ", w: " + p.w.toFixed(3).replace(/^0/, "").padEnd(w - 1) +
+           ", row: " + p.row +
+           (p.pin ? ', pin: "' + p.pin + '"' : "") + " }" +
+           (i < PLOTS.length - 1 ? "," : "") +
+           "   // built " + (i + 1) + (i === 0 ? "st" : i === 1 ? "nd" : i === 2 ? "rd" : "th");
+  }).join("\n") + "\n  ];";
+  info.textContent = PLOTS.length + " plots · selected " + sel;
+}
+
+draw();
+</script>
+</body>
+</html>

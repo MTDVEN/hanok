@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HANOK — village art prep</title>
+<!--
+  DEV TOOL, not part of the site. Keep tools/ out of the deploy folder.
+
+  Drop the raw Recraft exports here. It keys out the background, trims to
+  the building, and saves it with the right filename — so nothing has to
+  be cropped by hand.
+
+  Why the trim matters: js/village.js anchors a building by its
+  BOTTOM-CENTRE, so a plot's y is the ground line. A building floating in
+  the middle of a 1024x1024 export would stand a quarter of the way up in
+  the air. A tight crop makes the bottom edge the ground line, which is
+  the only contract the engine has.
+
+  The keying floods in from the BORDER rather than removing every pixel
+  that matches the background colour. A hanok's hanji walls are nearly
+  parchment-coloured; a global colour key eats them and leaves a
+  building with holes punched through it.
+-->
+<style>
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:#2b2721; color:#e8ddc4;
+    font:13px/1.6 ui-monospace,Menlo,Consolas,monospace;
+  }
+  header{
+    position:sticky; top:0; z-index:5; background:#211d18;
+    border-bottom:1px solid #4a4238; padding:12px 16px;
+    display:flex; gap:18px; align-items:center; flex-wrap:wrap;
+  }
+  header b{ color:#fff; }
+  .sp{ flex:1; }
+  label{ display:flex; gap:7px; align-items:center; color:#a89b80; }
+  input[type=range]{ width:120px; }
+  button{
+    font:inherit; background:#3a342b; color:#e8ddc4; border:1px solid #5b5245;
+    border-radius:4px; padding:5px 11px; cursor:pointer;
+  }
+  button:hover{ background:#4a4238; }
+  button.go{ background:#5b6a3f; border-color:#7d8f5b; color:#fff; }
+  #drop{
+    margin:16px; padding:44px; border:2px dashed #5b5245; border-radius:8px;
+    text-align:center; color:#a89b80;
+  }
+  #drop.hot{ border-color:#E0B341; color:#E0B341; background:#332e26; }
+  #cards{ display:flex; flex-wrap:wrap; gap:14px; padding:0 16px 40px; }
+  .card{
+    background:#211d18; border:1px solid #4a4238; border-radius:7px;
+    padding:11px; width:290px;
+  }
+  .card h3{ margin:0 0 8px; font-size:12px; color:#a89b80; font-weight:400;
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .shot{
+    background:#DFCEA5
+      repeating-conic-gradient(rgba(0,0,0,.05) 0 25%, transparent 0 50%) 0 0/16px 16px;
+    border-radius:4px; display:flex; align-items:flex-end; justify-content:center;
+    height:200px; overflow:hidden;
+  }
+  .shot canvas{ max-width:100%; max-height:200px; display:block; }
+  .row{ display:flex; gap:7px; align-items:center; margin-top:9px; }
+  select{
+    font:inherit; background:#3a342b; color:#e8ddc4; border:1px solid #5b5245;
+    border-radius:4px; padding:4px; flex:1;
+  }
+  .meta{ color:#7e735f; font-size:11px; margin-top:6px; }
+  .warn{ color:#E0B341; }
+  #help{ padding:0 16px 30px; color:#a89b80; max-width:900px; }
+  #help b{ color:#E0B341; }
+  code{ background:#1b1814; padding:1px 5px; border-radius:3px; color:#cfe8b8; }
+</style>
+</head>
+<body>
+
+<header>
+  <b>art prep</b>
+  <label>key strength <input type="range" id="tol" min="4" max="140" value="46"></label>
+  <label>edge softness <input type="range" id="feather" min="0" max="4" value="1"></label>
+  <label><input type="checkbox" id="autokey" checked> key out background</label>
+  <span class="sp"></span>
+  <button id="all" class="go">save all</button>
+  <button id="clear">clear</button>
+</header>
+
+<div id="drop">
+  Drop the Recraft exports here — the base plate and the six buildings, all at once is fine.
+  <br><span style="color:#7e735f">PNG, JPG or WebP. Nothing is uploaded anywhere; this runs entirely in your browser.</span>
+</div>
+
+<div id="cards"></div>
+
+<div id="help">
+  <p><b>What this does.</b> For a building: floods the background away from
+  the outside edge, softens the cut, then crops tight so the building
+  stands on the bottom edge of its own file. For the base plate: leaves it
+  alone apart from a downscale if it is enormous.</p>
+  <p><b>Then:</b> hit <b>save all</b> and move the files from your Downloads
+  folder into <code>art/village/</code>, replacing the placeholders.</p>
+  <p><b>If a building comes out with holes in it</b>, its walls are too
+  close to the background colour — drag <b>key strength</b> down. <b>If a
+  halo of background survives around it</b>, drag key strength up. The
+  preview updates live.</p>
+  <p><b>If your export already has a transparent background</b>, that is
+  detected and the keying is skipped automatically.</p>
+</div>
+
+<script>
+var NAMES = [
+  ["field.png",       "base plate — the valley"],
+  ["field-wall.png",  "base plate — walled variant"],
+  ["b-house.png",     "building — house"],
+  ["b-lhouse.png",    "building — L-shaped house"],
+  ["b-pavilion.png",  "building — pavilion"],
+  ["b-walled.png",    "building — walled house"],
+  ["b-thatch.png",    "building — thatched farmhouse"],
+  ["b-gate.png",      "building — gate pavilion"]
+];
+
+var cards = [], used = 0;
+var $ = function(id){ return document.getElementById(id); };
+
+/* ---- image work -------------------------------------------------- */
+
+function hasRealAlpha(px){
+  /* any meaningfully transparent pixel anywhere in the border ring means
+     the export already carries alpha and must not be keyed again */
+  for (var i = 3; i < px.length; i += 4) if (px[i] < 240) return true;
+  return false;
+}
+
+/* Flood the background inwards from every border pixel. Only what is
+   CONNECTED to the outside is removed, so pale interior walls survive. */
+function keyBorder(px, w, h, tol){
+  var r = 0, g = 0, b = 0, n = 0, x, y, p, i;
+  for (x = 0; x < w; x++){
+    [0, h - 1].forEach(function(yy){
+      p = (yy * w + x) * 4; r += px[p]; g += px[p+1]; b += px[p+2]; n++;
+    });
+  }
+  for (y = 0; y < h; y++){
+    [0, w - 1].forEach(function(xx){
+      p = (y * w + xx) * 4; r += px[p]; g += px[p+1]; b += px[p+2]; n++;
+    });
+  }
+  r /= n; g /= n; b /= n;
+
+  var seen = new Uint8Array(w * h), stack = [];
+  function push(sx, sy){
+    if (sx < 0 || sy < 0 || sx >= w || sy >= h) return;
+    var idx = sy * w + sx;
+    if (seen[idx]) return;
+    seen[idx] = 1;
+    var q = idx * 4;
+    if (Math.abs(px[q] - r) + Math.abs(px[q+1] - g) + Math.abs(px[q+2] - b) <= tol){
+      px[q + 3] = 0;
+      stack.push(sx, sy);
+    }
+  }
+  for (x = 0; x < w; x++){ push(x, 0); push(x, h - 1); }
+  for (y = 0; y < h; y++){ push(0, y); push(w - 1, y); }
+  while (stack.length){
+    y = stack.pop(); x = stack.pop();
+    push(x + 1, y); push(x - 1, y); push(x, y + 1); push(x, y - 1);
+  }
+}
+
+/* separable box blur on the alpha channel only — softens the cut so the
+   building does not read as a sticker with a scissored edge */
+function featherAlpha(px, w, h, rad){
+  if (rad < 1) return;
+  var a = new Float32Array(w * h), t = new Float32Array(w * h), i, x, y, s, c, k;
+  for (i = 0; i < w * h; i++) a[i] = px[i * 4 + 3];
+  for (y = 0; y < h; y++){
+    for (x = 0; x < w; x++){
+      s = 0; c = 0;
+      for (k = -rad; k <= rad; k++){
+        if (x + k >= 0 && x + k < w){ s += a[y * w + x + k]; c++; }
+      }
+      t[y * w + x] = s / c;
+    }
+  }
+  for (x = 0; x < w; x++){
+    for (y = 0; y < h; y++){
+      s = 0; c = 0;
+      for (k = -rad; k <= rad; k++){
+        if (y + k >= 0 && y + k < h){ s += t[(y + k) * w + x]; c++; }
+      }
+      px[(y * w + x) * 4 + 3] = s / c;
+    }
+  }
+}
+
+function bbox(px, w, h){
+  var x0 = w, y0 = h, x1 = -1, y1 = -1, x, y, a;
+  for (y = 0; y < h; y++){
+    for (x = 0; x < w; x++){
+      a = px[(y * w + x) * 4 + 3];
+      if (a > 10){
+        if (x < x0) x0 = x;
+        if (x > x1) x1 = x;
+        if (y < y0) y0 = y;
+        if (y > y1) y1 = y;
+      }
+    }
+  }
+  return x1 < 0 ? null : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
+
+function build(card){
+  var img = card.img, isPlate = card.name.indexOf("field") === 0;
+  var w = img.naturalWidth, h = img.naturalHeight, scale = 1;
+
+  if (isPlate){
+    /* leave the plate alone; just cap it so a 4k export is not shipped */
+    scale = Math.min(1, 2048 / w);
+    var pc = document.createElement("canvas");
+    pc.width = Math.round(w * scale); pc.height = Math.round(h * scale);
+    pc.getContext("2d").drawImage(img, 0, 0, pc.width, pc.height);
+    card.out = pc;
+    card.note = pc.width + "x" + pc.height + (scale < 1 ? " (downscaled)" : " (unchanged)");
+    return;
+  }
+
+  var c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  var ctx = c.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0);
+  var id = ctx.getImageData(0, 0, w, h), px = id.data;
+
+  var already = hasRealAlpha(px);
+  if (!already && $("autokey").checked) keyBorder(px, w, h, +$("tol").value);
+  featherAlpha(px, w, h, +$("feather").value);
+  ctx.putImageData(id, 0, 0);
+
+  var bb = bbox(px, w, h);
+  if (!bb){
+    card.out = null;
+    card.note = "nothing left after keying — turn key strength down";
+    card.warn = true;
+    return;
+  }
+
+  var o = document.createElement("canvas");
+  o.width = bb.w; o.height = bb.h;
+  o.getContext("2d").drawImage(c, bb.x, bb.y, bb.w, bb.h, 0, 0, bb.w, bb.h);
+  card.out = o;
+  card.warn = false;
+  card.note = bb.w + "x" + bb.h + " · trimmed from " + w + "x" + h +
+              (already ? " · already transparent, not keyed" : "");
+}
+
+/* ---- ui ---------------------------------------------------------- */
+
+function render(){
+  var host = $("cards");
+  host.innerHTML = "";
+  cards.forEach(function(card, i){
+    build(card);
+    var d = document.createElement("div");
+    d.className = "card";
+    d.innerHTML =
+      '<h3>' + card.file.name + '</h3>' +
+      '<div class="shot"></div>' +
+      '<div class="row"><select></select><button>save</button></div>' +
+      '<div class="meta' + (card.warn ? " warn" : "") + '">' + card.note + '</div>';
+    var shot = d.querySelector(".shot");
+    if (card.out) shot.appendChild(card.out);
+
+    var sel = d.querySelector("select");
+    NAMES.forEach(function(nm){
+      var o = document.createElement("option");
+      o.value = nm[0];
+      o.textContent = nm[0] + "  ·  " + nm[1];
+      if (nm[0] === card.name) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.onchange = function(){ card.name = sel.value; render(); };
+    d.querySelector("button").onclick = function(){ save(card); };
+    host.appendChild(d);
+  });
+}
+
+function save(card){
+  if (!card.out) return;
+  card.out.toBlob(function(blob){
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = card.name;
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+  }, "image/png");
+}
+
+function add(files){
+  Array.prototype.forEach.call(files, function(f){
+    if (!/^image\//.test(f.type)) return;
+    var img = new Image();
+    img.onload = function(){
+      /* guess the slot from the filename, else take the next unused one */
+      var guess = null, low = f.name.toLowerCase();
+      NAMES.forEach(function(nm){
+        var stem = nm[0].replace(/^b-|\.png$/g, "");
+        if (!guess && low.indexOf(stem) >= 0) guess = nm[0];
+      });
+      cards.push({ file: f, img: img, name: guess || NAMES[Math.min(used++, NAMES.length - 1)][0] });
+      render();
+    };
+    img.src = URL.createObjectURL(f);
+  });
+}
+
+var drop = $("drop");
+["dragenter", "dragover"].forEach(function(e){
+  drop.addEventListener(e, function(ev){ ev.preventDefault(); drop.classList.add("hot"); });
+});
+["dragleave", "drop"].forEach(function(e){
+  drop.addEventListener(e, function(ev){ ev.preventDefault(); drop.classList.remove("hot"); });
+});
+drop.addEventListener("drop", function(ev){ add(ev.dataTransfer.files); });
+drop.addEventListener("click", function(){
+  var inp = document.createElement("input");
+  inp.type = "file"; inp.multiple = true; inp.accept = "image/*";
+  inp.onchange = function(){ add(inp.files); };
+  inp.click();
+});
+document.addEventListener("dragover", function(e){ e.preventDefault(); });
+document.addEventListener("drop", function(e){ e.preventDefault(); });
+
+$("tol").oninput = $("feather").oninput = $("autokey").onchange = render;
+$("all").onclick = function(){ cards.forEach(function(c, i){ setTimeout(function(){ save(c); }, i * 350); }); };
+$("clear").onclick = function(){ cards = []; used = 0; render(); };
+</script>
+</body>
+</html>

@@ -1,0 +1,787 @@
+<title>Raising the Village</title>
+
+<style>
+:root{
+  --paper:#DFCEA5;
+  --ink:#211B11;
+  --ink-soft:#4E4636;
+  --ink-faint:#8A7C61;
+  --pine:#5C6648;
+  --seal:#8E4A38;
+
+  --ground:#EFE3C4;
+  --surface:#F6EDD6;
+  --surface-sunk:#E4D5AE;
+  --rule:rgba(33,27,17,.18);
+  --rule-soft:rgba(33,27,17,.09);
+  --text:var(--ink);
+  --text-dim:var(--ink-soft);
+  --text-faint:var(--ink-faint);
+  --accent:var(--pine);
+  --accent-ink:#3F4732;
+  --warn:var(--seal);
+  --shadow:0 1px 0 rgba(33,27,17,.06);
+
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono","Cascadia Mono","Segoe UI Mono",Menlo,Consolas,monospace;
+}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#15120B;
+    --surface:#1D190F;
+    --surface-sunk:#100E08;
+    --rule:rgba(223,206,165,.20);
+    --rule-soft:rgba(223,206,165,.10);
+    --text:#E7DABA;
+    --text-dim:#B7A883;
+    --text-faint:#8A7C61;
+    --accent:#93A173;
+    --accent-ink:#B3BF95;
+    --warn:#B96A54;
+    --shadow:0 1px 0 rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#15120B;
+  --surface:#1D190F;
+  --surface-sunk:#100E08;
+  --rule:rgba(223,206,165,.20);
+  --rule-soft:rgba(223,206,165,.10);
+  --text:#E7DABA;
+  --text-dim:#B7A883;
+  --text-faint:#8A7C61;
+  --accent:#93A173;
+  --accent-ink:#B3BF95;
+  --warn:#B96A54;
+  --shadow:0 1px 0 rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--text);
+  font-family:var(--serif);
+  font-size:17px;
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+
+.wrap{
+  max-width:920px;
+  margin:0 auto;
+  padding:0 28px 120px;
+  display:flex;
+  flex-direction:column;
+  gap:52px;
+}
+
+/* ---------- masthead ---------- */
+
+.masthead{padding:72px 0 0;display:flex;flex-direction:column;gap:22px}
+.seal{
+  width:44px;height:44px;
+  display:grid;place-items:center;
+  border:1.5px solid var(--warn);
+  color:var(--warn);
+  border-radius:3px;
+  font-size:22px;line-height:1;
+  user-select:none;
+}
+h1{
+  margin:0;
+  font-size:clamp(36px,5.6vw,56px);
+  line-height:1.05;
+  font-weight:400;
+  letter-spacing:-.015em;
+  text-wrap:balance;
+}
+h1 em{font-style:italic;color:var(--text-dim)}
+.standfirst{margin:0;max-width:62ch;font-size:19px;color:var(--text-dim);text-wrap:pretty}
+
+.facts{
+  display:flex;flex-wrap:wrap;gap:0;
+  border-top:1px solid var(--rule);
+  border-bottom:1px solid var(--rule);
+  margin-top:6px;
+}
+.fact{flex:1 1 160px;padding:14px 20px 14px 0;display:flex;flex-direction:column;gap:3px}
+.fact + .fact{padding-left:20px;border-left:1px solid var(--rule-soft)}
+.fact dt{
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--text-faint);
+}
+.fact dd{margin:0;font-size:16px;color:var(--text);font-variant-numeric:tabular-nums}
+
+/* ---------- sections ---------- */
+
+section{display:flex;flex-direction:column;gap:20px}
+
+.sec-head{
+  display:flex;align-items:baseline;gap:14px;
+  border-bottom:2px solid var(--text);
+  padding-bottom:8px;
+}
+.sec-num{
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+  color:var(--accent);padding-top:2px;white-space:nowrap;
+}
+h2{margin:0;font-size:26px;font-weight:400;letter-spacing:-.01em;flex:1}
+.sec-note{
+  font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--text-faint);text-align:right;
+}
+h3{margin:0;font-size:19px;font-weight:400}
+
+p{margin:0;max-width:70ch;text-wrap:pretty}
+p + p{margin-top:-6px}
+strong{font-weight:600}
+
+code{
+  font-family:var(--mono);font-size:.86em;
+  background:var(--surface-sunk);
+  border:1px solid var(--rule-soft);
+  border-radius:2px;padding:1px 5px;white-space:nowrap;
+}
+
+/* ---------- state of play ---------- */
+
+.state{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:1px;background:var(--rule-soft);
+  border:1px solid var(--rule);
+}
+.state > div{background:var(--surface);padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.state dt{
+  font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--text-faint);
+}
+.state dd{margin:0;font-size:15.5px;color:var(--text-dim);line-height:1.5}
+.state dd b{color:var(--text);font-weight:600}
+
+/* ---------- steps ---------- */
+
+.steps{display:flex;flex-direction:column;gap:1px;background:var(--rule-soft);border:1px solid var(--rule)}
+.step{
+  background:var(--surface);
+  display:grid;
+  grid-template-columns:64px 1fr;
+  gap:0 18px;
+  padding:18px 20px;
+  align-items:start;
+}
+.step-n{
+  font-family:var(--mono);font-size:12px;letter-spacing:.04em;
+  color:var(--accent-ink);padding-top:3px;font-variant-numeric:tabular-nums;
+}
+.step-body{display:flex;flex-direction:column;gap:8px;min-width:0}
+.step-title{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px}
+.step-title h4{margin:0;font-size:17.5px;font-weight:600;letter-spacing:-.005em}
+.step-body p{font-size:15.5px;color:var(--text-dim);max-width:64ch}
+.step-body p b{color:var(--text)}
+.step-body ul{
+  margin:0;padding-left:19px;display:flex;flex-direction:column;gap:5px;
+  font-size:15.5px;color:var(--text-dim);max-width:64ch;
+}
+.step-body li::marker{color:var(--text-faint)}
+.step-body code{font-size:.82em}
+
+.who{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;border:1px solid var(--rule);border-radius:99px;
+  padding:2px 8px;color:var(--text-faint);white-space:nowrap;
+}
+.who.ven{border-color:var(--accent);color:var(--accent-ink)}
+.who.stop{border-color:var(--warn);color:var(--warn)}
+
+/* ---------- gate ---------- */
+
+.gate{
+  border:1px solid var(--rule);
+  border-left:3px solid var(--warn);
+  background:var(--surface);
+  padding:20px 24px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.gate-label{
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--warn);
+}
+.gate ul{margin:0;padding-left:19px;display:flex;flex-direction:column;gap:6px;max-width:66ch}
+.gate li::marker{color:var(--text-faint)}
+
+/* ---------- callout ---------- */
+
+.callout{
+  background:var(--surface);border:1px solid var(--rule);
+  border-left:3px solid var(--accent);
+  padding:20px 24px;display:flex;flex-direction:column;gap:11px;
+}
+.callout.warn{border-left-color:var(--warn)}
+.callout ul{margin:0;padding-left:19px;display:flex;flex-direction:column;gap:6px;max-width:66ch}
+.callout li::marker{color:var(--text-faint)}
+
+/* ---------- tables ---------- */
+
+.tbl-scroll{overflow-x:auto;border:1px solid var(--rule);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:15px}
+th,td{text-align:left;padding:10px 16px;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{
+  font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--text-faint);font-weight:400;
+  background:var(--surface-sunk);
+}
+tbody tr:last-child td{border-bottom:0}
+td code{background:transparent;border:0;padding:0}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ---------- code block ---------- */
+
+pre{
+  margin:0;padding:18px 20px;
+  background:var(--surface);border:1px solid var(--rule);
+  font-family:var(--mono);font-size:12.5px;line-height:1.66;
+  overflow-x:auto;color:var(--text);
+}
+pre b{color:var(--accent-ink);font-weight:600}
+
+footer{
+  border-top:1px solid var(--rule);padding-top:20px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+  color:var(--text-faint);display:flex;flex-wrap:wrap;gap:8px 20px;
+}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  .wrap{padding:0 18px 80px;gap:40px}
+  .masthead{padding-top:48px}
+  .fact + .fact{padding-left:14px}
+  .sec-head{flex-wrap:wrap;gap:6px 12px}
+  .sec-note{text-align:left;flex-basis:100%}
+  .step{grid-template-columns:1fr;gap:8px}
+  .step-n{padding-top:0}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important}
+}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="seal" aria-hidden="true">韓</div>
+  <h1>Raising the village, then <em>filling it with life</em></h1>
+  <p class="standfirst">The whole remaining build for the village section: one roof per $100k of market cap, then villagers walking the lanes, birds over the ridge, and Z's rising from the houses where someone is asleep. <b>Phase 1 is built and standing</b> — 60 plots and ten buildings, verified in Chrome. What is left is the life in it.</p>
+  <dl class="facts">
+    <div class="fact"><dt>Blocked on</dt><dd>2 walk sheets</dd></div>
+    <div class="fact"><dt>Needs no art</dt><dd>birds · sleeping Z's <b>(built)</b></dd></div>
+    <div class="fact"><dt>New tooling</dt><dd>1 mode in place.html</dd></div>
+    <div class="fact"><dt>Design direction</dt><dd>settled — don't reopen</dd></div>
+  </dl>
+  <p class="standfirst" style="margin-top:1.1em"><b>The images are made on OpenArt, not Recraft.</b> Everywhere below that says Recraft means OpenArt — model <code>nano-banana-2</code>, <code>image2image</code>, no transparency toggle (<code>tools/cutout.js</code> keys it) and no negative field (fold them in as “Avoid entirely: …”). See HANDOFF §9h.</p>
+</header>
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">STATE</span>
+    <h2>Where this actually stands</h2>
+    <span class="sec-note">2026-08-14</span>
+  </div>
+  <dl class="state">
+    <div>
+      <dt>Already built</dt>
+      <dd>The <b>market-cap → roofs engine</b>. Seeded assignment, rise-in animation, four verified failure paths, stats and the “next roof at $X” line. It has never been the blocker.</dd>
+    </div>
+    <div>
+      <dt>Blocking everything</dt>
+      <dd><b>Nine images.</b> One valley plate, six transparent buildings, two villager walk sheets. All nine prompts are written and tuned.</dd>
+    </div>
+    <div>
+      <dt>Costs no art at all</dt>
+      <dd><b>The birds.</b> Two ink strokes drawn in code. They can be built and judged before a single new file lands.</dd>
+    </div>
+  </dl>
+  <p>Nothing below asks for a design decision that hasn't already been made. The one thing that genuinely cannot be skipped or guessed is <b>step 1.4</b> — placing the plots onto the new plate.</p>
+</section>
+
+<!-- ============================================================ -->
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">PHASE 1</span>
+    <h2>The valley and the houses</h2>
+    <span class="sec-note">one roof per $100k</span>
+  </div>
+  <p>This is the feature Zico briefed: a Clash-of-Clans field that gains a hanok every $100k. The engine exists; this phase is art, ingestion, placement and tuning.</p>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-n">1.1</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Build the Recraft style</h4><span class="who ven">VEN</span></div>
+        <p>From <code>art/village/ref/*.png</code> and <b>nothing else</b> — the six buildings cut out of <code>valley6 (2).png</code>, the painting already approved. Adding <code>hand drawn reference.jpg</code> or the journey paintings is precisely what broke the first sprite set: those are close-up, near-eye-level studies, and the sprites came back as faithful reproductions of them.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">1.2</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Generate the plate, then the six buildings</h4><span class="who ven">VEN</span></div>
+        <p>Prompts and accept/reject gates: <code>art/village/PROMPTS.md</code>, steps 01–03. Plate is <b>image-to-image from <code>valley0.png</code>, transparency off</b>. Buildings are transparent, one at a time, each with its <code>ref-*.png</code> attached as an image reference — that is what holds the viewing angle, not the wording. <code>b-walled</code> last, referencing the accepted <code>b-lhouse</code>.</p>
+        <p>Reject on: any visible soffit or bracket set; tile-by-tile roofs; anything darker than the buildings in <code>valley6 (2).png</code>; grass or rock welded to the foot; a ground disc; anything touching a frame edge.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">1.3</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Ingest</h4></div>
+        <ul>
+          <li>Six buildings → <code>tools/prep.html</code> → <code>art/village/b-*.png</code>. It keys by flooding in from the border, never by matching a colour — hanji walls are nearly parchment and colour-keying erases them.</li>
+          <li>Plate → <code>art/village/field-square.png</code> → <code>node tools/crop.js</code>. It does <b>not</b> go through prep.html.</li>
+          <li>Watch the filename dropdown: “lhouse” contains “house”, so the L-house auto-selects the wrong slot. Miss it and the village ships two houses and no L-house.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">1.4</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Re-place the plots</h4><span class="who stop">cannot be skipped</span></div>
+        <p><b>Done, and superseded: plots are GENERATED now, not dragged.</b> <code>node tools/plots.js --want 60 --write</code> reads the painting — the footpath network, the painted clearings, the ground each sprite really covers — and rewrites <code>PLOTS</code> in <code>js/village.js</code>. Never hand-edit that array, and set <code>maxRoofs</code> to the count the tool prints. HANDOFF §9j/§9m/§9n are how it works and what it measures; <code>tools/place.html</code> below is the pre-generator workflow, kept for reference only.</p>
+        <p>What the hand-placing step was for is still true and is now the tool's job: a building whose ground line misses its clearing is the single most obvious way this reads as pasted-on.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">1.5</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Retune the type scales</h4></div>
+        <p>Measured off <code>valley6 (2).png</code> with the small house as 1.00. These are real footprint ratios, not composition preferences — an estate rendered at hut width breaks the illusion faster than any misplacement.</p>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr><th>Sprite</th><th>Scale now</th><th>Scale after</th><th>Note</th></tr></thead>
+            <tbody>
+              <tr><td><code>b-house</code></td><td class="num">1.00</td><td class="num">1.00</td><td>the reference</td></tr>
+              <tr><td><code>b-pavilion</code></td><td class="num">0.95</td><td class="num">0.85</td><td>smallest of the set</td></tr>
+              <tr><td><code>b-thatch</code></td><td class="num">1.45</td><td class="num">0.95</td><td>the old file contained a whole farmyard</td></tr>
+              <tr><td><code>b-gate</code></td><td class="num">1.10</td><td class="num">1.20</td><td>pinned to the trunk path</td></tr>
+              <tr><td><code>b-lhouse</code></td><td class="num">1.35</td><td class="num">1.55</td><td>two wings</td></tr>
+              <tr><td><code>b-walled</code></td><td class="num">1.50</td><td class="num">2.00</td><td>pin to the last plot — one estate, and it's the finale</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Drop <code>?haze=</code> from 1 to <b>0.4–0.5</b>. Full haze existed to disguise sprites painted too close-up and too dense; these six remove that defect, so haze goes back to being an honest depth cue.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">1.6</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Set the economics from the art</h4></div>
+        <p>Count the usable clearings, then set <code>maxRoofs</code> and <code>perRoof</code> in <code>js/config.js</code> to match. The roof count follows the plate, not the other way round: 14 good clearings means a 14-roof village at ~$140k each. Leave <b>spare empty clearings visible</b> — an unbuilt pad beside a built one is what makes the field read as room to grow.</p>
+        <p><b>Half done.</b> <code>maxRoofs</code> follows the plate — the generator says the valley holds <b>60</b>. <code>perRoof</code> does not: it is still $100k from when the field held 20, so the field now fills at <b>$6.0M</b> against the $2.0M that number was chosen for. ~$33k a roof holds the original ceiling. <b>Tokenomics, not layout — VEN's call, still open.</b></p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">1.7</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Flip the mode cascade</h4></div>
+        <p><code>mountStates()</code> (<code>js/village.js:435</code>) currently wins whenever <code>state-00.png</code> loads, so the sprite composite is only reachable via <code>?village=sprites</code>. Delete <code>art/village/state-*.png</code> and the cascade falls through to sprites on its own.</p>
+        <p>That also retires two known hazards with the code that carried them: the states engine's un-cleared <code>stateMissing</code> map, and <code>optimize.js</code> giving each near-identical state its own colour palette (measured: 89% of pixels differing after quantisation, which would have destroyed the crossfade). Neither can fire once there are no states.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">1.8</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Give the plate its own label</h4></div>
+        <p><code>index.html:188</code> puts the section's only <code>aria-label</code> on the SVG that art mode hides. Once the paintings mount, the village has no accessible name at all. The plate element needs its own.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">1.9</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Verify in Chrome, not by reading the diff</h4></div>
+        <ul>
+          <li><code>$0</code> → empty valley, stat reads “at launch”, every plot bare.</li>
+          <li><code>$600k</code> → 6 roofs, and <b>the number of roofs on screen equals the number in the stat above them</b>.</li>
+          <li><code>$2.1M</code> → full field, “The field is full — the village endures.”</li>
+          <li>Hide one building file → its plots get a survivor, still zero broken-image glyphs.</li>
+          <li>Hide the plate → the inline SVG field stays and nothing is mounted.</li>
+          <li>At 390px wide, and at <code>?motion=0</code>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">1.10</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Live market cap</h4><span class="who">launch day</span></div>
+        <p>Dexscreener pairs API, no key, polled ~90s and only while the tab is visible, into <code>HANOK.setVillage</code>. With a <b>floor ratchet</b>: <code>config.village.floor</code> holds the highest milestone reached and the engine shows <code>max(floor, live)</code>. Market cap is volatile and a village that loses houses on a dip is the wrong feeling for this product. Holder count needs a keyed API — ask Zico, or ship the tally static.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="gate">
+    <span class="gate-label">Gate — phase 2 does not start until all of this is true</span>
+    <ul>
+      <li>All seven images accepted, ingested, and the plots re-placed against the real plate.</li>
+      <li>Sprite mode is the default — no <code>?village=</code> switch needed to see the village.</li>
+      <li>The roofs on screen equal the stat above them at three different market caps.</li>
+      <li>VEN has looked at it full-size and said it's right. Villagers on a village that isn't finished is polish on top of an unfinished thing.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">PHASE 2</span>
+    <h2>The villagers</h2>
+    <span class="sec-note">two sheets · ~250 lines</span>
+  </div>
+
+  <div class="callout">
+    <h3>The one measurement that drives every decision here</h3>
+    <p>At the shipped plate width (1080px) a hanok is 130–190px across, which puts the scale at about <b>21px per metre</b>. A person is therefore roughly <b>10 × 25px</b> on desktop and <b>4 × 9px</b> on a 390px phone.</p>
+    <p>That is small enough that detail is not a risk — it is a liability. Faces, fingers and fabric folds collapse into a dark smudge, and a dark smudge against a washy plate is the exact mismatch that got the first sprite set rejected. Everything below optimises for <b>silhouette and tone</b>, and nothing else.</p>
+  </div>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-n">2.1</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Two sheets, eight figures, one walk cycle</h4><span class="who ven">VEN</span></div>
+        <p><code>PROMPTS.md</code> step 08. Sheet A is the left leg forward, sheet B the right; alternating them <b>is</b> the walk. Eight separate rolls would never agree with each other — one sheet guarantees the cast shares an angle, a light and a density.</p>
+        <p>Generate B only once A is accepted, using A itself as the image reference, changing exactly one sentence. Figure 3 on sheet B must be recognisably the same farmer as figure 3 on sheet A; if the cast comes back reshuffled, re-roll B rather than renumbering A.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">2.2</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Cut and prep</h4><span class="who ven">VEN</span></div>
+        <p>Eight loose crops per sheet, matching numbering, into <code>art/village/people/</code> as <code>p-01a…p-08a</code> and <code>p-01b…p-08b</code>. Both sets through <code>prep.html</code>, which trims each figure to its own bottom edge — the same ground-line contract the buildings have.</p>
+        <p><b>A and B must trim to the same ground line.</b> prep.html trims at the lowest surviving pixel, so one stray speck under either frame makes that walker hop 3px on every step, forever.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">2.3</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Route mode in <code>tools/place.html</code></h4></div>
+        <p>Nothing in the code can infer where the painted lanes are, so the routes get traced by hand once — click a polyline along a lane, press enter, click the next. It prints a <code>WALKS</code> array in the same normalised master coordinates <code>PLOTS</code> uses, so <code>cropY()</code> remaps it and <code>?plate=</code> keeps working.</p>
+        <p>Four to six routes is plenty: the trunk from the bottom edge, each main lane, and one or two spurs. Routes that share an endpoint let a walker turn a corner instead of only shuttling back and forth.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">2.4</div>
+      <div class="step-body">
+        <div class="step-title"><h4>The layer</h4></div>
+        <p>Walkers are DOM images, not canvas — because they must be <b>occluded by the buildings</b>, and the buildings are already DOM images sorted by depth.</p>
+<pre>.village__plate
+  svg#villageField     inline fallback, hidden once art loads
+  img.v-base           the plate
+  img.v-house   × N    <b>z-index from y (new — one line in buildArt)</b>
+  div.v-walker  × N    <b>z-index from y; two frames inside</b>
+    img.f-a / img.f-b
+  svg.v-birds          <b>above everything, pointer-events:none</b></pre>
+        <p>Buildings currently rely on DOM append order for depth, which cannot interleave with anything added later. Giving both buildings and walkers <code>z-index = round(y × 1000)</code> makes depth a number instead of a position, with no visual change to the existing render.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">2.5</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Motion, per frame</h4></div>
+        <ul>
+          <li><b>Position:</b> walk a normalised distance <code>s</code> along the route's polyline, arc-length parameterised <em>after</em> the crop remap so speed is even on screen.</li>
+          <li><b>Perspective:</b> <code>k = 0.60 + 1.52·(y − 0.59)</code>, clamped to 0.55–1.05 — fitted to the same three <code>ROW_K</code> anchors the buildings use, so a walker beside a house is scaled by the same ladder.</li>
+          <li><b>Transform only, never <code>left</code>/<code>top</code>.</b> Width is set once; <code>k</code> lives in the transform. That keeps the loop compositor-side, the same discipline <code>journey.js</code>'s <code>draw()</code> holds at ~0.011ms/frame.</li>
+          <li><b>Facing:</b> <code>scaleX(-1)</code> from the sign of travel.</li>
+          <li><b>Speed:</b> ~0.6× real walking pace, about 16px/s at <code>k=1</code>, so crossing the whole valley takes the better part of a minute. <code>?walkspeed=</code>.</li>
+          <li><b>Step:</b> frames swap every ~420ms, scaled inversely with speed. Swap by toggling a class on the wrapper — never by changing <code>src</code>.</li>
+          <li><b>Bob:</b> 1.2px at <code>k=1</code>, one arc per step, folded into the same transform so it scales with distance.</li>
+          <li><b>Rest:</b> at a route end, pause 1.5–5s, then turn around or take a route sharing that endpoint. One walker in four is a <b>stander</b> — parks at a clearing for 8–20s with no leg swap.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">2.6</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Population follows the roofs</h4></div>
+        <p><code>walkers = min(MAX, 1 + round(roofs × 0.6))</code> — twelve on desktop at a full field, six at ≤600px. So the lanes fill as the village fills, and at $0 there is a single traveller on the trunk path arriving at an empty valley.</p>
+        <p>This is the first thing on the page that makes the <b>villager tally</b> stat visible rather than decorative. New walkers fade in when a roof rises, the way roofs do.</p>
+        <p>Which figure walks which route is <b>seeded from the contract address</b>, like the buildings — the same village, with the same people in it, every visit. Their positions are not: motion is time-based, so nobody stands frozen where you left them.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">2.7</div>
+      <div class="step-body">
+        <div class="step-title"><h4>When it runs</h4></div>
+        <p>One shared <code>requestAnimationFrame</code> loop for walkers and birds, started by an <b>IntersectionObserver on <code>.village__field</code></b> and stopped when it leaves — literally “once the valley is on the user's screen”. Also stopped on <code>visibilitychange</code>, and <code>dt</code> is clamped to 50ms so a tab returning from the background doesn't teleport everyone across the field.</p>
+        <p><b>Reduced motion:</b> the loop never starts. Walkers are placed at sensible points along their routes and stand still, birds hold one pose. A still village with people in it is a better static state than an empty one.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">2.8</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Failure behaviour</h4></div>
+        <p>Same house rule as the rest of the section: <b>nothing is mounted until the file has loaded</b>, because an <code>&lt;img&gt;</code> with a dead <code>src</code> gets Chrome's broken-image glyph painted on top of the art underneath — the bug that bit the journey twice.</p>
+        <ul>
+          <li>No figure files → no walkers, no glyphs, birds still fly.</li>
+          <li>Only sheet A survives → one-frame walkers with the bob. Degraded, still fine.</li>
+          <li>No <code>WALKS</code> authored → no walkers. Never fall back to straight lines across open grass.</li>
+          <li>The life layer mounts <em>after</em> the buildings and can never delay or block them.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="callout warn">
+    <h3>The known limit, stated up front</h3>
+    <p>If the village is ever run in <b>states mode</b> (<code>state-NN.png</code> full paintings) a walker cannot be occluded by a building, because the buildings are baked into the plate. Phase 1 step 1.7 removes states, so this only matters if that decision is reversed — in which case walkers are gated to sprite mode rather than left to walk through walls.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">PHASE 3</span>
+    <h2>The birds</h2>
+    <span class="sec-note">no art · ~90 lines</span>
+  </div>
+
+  <div class="callout">
+    <h3>Why these are drawn and not generated</h3>
+    <p>A bird here is 8–14px wide. At that size it is two ink strokes — a flick, not a picture — and a painted PNG <b>cannot flap its wings</b>. Drawing them buys a continuous flap and a glide instead of two or three fixed frames, in the same ink as everything else.</p>
+    <p>This is the one deliberate exception to “VEN makes the art, the code makes the machinery”, and it's the same allowance the fallback layers and structural marks already have. If they look wrong on screen the fallback is a three-pose bird sheet in the custom style, and the swap costs nothing.</p>
+  </div>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-n">3.1</div>
+      <div class="step-body">
+        <div class="step-title"><h4>The mark</h4></div>
+        <p>One shallow M — two quadratic arcs meeting at the body, stroked in <code>--ink</code>, no fill, round caps. Drawn once at unit size; every bird is that one shape under a transform.</p>
+        <p><code>vector-effect="non-scaling-stroke"</code> so the ink line keeps a constant weight no matter how small the bird is. A distant bird should be <em>smaller</em>, not drawn with a finer nib — that's what makes it read as the same hand as the plate.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">3.2</div>
+      <div class="step-body">
+        <div class="step-title"><h4>The flap</h4></div>
+        <p>Vertical scale on the wing group: <code>f = 0.35 + 0.75·|sin(ωt)|</code> at about 5Hz. One attribute write per bird per frame, no path rewriting.</p>
+        <p>Birds don't flap continuously — they beat and then glide. Bursts of 3–6 beats, then 1.2–2.5s holding <code>f ≈ 0.9</code> with a slow bank. That rhythm is most of what sells it; a metronome flap reads as a logo animation.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">3.3</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Where they fly</h4></div>
+        <p>Across the <b>upper band of the plate only</b> — 5% to 42% of its height, which is the misty ridge and crag, where birds belong and where nothing else is happening. Not across the whole viewport: a bird drifting over the manifesto reads as a widget, not as weather. <code>?birdzone=screen</code> exists to compare, and stays in the code either way.</p>
+        <p>Slow lateral drift, 30–70s to cross, with two out-of-phase sine terms on <code>y</code> so no two paths look alike. Size and opacity both track height — higher is smaller and fainter (0.22 → 0.5 opacity). One spawn in three brings a companion 25–40px off, because birds travel in loose company.</p>
+        <p>Off the edge, they respawn on the other side after 4–15s. Without that delay the sky is a treadmill.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">3.4</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Free consequence of the plate's edge mask</h4></div>
+        <p>The plate already feathers its four edges by 4% so it reads as a drawing on the sheet rather than a tile. Birds are children of that plate, so they <b>dissolve at the frame edge instead of popping</b> — no extra code, and worth verifying rather than assuming.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">3.5</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Counts and switches</h4></div>
+        <p>Four on desktop, two at ≤600px. Under reduced motion, three static birds at fixed points — a still landscape painting with birds in it is completely normal, and better than an empty sky.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================ -->
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">PHASE 3B</span>
+    <h2>Sleeping houses</h2>
+    <span class="sec-note">BUILT 2026-08-16 · HANDOFF §9o</span>
+  </div>
+
+  <div class="callout">
+    <h3>Built — every step below is in, as specced</h3>
+    <p>VEN brought this forward on 2026-08-16 (<i>“small and subtle just like in clash of clans”</i>). Who sleeps and each house's rhythm: <code>js/village.js</code> (seeded, ~30% of dwellings, <code>AWAKE</code> excludes gate/pavilion/storehouse). How a Z moves: one keyframe block in <code>css/site.css</code> (<code>.v-zzz</code>) — peak opacity .55, three staggered glyphs, 8.5–12.5s cycles, phase per house. <code>?sleep=0</code> off, <code>?sleep=N</code> share; IntersectionObserver gates it to the visible valley; no Z's under reduced motion; hidden below 640px per 3B.3.</p>
+  </div>
+
+  <div class="callout">
+    <h3>Why this is the cheapest life on the page</h3>
+    <p>VEN: <i>“some Z's floating above certain houses to indicate that there are villagers sleeping inside.”</i> It is the same trick as the birds and it inherits all of their machinery — drawn in code, ink on the plate, in the observer-gated rAF loop that already exists. But it is better than the birds per line written, because <b>it says something the picture cannot</b>: a house with a Z above it is <i>occupied</i>. The field stops being architecture and becomes a village with people asleep in it, and the “villager tally” stat above it acquires a meaning you can see.</p>
+    <p>A Z is a glyph, not a drawing — three strokes, and the site already has a display face (Song Myung) doing exactly this kind of mark. So this is not the “VEN makes the art” exception the birds needed; it is typography.</p>
+  </div>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-n">3B.1</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Which houses sleep</h4></div>
+        <p>Seeded from the contract address, exactly like the building assignment — <b>the same houses must be asleep on every visit</b>, or a holder who comes back finds a different village, which is the whole thing the seeding exists to prevent. Roughly one house in four, chosen from the plots currently standing, never the gate and never the pavilion (an open pavilion has no inside to sleep in).</p>
+        <p>Re-rolled with <code>?seed=</code> like everything else. A new roof appearing must not change who is asleep.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">3B.2</div>
+      <div class="step-body">
+        <div class="step-title"><h4>The animation</h4></div>
+        <p>Three Z's per house at decreasing size, rising from just above the roof ridge, each fading out as it drifts up and slightly to one side. Staggered so they never leave together, and the cycle restarts on a long interval — <b>6–10 seconds of nothing between bursts, varied per house</b>. Constant Z's read as a broken loop; occasional ones read as sleep.</p>
+        <p>Anchored to the sprite's own box, so a Z sits over its roof at any plate width without a second coordinate table. Transform and opacity only, no layout per frame — same discipline as the walkers.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">3B.3</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Scale is the risk, and it is measurable</h4></div>
+        <p>At the shipped plate width a house is 55–135px across, so a legible Z is about <b>7–9px</b> — and about 3px on a 390px phone, where it will read as a speck or as dirt. Check it at 390px before tuning anything else. If it does not survive, the answer is to show Z's only above <code>--w-wide</code> rather than to make them bigger, because a Z large enough to read on a phone is a Z that dwarfs its own roof.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-n">3B.4</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Gating and switches</h4></div>
+        <p>Same IntersectionObserver and <code>document.hidden</code> gate as the birds and walkers — nothing animates until the valley is on screen. <code>?sleep=0</code> turns it off, <code>?sleep=N</code> sets the share of houses. <b>Under reduced motion, no Z's at all</b> rather than static ones: a frozen Z above a roof is a typo, where a still bird is just a bird.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================ -->
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">PHASE 4</span>
+    <h2>Ship</h2>
+    <span class="sec-note">before the token launches</span>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-n">4.1</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Measure the loop</h4></div>
+        <p>Budget: <b>≤0.15ms/frame</b> with 12 walkers and 4 birds, measured the same way the journey was (~0.011ms/frame with every polish layer on). Twelve transforms and four attribute writes should land far under it; measure anyway, because the whole architecture here is “build once, write attributes per frame”, and a regression to per-frame layout would be invisible in review and obvious on a phone.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-n">4.2</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Optimise the art</h4></div>
+        <p>The plate, six buildings and sixteen figures to <code>.webp</code>. One trap carries over from the states work: <code>optimize.js</code> gives every file <b>its own median-cut palette</b>. Do that to <code>p-03a</code> and <code>p-03b</code> independently and the figure changes colour on every step — the same defect that destroyed the state crossfade, at 25px. <b>A/B pairs share a palette or skip quantisation.</b></p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-n">4.3</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Build rules</h4></div>
+        <p><code>tools/build.js</code> ships from an explicit allow-list, so add <code>art/village/people/*</code> and the life-layer code, and keep the two 1024² master sheets, <code>PLAN.html</code>, <code>prompt-sheet.html</code>, <code>tools/</code> and the root masters out. Also: <code>build.js</code> wipes <code>dist/</code> including <code>dist/.vercel/</code>, which unlinks the Vercel project on every build — preserve it across the wipe.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-n">4.4</div>
+      <div class="step-body">
+        <div class="step-title"><h4>Then the rest of the page</h4></div>
+        <p>The village stops being the weakest thing on the page the moment phase 1 lands. The next target is the manifesto and the ledger — untouched since session 3, and after the journey's backdrop fades out the whole lower half of the page is four centred stacks on flat paper with no change of rhythm across ~2,900px.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">REF</span>
+    <h2>Decisions taken, and the switches</h2>
+  </div>
+
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>Decision</th><th>Why it isn't reopened</th></tr></thead>
+      <tbody>
+        <tr><td>Sprites over full painted states</td><td>A sprite set survives Zico launching a second token; a cut-up or chained master painting is single-use. Recraft variations also drift ~22 mean ΔRGB across the untouched 86% of the frame at the first step.</td></tr>
+        <tr><td>Building per plot is seeded, not random</td><td>“Come back and count the roofs” means nothing if plot 7 is a pavilion today and an L-house tomorrow, and a new roof must never reshuffle the standing ones.</td></tr>
+        <tr><td>Shadows painted into the PNG, not drawn in CSS</td><td>A CSS shadow follows the alpha silhouette, so it traces flared eave tips as a dark fringe in mid-air. The code-drawn version already failed once on this page.</td></tr>
+        <tr><td>Roofs never come down</td><td>Market cap is volatile; a village that loses houses on a dip is the wrong feeling. The floor ratchet is a config value, not a backend, and claims nothing false.</td></tr>
+        <tr><td>One walker sheet, eight figures</td><td>At 25px, agreement between figures matters more than any per-figure tuning could.</td></tr>
+        <tr><td>Birds in code</td><td>Two strokes at 10px, and a PNG cannot flap.</td></tr>
+        <tr><td>Birds inside the plate, not the viewport</td><td>Over the rest of the page they read as a widget rather than as weather. Comparison kept behind a switch.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tbl-scroll">
+    <table>
+      <thead><tr><th>Switch</th><th>Default</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>?life=</code></td><td class="num">on</td><td><code>0</code> off · <code>people</code> · <code>birds</code> — judge either half alone</td></tr>
+        <tr><td><code>?walkers=</code></td><td class="num">12 / 6</td><td>hard cap on the population</td></tr>
+        <tr><td><code>?walkspeed=</code></td><td class="num">1</td><td>multiplier on the amble</td></tr>
+        <tr><td><code>?birds=</code></td><td class="num">4 / 2</td><td>how many</td></tr>
+        <tr><td><code>?birdzone=</code></td><td class="num">plate</td><td><code>screen</code> for the full-viewport comparison</td></tr>
+        <tr><td><code>?village=</code>, <code>?plate=</code>, <code>?seed=</code>, <code>?haze=</code>, <code>?edge=</code>, <code>?art=</code></td><td class="num">—</td><td>existing, unchanged</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Every alternative stays in the code. Nothing here is deleted to tidy up.</p>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="sec-num">NEXT</span>
+    <h2>What happens now</h2>
+  </div>
+  <div class="callout">
+    <ul>
+      <li><b>VEN:</b> build the style, then generate the plate and the six buildings. Send the plate and the first accepted building back before doing all six — a style fault caught at building one costs one roll, at building six it costs six.</li>
+      <li><b>VEN:</b> while the style is still loaded, run walk sheet A. B only after A is accepted.</li>
+      <li><b>Code, needing nothing:</b> phase 3, the birds, and the route mode in <code>place.html</code>. Both can be built and judged against the current plate today.</li>
+      <li><b>Code, on delivery:</b> phase 1 steps 1.3–1.9, then phase 2.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <span>Prompts: art/village/PROMPTS.md · prompt-sheet.html</span>
+  <span>Deep context: HANDOFF §9e, §9g</span>
+  <span>Ops: README.md</span>
+</footer>
+
+</div>

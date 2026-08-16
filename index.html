@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HANOK — an ink-drawn village on Solana</title>
+<meta name="description" content="An ink-drawn journey through the old country. A village raised one roof at a time, on Solana.">
+<meta property="og:title" content="HANOK">
+<meta property="og:description" content="An ink-drawn journey through the old country.">
+<meta property="og:type" content="website">
+<!-- At deploy: make og:image an ABSOLUTE url (X requires it) and add og:url.
+     og.png should be a 1200x630 raster of the hero. -->
+<meta property="og:image" content="og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="og.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='2' width='28' height='28' rx='5' fill='%238E4A38'/%3E%3Ctext x='16' y='22' font-size='16' text-anchor='middle' fill='%23EEE1BF' font-family='serif'%3E韓%3C/text%3E%3C/svg%3E">
+<script>
+/* Motion gate, before first paint. Honors the visitor's OS
+   reduced-motion setting; ?motion=1 / ?motion=0 force it for QA. */
+window.HANOK_REDUCED = function(){
+  var q = new URLSearchParams(location.search).get("motion");
+  if (q === "1") return false;
+  if (q === "0") return true;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+};
+if (!window.HANOK_REDUCED()) document.documentElement.classList.add("motion-ok");
+document.documentElement.classList.add("js");
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- fonts load async so a slow font host never blocks first paint -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Song+Myung&family=Gowun+Batang:wght@400;700&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Song+Myung&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Song+Myung&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+  <style>.journey{height:auto}.journey__sticky{position:static;height:auto;overflow:visible}</style>
+</noscript>
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+
+<!-- Shared landscape behind hero + journey. Fixed, so it is constant
+     under both; journey.js fades it out over p 0.86 -> 1 so the rest
+     of the page sits on plain paper. Under reduced motion journey.js
+     never runs, so css pins this to the first screen instead. -->
+<div class="scene-backdrop" aria-hidden="true"><img src="art/scene-bg.png" alt="" fetchpriority="high" decoding="async"></div>
+
+<!-- fixed paper grain + vignette, above content, non-interactive -->
+<div class="grain" aria-hidden="true"></div>
+
+<!-- floating CA pill, appears after the hero -->
+<div class="ca-float" id="caFloat" aria-hidden="true">
+  <button class="ca-pill" id="caCopy" type="button" title="Copy contract address">
+    <span class="ca-pill__label">CA</span>
+    <span class="ca-pill__value" id="caValue">coming at launch</span>
+  </button>
+</div>
+
+<!-- ================================================================
+     HERO — the title writes itself in ink on first paint.
+     Letter stroke data lives in js/hero.js. To change the title,
+     edit CONFIG.title + the letter set there.
+================================================================= -->
+<header class="hero" id="hero">
+
+  <!-- The landscape behind the hero is the shared .scene-backdrop at
+       the top of the body — there is no hero-local backdrop. -->
+
+  <div class="hero__inner">
+    <p class="hero__eyebrow"><span lang="ko">한옥</span> · the old houses</p>
+
+    <div class="hero__title" id="heroTitle" role="img" aria-label="HANOK">
+      <span class="hero__title-fallback">HANOK</span>
+    </div>
+
+    <p class="hero__tagline reveal" id="heroTagline">
+      An ink-drawn journey through the old country.<br>
+      A village raised one roof at a time.
+    </p>
+
+    <div class="hero__actions reveal" id="heroActions">
+      <a class="btn" id="btnBuy" href="#" rel="noopener">Buy on launch</a>
+      <a class="btn btn--quiet" id="btnX" href="#" rel="noopener">Follow on X</a>
+    </div>
+  </div>
+
+  <a class="hero__scroll" href="#journey" aria-label="Scroll to the journey">
+    <span>begin the journey</span>
+    <svg viewBox="0 0 12 44" aria-hidden="true"><path d="M6 2 C5 14 7 26 6 40 M2 34 L6 41 L10 34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+</header>
+
+<!-- ================================================================
+     JOURNEY — sticky pseudo-3D road past four places in Korea.
+     Ported from journey-reference.html; one projection drives the
+     road and the panels. The four paintings are wired in
+     js/journey.js (SPOTS[i].img); the inline ink buildings there are
+     now only the placeholder shown until each painting loads.
+================================================================= -->
+<section class="journey" id="journey" aria-label="The journey through four places in Korea">
+  <div class="journey__sticky">
+    <div class="journey__head">
+      <p class="eyebrow"><span lang="ko">여정</span> · the journey</p>
+      <h2>Four places, one road</h2>
+    </div>
+    <svg class="journey__stage" id="journeyStage" aria-hidden="true">
+      <g id="jImgs"></g>
+      <g id="jRoad"></g>
+    </svg>
+    <noscript>
+      <p class="journey__noscript">Gyeongbokgung Palace · Changdeokgung Palace · Namsangol Hanok Village · Jeonju Hanok Village</p>
+    </noscript>
+  </div>
+</section>
+
+<!-- ================================================================
+     MANIFESTO — PLACEHOLDER COPY. Replace with Zico's text when it
+     arrives; keep it to a few sentences, the section is meant to
+     breathe.
+================================================================= -->
+<section class="manifesto" aria-label="About">
+  <div class="manifesto__inner reveal">
+    <p class="manifesto__ko" lang="ko" aria-hidden="true">먹과 종이</p>
+    <p class="manifesto__text">
+      Long before charts, fortunes were written with a brush.
+      This one is drawn the same way — ink on old paper, a road through
+      the old country, and a village at the end of it that grows with
+      every hand that holds.
+    </p>
+    <div class="manifesto__seal" aria-hidden="true"></div>
+  </div>
+</section>
+
+<!-- ================================================================
+     LEDGER — the chart. Mock candles until launch; set CONFIG.pool
+     in js/config.js to a GeckoTerminal pool address to go live.
+     Filled ink candle = rise, hollow candle = fall.
+================================================================= -->
+<section class="ledger" id="ledger" aria-label="Price chart">
+  <div class="section-head reveal">
+    <p class="eyebrow"><span lang="ko">장부</span> · the ledger</p>
+    <h2>Written in candlelight</h2>
+    <p class="section-note" id="ledgerNote">A preview, drawn in ink — the real ledger begins at launch.</p>
+  </div>
+  <figure class="ledger__frame reveal">
+    <svg id="ledgerChart" viewBox="0 0 840 400" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Candlestick price chart"></svg>
+    <figcaption class="ledger__legend">
+      <span class="ledger__key ledger__key--up" aria-hidden="true"></span> rise
+      <span class="ledger__key ledger__key--down" aria-hidden="true"></span> fall
+    </figcaption>
+  </figure>
+</section>
+
+<!-- ================================================================
+     VILLAGE — one hanok is raised for every $100k of market cap.
+     Mock values in js/config.js until launch.
+================================================================= -->
+<section class="village" id="village" aria-label="The village">
+  <div class="section-head reveal">
+    <p class="eyebrow"><span lang="ko">마을</span> · the village</p>
+    <h2>Every $100k raises a roof</h2>
+    <p class="section-note">The field fills as the market cap climbs. Come back and count the roofs.</p>
+  </div>
+
+  <div class="village__stats reveal" role="group" aria-label="Village statistics">
+    <div class="stat">
+      <span class="stat__label">market cap</span>
+      <span class="stat__value" id="statMc">—</span>
+    </div>
+    <div class="stat">
+      <span class="stat__label">roofs raised</span>
+      <span class="stat__value" id="statRoofs">—</span>
+    </div>
+    <div class="stat">
+      <span class="stat__label">villager tally</span>
+      <span class="stat__value" id="statHolders">—</span>
+    </div>
+  </div>
+
+  <div class="village__field reveal">
+    <!-- The plate holds two stacked renderings of the same field: the
+         painted layers (art/village/*.png, built by js/village.js) and,
+         beneath them, an inline SVG drawing of the same village. The SVG
+         is what shows until the paintings land and if they 404 — see
+         art/village/PROMPTS.md. Its aspect ratio is replaced by the base
+         plate's own once that loads. -->
+    <div class="village__plate" id="villagePlate">
+      <svg id="villageField" viewBox="0 0 900 380" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A field of hanok houses, one for every hundred thousand dollars of market cap"></svg>
+    </div>
+    <p class="village__next" id="villageNext"></p>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<footer class="footer">
+  <div class="footer__seal" aria-hidden="true"></div>
+  <p class="footer__word" lang="ko">한옥</p>
+  <nav class="footer__links" aria-label="Links">
+    <a id="footX" href="#" rel="noopener">X</a>
+    <a id="footDex" href="#" rel="noopener">Dexscreener</a>
+    <a id="footTg" href="#" rel="noopener">Telegram</a>
+  </nav>
+  <p class="footer__fine">A community token. Nothing here is financial advice; the road is the destination.</p>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/hero.js"></script>
+<script src="js/journey.js"></script>
+<script src="js/chart.js"></script>
+<script src="js/village.js"></script>
+<script src="js/main.js"></script>
+
+<!-- TEMPORARY, AND DELIBERATELY SO. The market-cap slider lets a
+     visitor watch the village grow, because a still field never says
+     that it does. VEN, 2026-08-16: it ships until the token is live,
+     then comes out in one pass and a price feed takes its place
+     through the same window.HANOK.setVillage() door. Delete this line
+     and the two others named at the top of js/preview.js.
+     ?preview=0 turns it off without an edit. -->
+<script src="js/preview.js"></script>
+</body>
+</html>

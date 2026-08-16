@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Journey mechanic — reference implementation</title>
+<style>
+  body { margin:0; padding:32px; background:#E5D2B2; font-family:system-ui,sans-serif; }
+  .frame { max-width:900px; margin:0 auto; }
+  .stage { border-radius:12px; overflow:hidden; background:#D8C09B; }
+  .ctl { display:flex; align-items:center; gap:12px; margin-top:16px; }
+  .ctl label { font-size:14px; color:#4E4636; }
+  .ctl input { flex:1; }
+  .ctl span { font-size:14px; min-width:44px; text-align:right; color:#231F16; }
+  p.note { max-width:900px; margin:24px auto 0; font-size:13px; line-height:1.7; color:#4E4636; }
+</style>
+</head>
+<body>
+
+<!--
+  REFERENCE IMPLEMENTATION — the "journey" section.
+
+  This is a WORKING DEMO of the scroll mechanic described in BUILD-PLAN.md
+  section 4. Open it in a browser and drag the slider to see the intended effect.
+
+  WHAT IT DOES
+  The viewer travels forward along a road receding to a vanishing point near the
+  top of the frame. A thin ink line — the road — winds left and right, drawing
+  itself from the distance toward the viewer. Four locations appear as small
+  paintings near the vanishing point, grow as they approach, drift outward to the
+  left and right, and pass out of frame behind the viewer.
+
+  WHEN PORTING THIS INTO THE SITE
+  1. Replace the slider with scroll progress through a sticky container.
+     `p` is 0 at the top of the section and 1 at the bottom. Nothing else changes.
+  2. Replace the placeholder roof shapes with the four location panel images.
+  3. Make the SVG fill the viewport and recompute CX from its width.
+  4. Budget 400-500vh of scroll for the sticky container.
+
+  DO NOT rewrite this using CSS 3D transforms or `perspective`. The line and the
+  panels must share one vanishing point, which is far easier when one function
+  drives both — and `perspective` combined with `overflow:hidden` stutters in iOS
+  in-app browsers, which is where most of this site's traffic comes from.
+-->
+
+<div class="frame">
+  <div class="stage">
+    <svg id="sc" viewBox="0 0 640 420" style="display:block;width:100%">
+      <g id="imgs"></g>   <!-- location panels, furthest drawn first -->
+      <g id="ln"></g>     <!-- the road -->
+    </svg>
+  </div>
+  <div class="ctl">
+    <label for="w">Scroll position</label>
+    <input type="range" id="w" min="0" max="100" step="1" value="26">
+    <span id="v">26%</span>
+  </div>
+</div>
+
+<p class="note">
+  Drag the slider. In the real site this value is scroll progress through a
+  sticky section — the mechanic is otherwise identical.
+</p>
+
+<script>
+(function(){
+
+  /* ---- Projection constants -------------------------------------------
+     Everything on screen is positioned by its DEPTH (d). Scroll reduces d,
+     so objects approach the viewer. One projection drives both the road and
+     the panels, which is what keeps them locked to the same vanishing point. */
+
+  var F  = 700,   // focal length. Higher = flatter, lower = more dramatic.
+      CX = 320,   // horizontal centre (recompute from viewport width when porting)
+      HZ = 96,    // horizon line, y. The vanishing point.
+      GY = 62,    // ground plane offset below eye level
+      DF = 3000,  // far clipping depth
+      DN = 130;   // near clipping depth
+
+  // Perspective scale at a given depth. This is the whole trick.
+  function scale(d){ return F / d; }
+
+  var imgs = document.getElementById('imgs'),
+      ln   = document.getElementById('ln'),
+      sl   = document.getElementById('w'),
+      out  = document.getElementById('v'),
+      L    = Math.log(DF) - Math.log(DN);
+
+  function cl(a){ return a < 0 ? 0 : a > 1 ? 1 : a; }
+
+  /* ---- The road, in world space ---------------------------------------
+     IMPORTANT: this describes the road as seen FROM ABOVE — a plan view.
+     The projection generates the on-screen curve. You never author the
+     shape you see; you author the plan and let perspective do the rest.
+
+     Amplitude is damped with distance. Without the damping the near end of
+     the road swings hundreds of pixels off screen, because perspective
+     magnifies everything close to the camera.
+
+     The second sine wave at a non-integer frequency ratio is what stops the
+     meander looking symmetrical and machine-made. Replacing this whole
+     function with a hand-drawn plan view is an improvement — see the plan. */
+
+  function worldX(d){
+    var u   = (Math.log(DF) - Math.log(Math.max(d, DN))) / L,
+        phi = u * 3.4 * Math.PI,
+        amp = 95 * Math.min(1, Math.pow(d / 700, 0.6));
+    return amp * (Math.sin(phi) + 0.28 * Math.sin(2.7 * phi + 1.1)) / 1.2;
+  }
+
+  /* ---- Build the road once --------------------------------------------
+     Depths are sampled LOGARITHMICALLY. Linear sampling bunches all the
+     detail up near the horizon and leaves the near section coarse.
+
+     The road is drawn as six chained polyline segments with increasing
+     stroke-width, because SVG cannot taper a single stroke. Round linecaps
+     make the joins invisible. */
+
+  var pts = [];
+  for (var i = 0; i <= 90; i++){
+    var d = DF * Math.pow(DN / DF, i / 90), k = scale(d);
+    pts.push([ CX + worldX(d) * k, HZ + GY * k ]);
+  }
+
+  var seg = '';
+  for (var c = 0; c < 6; c++){
+    var a = c * 15, b = Math.min(90, a + 15),
+        dd = 'M ' + pts[a][0].toFixed(1) + ' ' + pts[a][1].toFixed(1);
+    for (var j = a + 1; j <= b; j++)
+      dd += ' L ' + pts[j][0].toFixed(1) + ' ' + pts[j][1].toFixed(1);
+    seg += '<path d="' + dd + '" fill="none" stroke="#100E09" stroke-width="'
+         + (1.3 + c * 0.42).toFixed(2) + '" stroke-linecap="round"/>';
+  }
+  ln.innerHTML = seg;
+
+  /* ---- Location panels -------------------------------------------------
+     Placeholder roof shapes. Replace with the four location images.
+     Each sits BESIDE the road at its own depth — offset from worldX(d), not
+     from centre — so they line the road rather than floating near it. */
+
+  var roof = '<path d="M8 40 C34 16, 106 16, 132 40 C112 34, 28 34, 8 40 Z" fill="#4E4636"/>'
+           + '<path d="M20 40 h100 v6 H20 Z" fill="#332D21"/>'
+           + '<path d="M32 46 v26 M60 46 v26 M80 46 v26 M108 46 v26" stroke="#4E4636" stroke-width="4"/>'
+           + '<path d="M24 72 h92" stroke="#332D21" stroke-width="4"/>';
+
+  var spots = [
+    { d:3500, s:-1, n:'Gyeongbokgung Palace' },   // s = side of the road
+    { d:2650, s: 1, n:'Changdeokgung Palace' },
+    { d:1900, s:-1, n:'Namsangol Hanok Village' },
+    { d:1150, s: 1, n:'Jeonju Hanok Village' }
+  ];
+
+  var TRAVEL = 3150;  // how much depth one full scroll covers
+
+  function draw(val){
+    var p = val / 100, off = p * TRAVEL, s = '';
+    out.textContent = Math.round(val) + '%';
+
+    // Reveal the road from far to near, so it grows TOWARD the viewer.
+    ln.style.clipPath = 'inset(0 0 ' + Math.round(100 - Math.min(100, p * 130)) + '% 0)';
+
+    // Painter's algorithm: furthest drawn first so nearer panels overlap.
+    var sorted = spots
+      .map(function(o){ return { o:o, d:o.d - off }; })
+      .sort(function(a,b){ return b.d - a.d; });
+
+    sorted.forEach(function(it){
+      var d = it.d;
+      if (d < 145) return;                    // passed the camera
+
+      var k  = scale(d),
+          x  = CX + (worldX(d) + it.o.s * 230) * k,   // beside the road
+          gy = HZ + GY * k,                            // sits on the ground plane
+          // fade in from the far limit, fade out as it passes. Nothing pops.
+          op = Math.min(cl((3500 - d) / 400), cl((d - 165) / 320)),
+          // labels only in the mid-range, at FIXED size — scaled text is absurd up close
+          lo = op * cl((d - 460) / 260) * cl((2700 - d) / 520);
+
+      if (op <= 0.01) return;
+
+      s += '<g opacity="' + op.toFixed(2) + '" transform="translate('
+         + (x - 70 * k).toFixed(1) + ',' + (gy - 84 * k).toFixed(1)
+         + ') scale(' + k.toFixed(3) + ')">' + roof + '</g>';
+
+      if (lo > 0.02)
+        s += '<text x="' + x.toFixed(1) + '" y="' + (gy + 15).toFixed(1)
+           + '" text-anchor="middle" font-family="serif" font-size="12"'
+           + ' fill="#231F16" opacity="' + lo.toFixed(2) + '">' + it.o.n + '</text>';
+    });
+
+    imgs.innerHTML = s;
+  }
+
+  sl.addEventListener('input', function(){ draw(+sl.value); });
+  draw(26);
+
+})();
+</script>
+</body>
+</html>
