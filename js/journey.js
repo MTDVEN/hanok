@@ -432,15 +432,29 @@
         the hero's landscape still underlies the section. 0 = old
         behaviour (fades right out). */
   var GHOST = qs("ghost", 0.26);
-  /* 1b. ?bg=global — the ghost never leaves AT ALL: the backdrop rides
-        at GHOST strength down the village, manifesto and ledger
-        instead of reaching 0 at the journey's end. VEN's proposal for
-        the blank lower half of the page, 2026-08-16: *"make the
-        background global so i can see what it looks like in the
-        village section."* The default is unchanged — the fade-out
-        comment in drawSplit still holds when this is off. Pairs with
-        ?ghost=N to try the standing strength. */
-  var BG_GLOBAL = /[?&]bg=global/i.test(location.search);
+  /* 1b. THE BACKDROP IS GLOBAL, and this is now the default. The ghost
+        never leaves: it rides at GHOST strength down the village,
+        manifesto and ledger instead of reaching 0 at the journey's
+        end, so the whole page sits in one landscape rather than the
+        lower half sitting on blank paper.
+
+        VEN's proposal for that blank lower half, 2026-08-16: *"make
+        the background global so i can see what it looks like in the
+        village section"*, then, having seen it: *"the background isnt
+        global like we made it in the dev server."* Built as an opt-in
+        switch to be judged, judged, kept.
+
+        `?bg=fade` restores the old behaviour — the backdrop fading to
+        nothing over the journey's last 12% — and `?ghost=N` still sets
+        the standing strength, which is the knob to reach for first if
+        it ever reads as too strong behind the copy.
+
+        NOTE the load-bearing detail this replaces: .scene-backdrop is
+        position:fixed, so what used to force it to 0 by the section's
+        end was the only thing stopping it riding down the rest of the
+        page. That is no longer a bug to prevent, it is the feature —
+        but if you ever restore the fade, restore it for that reason. */
+  var BG_GLOBAL = !/[?&]bg=fade\b/i.test(location.search);
   /* 2. tint the field with the CURRENT stop's own pigment colour, so
         the background changes as the places do. 0 = off. */
   var WASH  = qs("wash", 0.20);
