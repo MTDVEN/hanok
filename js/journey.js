@@ -358,10 +358,20 @@
     SPOTS.forEach(function(sp){
       var fig = document.createElement("figure");
       fig.className = "journey__figure";
+      /* THE BLURB COMES TOO. It did not, and that was a real fault
+         rather than a cosmetic one: reduced motion is a request to stop
+         things MOVING, not a request for less of the page, and this
+         branch was quietly serving four pictures with name labels while
+         split mode got the writing. A visitor with the OS setting on —
+         which is a common accessibility preference, and is on for VEN's
+         own machine, which is how it surfaced — read a journey section
+         with no journey in it. Same copy, same order, same markup class
+         as split mode's paragraph so it inherits the same type. */
       fig.innerHTML =
         '<svg viewBox="-10 -10 ' + (AW + 20) + " " + (AH + 20) +
         '" aria-hidden="true">' + artOf(sp) + "</svg>" +
-        "<figcaption>" + sp.name + ' · <span lang="ko">' + sp.ko + "</span></figcaption>";
+        "<figcaption><b>" + sp.name + '</b> · <span lang="ko">' + sp.ko + "</span>" +
+        '<span class="journey__blurb">' + sp.blurb + "</span></figcaption>";
       holder.appendChild(fig);
       settleArt(fig, sp);
     });

@@ -444,7 +444,10 @@ a{ color: var(--ink); }
 .journey--static .journey__head{ position: static; margin-bottom: 40px; }
 .journey__figure{
   margin: 0 auto 56px;
-  width: min(460px, 88vw);
+  /* wider than the 460px it was: this column now carries the stop's
+     paragraph as well as its painting, and 460px of prose at this size
+     sets too narrow a measure */
+  width: min(560px, 88vw);
   text-align: center;
 }
 .journey__figure svg{ display: block; width: 100%; height: auto; }
@@ -454,6 +457,18 @@ a{ color: var(--ink); }
   color: var(--ink-soft);
 }
 .journey__figure figcaption [lang="ko"]{ color: var(--ink-soft); }
+/* the stop's own copy, under its painting. Body face, not the display
+   face the name uses — it is a paragraph, not a label. */
+.journey__blurb{
+  display: block;
+  margin: 8px auto 0;
+  max-width: 46ch;
+  font-family: var(--font-body);
+  font-size: .95rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
 
 /* JOURNEY — SPLIT MODE (?journey=split) ---------------------------
    Copy left, painting right, one stop at a time. Both columns stack
