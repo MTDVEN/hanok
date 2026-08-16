@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HANOK QA frame</title>
+<!-- Dev-only viewport harness. This machine's screen is 1280x~500 CSS px,
+     which is too short to judge the journey. Renders index.html inside an
+     iframe at a real device size and scales it down to fit, so the site
+     still sees the full innerWidth/innerHeight it would on that device.
+       ?w= width  ?h= height  ?s= scale (default: fit)  ?u= url
+     Not part of the site — delete before deploy. -->
+<style>
+  html,body{ margin:0; background:#2b2721; overflow:hidden; }
+  #f{ border:0; display:block; transform-origin: top left; background:#fff; }
+</style>
+</head>
+<body>
+<iframe id="f" title="site under test"></iframe>
+<script>
+  var q = new URLSearchParams(location.search);
+  var w = +q.get("w") || 1440;
+  var h = +q.get("h") || 900;
+  var f = document.getElementById("f");
+  f.style.width = w + "px";
+  f.style.height = h + "px";
+  var k = +q.get("s") || Math.min(innerWidth / w, innerHeight / h);
+  f.style.transform = "scale(" + k + ")";
+  window.K = k;
+  window.F = f;
+  /* rAF is throttled while this tab is backgrounded, so QA drives the
+     inner page's draw synchronously. */
+  window.SYNC = function(){
+    f.contentWindow.requestAnimationFrame = function(cb){ cb(performance.now()); return 0; };
+  };
+  window.GO = function(p){
+    var d = f.contentWindow.document, W = f.contentWindow;
+    var j = d.getElementById("journey");
+    var total = j.offsetHeight - W.innerHeight;
+    W.scrollTo({ top: j.offsetTop + total * p, left: 0, behavior: "instant" });
+    W.dispatchEvent(new Event("scroll"));
+    return W.scrollY;
+  };
+  window.AT = function(y){
+    var W = f.contentWindow;
+    W.scrollTo({ top: y, left: 0, behavior: "instant" });
+    W.dispatchEvent(new Event("scroll"));
+    return W.scrollY;
+  };
+  f.src = q.get("u") || "/index.html?motion=1";
+</script>
+</body>
+</html>
