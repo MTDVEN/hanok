@@ -851,10 +851,13 @@
      window ENDS at the stop, so the last character lands exactly as
      the seal stamps */
   var WRITE = qs("write", 0.085);
-  /* small English caption under the Korean, for visitors who cannot
-     read it. OFF by default — VEN asked for the Korean; this is the
-     cheap way to judge whether Korean-only is too opaque. */
-  var EN = qs("en", 0);
+  /* English caption under the Korean — ON since part 12 (VEN: "add
+     the english names next to each korean name too please. Same font
+     and same written animation"). Same display face, and it WRITES
+     rather than fades: its own wavy mask stroke swept left to right,
+     starting once the Korean is most of the way down and finishing
+     with the seal. `?en=0` hides it. */
+  var EN = qs("en", 1);
   /* ---- scroll drive: continuous (default) or threshold ------------
      CONTINUOUS is the default again. Threshold mode was asked for,
      built, felt, and REJECTED the same day — VEN, part 4: *"make the
@@ -1209,18 +1212,47 @@
                      '" dominant-baseline="central">' + chars[k2] + "</tspan>";
             }).join("") +
           "</text>" +
-          (EN ? '<text class="jmap__en" x="0" y="' + (lastY + S * 1.05).toFixed(1) +
-                '" font-size="' + (S * 0.26).toFixed(1) +
-                '" text-anchor="middle" style="opacity:0">' + sp.name + "</text>" : "");
+          (EN ? (function(){
+            /* The English writes too — same trick at caption scale: a
+               single wavy stroke swept along the line of text is what
+               handwriting a line IS at this size (the per-character
+               serpentine is for tall glyph cells). The mask box is
+               estimated from character count — letter-spacing .2em
+               puts the advance near 0.78 of the em — with a margin
+               either side, which costs nothing since only the stroke
+               reveals. */
+            var F = S * 0.26, ey = lastY + S * 1.05;
+            var ew2 = sp.name.length * F * 0.82 + F * 2;
+            var seg = ew2 / 6, d2 = "M" + (-ew2 / 2).toFixed(1) + " " + ey.toFixed(1), si;
+            for (si = 1; si <= 6; si++)
+              d2 += " L" + (-ew2 / 2 + seg * si).toFixed(1) + " " +
+                    (ey + (si % 2 ? -1 : 1) * F * 0.16).toFixed(1);
+            return '<defs><mask id="jme' + i2 + '" maskUnits="userSpaceOnUse" x="' +
+              (-ew2 / 2 - F).toFixed(1) + '" y="' + (ey - F * 1.4).toFixed(1) +
+              '" width="' + (ew2 + 2 * F).toFixed(1) + '" height="' + (F * 2.8).toFixed(1) + '">' +
+              '<rect x="' + (-ew2 / 2 - F).toFixed(1) + '" y="' + (ey - F * 1.4).toFixed(1) +
+              '" width="' + (ew2 + 2 * F).toFixed(1) + '" height="' + (F * 2.8).toFixed(1) + '" fill="#000"/>' +
+              '<path d="' + d2 + '" fill="none" stroke="#fff" stroke-width="' +
+              (F * 1.8).toFixed(1) + '" stroke-linecap="round" stroke-linejoin="round"/>' +
+              "</mask></defs>" +
+              '<text class="jmap__en" mask="url(#jme' + i2 + ')" x="0" y="' + ey.toFixed(1) +
+              '" font-size="' + F.toFixed(1) + '" text-anchor="middle">' + sp.name + "</text>";
+          })() : "");
         labHost.appendChild(g2);
 
         var mp = g2.querySelector("mask path");
         var LL = mp.getTotalLength();
         mp.style.strokeDasharray = LL.toFixed(1) + " " + LL.toFixed(1);
         mp.style.strokeDashoffset = LL.toFixed(1);
+        var emp = g2.querySelector("#jme" + i2 + " path"), eL = 0;
+        if (emp){
+          eL = emp.getTotalLength();
+          emp.style.strokeDasharray = eL.toFixed(1) + " " + eL.toFixed(1);
+          emp.style.strokeDashoffset = eL.toFixed(1);
+        }
         labels.push({
           g: g2, mp: mp, L: LL, lw: -1,
-          en: g2.querySelector(".jmap__en"),
+          emp: emp, eL: eL,
           sx: s[0] * MW, sy: s[1] * MH, side: side,
           ax: ax, ay: ay,
           /* half-extent toward the marker, so measure() can keep a
@@ -1473,11 +1505,12 @@
                 labels[k].g.style.display = "";
               labels[k].mp.style.strokeDashoffset =
                 (labels[k].L * (1 - wv)).toFixed(1);
-              /* the English caption only fades once the Korean is
-                 nearly written — a caption, not a second headline */
-              if (labels[k].en)
-                labels[k].en.style.opacity =
-                  (cl((wv - 0.8) / 0.2) * 0.7).toFixed(3);
+              /* the English writes on its own mask, starting once the
+                 Korean is 60% down and finishing with the seal — a
+                 hand that moves on to the caption, not two hands */
+              if (labels[k].emp)
+                labels[k].emp.style.strokeDashoffset =
+                  (labels[k].eL * (1 - cl((wv - 0.6) / 0.4))).toFixed(1);
             }
           }
         }

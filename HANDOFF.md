@@ -4005,6 +4005,19 @@ manifesto arrives. Same gating, mask removed while pinned. Measured:
 opacity 1 → .75 → .50 → .25 across the exit with the mask present,
 restored clean on scrolling back up.
 
+### Part 12 — the English names write too
+
+VEN: *"add the english names next to each korean name too please. Same
+font and same written animation."* `?en=` defaults ON now. The caption
+sits centred under the Korean column, same display face, small caps,
+and it WRITES rather than fades: its own wavy mask stroke swept along
+the line (a single pass IS handwriting at caption scale — the
+per-character serpentine is for tall glyph cells), starting once the
+Korean is 60% down and finishing with the seal, so one hand appears to
+move from name to caption. Rewinds on a scrub like everything else.
+Verified: four captions, each writing 0 → 1 over its approach.
+`?en=0` hides them.
+
 ### Open
 
 - `?camsmooth=` has not been felt on a real wheel.

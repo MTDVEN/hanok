@@ -728,11 +728,15 @@ a{ color: var(--ink); }
   fill: var(--ink);
   fill-opacity: .84;
 }
+/* the English caption: same display face (inherited from the rule
+   above), revealed by its own mask stroke in js/journey.js — opacity
+   here is its STANDING strength, the writing is the mask */
 .jmap__label .jmap__en{
   fill: var(--ink-soft);
   fill-opacity: 1;
-  letter-spacing: .3em;
+  letter-spacing: .2em;
   text-transform: uppercase;
+  opacity: .8;
 }
 /* The one place seal red is allowed outside the hero and footer
    stamps: a map marker IS a stamp. §4. */
