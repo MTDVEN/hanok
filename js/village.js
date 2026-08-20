@@ -983,9 +983,16 @@
   }
 
   /* The road arriving at the village only makes sense when the journey
-     actually has a road. In split mode (`?journey=split`, the default)
-     it would arrive out of nothing, so the entrance trunk and the two
+     actually has a road of its own to arrive from. Only `?journey=road`
+     does; in map mode (the default since 2026-08-20) and split mode it
+     would arrive out of nothing, so the entrance trunk and the two
      footpaths that fork off it go with it — VEN's call, 2026-08-12.
+
+     Map mode is arguably the one case where an arrival could be earned
+     back: the sheet's road runs off the bottom edge still dotted, which
+     is the village it is heading for. Left alone deliberately — the two
+     sections are 640vh apart and joining them is a design call for VEN,
+     not a tidy-up.
      The forks are not kept on their own: without the trunk they read as
      two short strokes floating between the houses.
 
@@ -994,7 +1001,7 @@
      already repeats — but if that switch is ever renamed, grep for it. */
   function roadArrival(){
     var m = /[?&]journey=([a-z]+)/i.exec(location.search);
-    if ((m ? m[1].toLowerCase() : "split") !== "road") return "";
+    if ((m ? m[1].toLowerCase() : "map") !== "road") return "";
     return (
       '<path d="M462 378 C466 358 468 330 472 310" fill="none" stroke="' + INK + '" stroke-width="3.2" stroke-linecap="round"/>' +
       '<path d="M472 310 C474 296 476 284 478 272" fill="none" stroke="' + INK + '" stroke-width="1.8" stroke-linecap="round" opacity=".8"/>' +

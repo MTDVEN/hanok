@@ -592,6 +592,311 @@ a{ color: var(--ink); }
   .jsplit__rule{ display: none; }
 }
 
+/* JOURNEY — MAP MODE (?journey=map, the default) -------------------
+   A sheet of map under the whole window, and scrolling walks it. The
+   camera is ONE transform on .jmap__cam; everything else in here is
+   static, so a frame costs a transform, a dashoffset and a handful of
+   opacities. Same build-once discipline as split and road mode.
+
+   The road, the markers and the seals are SVG over the painting —
+   see the block comment in js/journey.js for why that split exists. */
+
+.journey--map{
+  /* Three journeys and no dwells (since 2026-08-20 part 3 the camera
+     never stops — see DWELL in js/journey.js). At 560vh the scrollable
+     part is 460vh, ~153vh of scrolling per leg, and every vh of it
+     moves the camera. It was 640vh when ~a third of the section was
+     spent standing at the stops; with the holds gone that length made
+     each leg half again slower than the pacing that was tuned.
+     Shorten this and the travel stops reading as travel; lengthen it
+     and the section outstays its welcome. */
+  height: 560vh;
+}
+/* NO opaque background on the sticky — load-bearing absence (part 9).
+   The entry dissolve slides the semi-transparent map up OVER the
+   hero's fixed landscape; a paper background here sat between them,
+   so the pre-pin viewport read as a blank slab instead of a
+   cross-dissolve (VEN's screenshot). The sheet itself covers the
+   sticky edge-to-edge once drawn (its zoom is cover-floored), so
+   nothing is lost by the transparency. */
+
+.jmap{
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  overflow: hidden;
+}
+
+/* the moving sheet. transform-origin 0 0 keeps the camera maths in
+   js/journey.js honest: translate() then scale() about the corner. */
+.jmap__cam{
+  position: absolute;
+  top: 0; left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.jmap__sheet{
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* NO mix-blend-mode HERE, and that is load-bearing.
+
+     .scene-backdrop multiplies, and copying it onto this element was
+     the obvious thing to do — it is what marries a painting's paper to
+     ours. It does not survive the camera. At ZOOM_IN this <img> is
+     2960x5304 CSS px, and a blended element has to be rasterised into
+     a texture before it can be composited: 15.7M pixels of one. In
+     Chrome the whole layer then silently fails to paint and you get
+     bare parchment with the SVG road and the seal still drawn on top
+     of nothing — which reads exactly like a missing-image bug.
+
+     Measured, because it looked like one: at p=0.20 (zoom 1.0, layer
+     1600x2867) the sheet painted; at p=0.07 (zoom 1.85) it did not,
+     and setting mixBlendMode to normal brought it straight back. Same
+     family of trap as the two blend dropouts in HANDOFF §7.
+
+     The marriage is done by .jmap__tone instead, which is one
+     viewport in size — about a twenty-third of the area — and blends
+     safely, the same way .grain has always done. */
+}
+/* the paper veil that the sheet's own multiply used to provide, moved
+   onto a viewport-sized layer. ?maptone=0 turns it off; journey.js
+   owns the value so it can be judged without an edit. */
+.jmap__tone{
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--paper);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+.jmap__ink{
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* The road ahead as FOOTSTEPS (default since part 10) — small ink
+   prints a stride apart, alternating sides, each turned to where the
+   road goes. Geometry is generated in js/journey.js from the same
+   arc-length table the camera uses; prints vanish under the inked
+   line as they are walked. ?trail=dots restores the dotted line. */
+.jmap__steps ellipse{
+  fill: var(--ink-soft);
+  opacity: .42;
+}
+
+/* The road AHEAD of you: dotted, faint (?trail=dots). The map
+   convention, and what makes the sheet read as a route rather than as
+   terrain. */
+.jmap__road{
+  fill: none;
+  stroke: var(--ink-soft);
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  stroke-dasharray: 0.1 11;
+  opacity: .38;
+}
+/* The road BEHIND you: inked in solid as you walk it. Revealed by
+   stroke-dashoffset, which is the only thing about it that changes. */
+.jmap__inked{
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  opacity: .82;
+}
+.jmap__walker{
+  fill: var(--ink);
+  opacity: .9;
+}
+
+.jmap__x path{
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+/* The place names, written onto the sheet (default since 2026-08-20
+   part 2 — the info cards are gone unless ?info=1). The glyphs are the
+   display face; the HANDWRITING is the label's mask, a serpentine
+   brush stroke revealed by dashoffset — see the label block in
+   js/journey.js. Sized per viewport by measure(), not here. */
+.jmap__label text{
+  font-family: var(--font-display);
+  fill: var(--ink);
+  fill-opacity: .84;
+}
+.jmap__label .jmap__en{
+  fill: var(--ink-soft);
+  fill-opacity: 1;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+}
+/* The one place seal red is allowed outside the hero and footer
+   stamps: a map marker IS a stamp. §4. */
+.jmap__seal rect{ fill: var(--seal); }
+.jmap__seal text{
+  fill: var(--paper-light);
+  font-family: var(--font-display);
+  font-size: 21px;
+  text-anchor: middle;
+}
+
+/* The vistas — the four paintings, back by request (VEN 2026-08-20
+   part 4): just the place, no copy, fading up as you arrive on it and
+   away as you leave. Screen-pinned so they never scale with the
+   camera; left side against the marker's right-of-centre focus. The
+   keyed treatment means no card edge — the painting sits straight on
+   the map's field the way the split plates sit on the paper. */
+.jmap__vistas{
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: grid;
+  align-items: center;
+  justify-items: start;
+  padding: 0 clamp(20px, 6vw, 84px);
+  pointer-events: none;
+}
+.jmap__vista{
+  grid-area: 1 / 1;
+  margin: 0;
+  width: clamp(240px, 24vw, 400px);
+}
+.jmap__vista svg{ display: block; width: 100%; height: auto; }
+@media (max-width: 860px){
+  /* one column: the painting sits along the bottom and the camera's
+     focus moves up to clear it — the same trade the cards made */
+  .jmap__vistas{
+    align-items: end;
+    justify-items: center;
+    padding-bottom: clamp(16px, 5vh, 48px);
+  }
+  .jmap__vista{ width: min(56vw, 30svh); }
+}
+
+/* the eyebrow — the one piece of screen-pinned chrome left in map
+   mode. It sits outside the camera in the corner; everything else the
+   section says, it says on the sheet. */
+.jmap__eyebrow{
+  position: absolute;
+  top: clamp(18px, 4.5vh, 44px);
+  left: clamp(20px, 5vw, 64px);
+  margin: 0;
+  z-index: 2;
+}
+
+/* ---- the copy column — ?info=1 ONLY since 2026-08-20 part 2 --------
+   VEN removed the per-location information; this block serves the way
+   back. Pinned to the screen rather than to the sheet: it must not
+   scale with the camera, so it lives outside .jmap__cam. The wash is a
+   gradient rather than a card edge: a hard-edged panel over a painting
+   is the exact thing the journey's paintings were treated to avoid
+   (§6, "glossy tiles pasted onto the landscape"). */
+.jmap__cards{
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 clamp(20px, 5vw, 64px);
+  pointer-events: none;
+}
+.jmap__cards::before{
+  content: "";
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  /* Capped at 62% of the window, not 78%. The camera puts the place
+     you have arrived at at FOCUS_X (0.68 of the width), so a wash that
+     runs to 78% reaches past the marker and drops a veil over the very
+     seal the copy is describing. At 62% the two never meet: measured
+     at 1024px the wash ends at 635px and the marker sits at 696px. */
+  width: min(760px, 62%);
+  /* Holds near-opaque across the whole text column and only lets go
+     past it. The map under the copy is ink mountains at full contrast,
+     which is the busiest thing on the sheet; at .88 the ridges read
+     straight through a body paragraph. The copy is the content — it
+     wins, and the sheet stays legible either side of it. */
+  background: linear-gradient(to right,
+    rgba(223,206,165,.97) 0%,
+    rgba(223,206,165,.95) 44%,
+    rgba(223,206,165,.72) 70%,
+    rgba(223,206,165,0)   100%);
+  pointer-events: none;
+}
+/* all four cards share one grid cell so they cross in place and the
+   block never reflows as the copy changes — same as .jsplit__stop */
+.jmap__stops{
+  position: relative;
+  display: grid;
+  width: min(46ch, 46%);
+}
+.jmap__card{
+  grid-area: 1 / 1;
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0 clamp(14px, 2vw, 24px);
+}
+.jmap__plate{
+  grid-column: 1;
+  margin: 0;
+  width: clamp(92px, 15vh, 156px);
+}
+.jmap__plate svg{ display: block; width: 100%; height: auto; }
+.jmap__head{ grid-column: 2; }
+.jmap__idx{
+  font-family: var(--font-display);
+  font-size: .74rem;
+  letter-spacing: .32em;
+  color: var(--ink-faint);
+  margin: 0 0 .6rem;
+}
+.jmap__idx span{ opacity: .55; }
+.jmap__card h3{
+  font-size: clamp(1.4rem, 2.6vw, 2.1rem);
+  line-height: 1.14;
+  margin: 0 0 .3rem;
+}
+.jmap__ko{
+  font-family: var(--font-display);
+  color: var(--ink-soft);
+  letter-spacing: .14em;
+  margin: 0;
+}
+.jmap__body{
+  grid-column: 1 / -1;
+  margin: clamp(12px, 2.2vh, 20px) 0 0;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+/* Phones: one column, the copy along the bottom and the place you have
+   arrived at above it (journey.js moves the camera's focus up to match
+   — see `narrow` in measure()). The wash flips to a bottom-up
+   gradient, because there is no left column to sit under. */
+@media (max-width: 860px){
+  .jmap__cards{
+    justify-content: flex-end;
+    padding-bottom: clamp(18px, 4vh, 44px);
+  }
+  .jmap__cards::before{
+    top: auto; right: 0;
+    width: auto;
+    height: 62%;
+    background: linear-gradient(to top,
+      rgba(223,206,165,.96) 0%,
+      rgba(223,206,165,.90) 38%,
+      rgba(223,206,165,.55) 70%,
+      rgba(223,206,165,0)   100%);
+  }
+  .jmap__stops{ width: auto; }
+  .jmap__plate{ width: clamp(76px, 11vh, 112px); }
+  .jmap__body{ margin-top: clamp(8px, 1.6vh, 14px); }
+}
+
 /* MANIFESTO ------------------------------------------------------ */
 
 .manifesto{

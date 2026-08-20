@@ -32,6 +32,13 @@
 /valley*.png
 /valley*
 /hand drawn reference.jpg
+# the journey map masters (session 12) — 25MB each, 4K OpenArt output.
+# `-plain` is the pre-vignette terrain (the base for future re-edits),
+# `-alt` the runner-up vignette variant. art/journey/*.png are the
+# SHIPPED preps and are kept.
+/map-*-master*.png
+/map-ink-master*.png
+/map-pirate-master*.png
 
 # ---- village art that is not the village art -----------------------
 # _fake:        placeholder state plates from the abandoned states

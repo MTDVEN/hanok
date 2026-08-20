@@ -21,6 +21,16 @@ sleeping Z's**; made the **backdrop global**; stopped honouring the OS
 reduced-motion setting; and fixed a real accessibility bug that was
 deleting the journey's copy.)
 
+**2026-08-20 (session 12): THE JOURNEY IS NOW A MAP YOU WALK.**
+`?journey=map` is the default — the camera sits on a place, pulls back,
+travels down an inking road to the next, and settles. `split` and `road`
+are untouched. **The one open decision is which sheet: `?map=ink`
+(default) or `?map=pirate`.** Both ship until VEN picks; deleting the
+loser from `MAPS` in `js/journey.js` drops it from the build. Read §9r,
+**then §9s**: VEN reviewed it — the scroll is glided smooth now, the
+info cards are gone (`?info=1` is the way back), and each place's
+Korean name handwrites itself onto the sheet on arrival.
+
 **If you read nothing else:**
 - **START AT §9q, then the "LAUNCH DAY" section at the very end of this
   file** — that is the complete list of what is left, and all of it is
@@ -3300,6 +3310,9 @@ as a watermark, and **VEN has not yet judged it on a real screen.**
 | `?plate=NAME` | field | swap the plate crop |
 | `?art=off` | off | inline SVG fallback instead of the paintings |
 
+**Superseded by §9r's table** — the journey switches below are new and
+`?journey=` now defaults to `map`.
+
 ### Verified at the end of the session
 
 - `https://tilesongiwa.com` → **200**, `https://www.tilesongiwa.com` →
@@ -3329,6 +3342,673 @@ When something must be judged visually, either ask VEN to bring the
 window to the front, or do what this session did: compute the values
 (the opacity table above), render headless with `tools/render.js`, or
 stamp the geometry into a PNG with a scratchpad script.
+
+---
+
+## 9r. Session 12 (2026-08-20) — the journey became a map you walk
+
+VEN: *"rather than the current scroll mechanism that we have, I want to
+make it like a pirate map instead. Travelling between each location...
+we are at the first of four locations, then as you scroll you go down a
+long path to the second location on the pirate map, then third and then
+fourth."*
+
+So the journey is now a sheet of map, and scrolling walks it. The camera
+sits on a place, pulls back, travels down the road, and settles on the
+next — four arrivals, three journeys. **`?journey=map` is the new
+default; `split` and `road` are untouched and still work.**
+
+### The one thing to decide: which sheet
+
+VEN could not judge the options described in words — *"I am not sure
+what either of these would look like"* — which was the right answer to
+a badly-posed question. Both were built instead, per VEN's own standing
+rule about alternatives behind a switch:
+
+- **`?map=ink` (default)** — a Korean 고지도-style sheet: ink ridges,
+  pine forests, terraced valleys, a compass rose, wave scrolls along the
+  coast. On palette with the hero and the village.
+- **`?map=pirate`** — the treasure map: burnt and torn edges, a coiling
+  sea serpent, a sailing junk, heavier browns. It still charts Korea,
+  with hanok villages drawn on it, so it reads as a treasure map of
+  *this* country rather than a Caribbean one pasted in.
+
+Both ship until VEN picks. **Deleting the loser from `MAPS` in
+`js/journey.js` drops it from the build automatically** — `tools/build.js`
+lifts the filenames from that object. That is worth ~2.1MB.
+
+### The art, and the two tools that came with it
+
+Generated with OpenArt `nano-banana-2`, `image2image`, **4K at 9:16**
+(the "1K square" note at the top of this file is stale — the model does
+21:9 through 9:16 and 1K/2K/4K now), 50 credits an image, seeded with
+`hand drawn reference.jpg` so the sheet inherited the site's hand. Four
+candidates, two kept. 3072x5504 masters, ~26MB each.
+
+- **`tools/mapprep.js`** — master → web asset. Box downscale then
+  median-cut 256 + Floyd–Steinberg, written as PNG-8, exactly the two
+  passes `optimize.js` runs. `node tools/mapprep.js <src> <dest> 1500`
+  gives 1500x2688 at ~2.0MB. (§9h's shared-palette warning does NOT
+  apply — that rule is about village sprites agreeing with each other;
+  a map sheet is one standalone image.)
+- **`tools/maproute.js`** — **finds the road, so nobody hand-drags it.**
+  Same rule as `PLOTS` (§9j). Open ground is the one thing on a map that
+  is both BRIGHT and SMOOTH, so `openness = norm(luminance) − 1.35 ·
+  norm(local stdev)`, and the road is the highest-openness seam from the
+  top edge to the bottom (one DP pass down the rows). Re-roll the art,
+  re-run the tool, paste the two arrays. `--debug` draws the result over
+  the map so it can be checked without a browser.
+
+**A real fault in that tool, found in Chrome and fixed.** Stops were
+first placed at the most *open* cell along the road — which is the
+middle of the widest empty bowl. The camera zoomed in on Gyeongbokgung
+and framed bare parchment with a seal floating on it; the mountains were
+just outside the shot. Openness is the right score for a *road* and the
+wrong one for a *stop*. Stops now score `open(cell) + 0.85 ·
+mean detail in a ring 3–8 cells out` — clear where the marker lands,
+something to look at around it.
+
+### How it works
+
+- **Art vs. structure.** The sheet is a painting; the road, the X marks
+  and the seals are SVG over it. Deliberate: the road has to be followed
+  to sub-pixel accuracy by a camera and revealed progressively, and a
+  painted road can be neither. §6b's rule is intact — nothing pictorial
+  is hand-authored in SVG.
+- **The camera** is ONE transform on `.jmap__cam` (`translate3d` +
+  `scale`, origin 0 0). `u` is position in *stop units* — 1.5 means
+  halfway from the second place to the third. Dwell holds `u` at a whole
+  number; travel eases it with `smooth()`, whose derivative is zero at
+  both ends, so setting off and arriving are smooth against the standing
+  still either side. Zoom dips to `ZOOM_OUT` mid-leg so you see where
+  you are going.
+- **Arc length is sampled ONCE** into a plain array (901 points) and
+  lerped. `getPointAtLength` per frame is a geometry query and would
+  undo the build-once discipline the rest of the file keeps.
+- **The road inks itself in behind you** — dotted and faint ahead,
+  solid ink behind, revealed by `stroke-dashoffset`. That is the
+  signature move §4 always said the journey's line was for. It runs off
+  the bottom edge still dotted, heading for the village.
+- **X marks the spot, then the seal stamps over it** on arrival — the
+  map convention and the site's own dojang in one move. This is the one
+  place seal red is allowed outside the hero and footer stamps (§4): a
+  marker *is* a stamp.
+- **The copy is pinned to the screen, not to the sheet**, so it never
+  scales with the camera. Its backing is a gradient, not a card edge —
+  a hard-edged panel over a painting is exactly what §6 treated the
+  journey's paintings to avoid.
+
+### Three traps, all measured rather than guessed
+
+1. **`mix-blend-mode` does not survive the camera.** Copying
+   `.scene-backdrop`'s multiply onto `.jmap__sheet` was the obvious
+   move. At `ZOOM_IN` that `<img>` is 2960x5304 CSS px, and a blended
+   element must be rasterised into a texture first — 15.7M pixels of
+   one. Chrome silently fails to paint the whole layer, leaving the
+   road and seals drawn over bare paper, which reads exactly like a
+   missing-image bug. Verified: at zoom 1.0 it painted, at 1.85 it did
+   not, and `mixBlendMode='normal'` brought it straight back. The paper
+   marriage is done by `.jmap__tone` instead — one viewport in size,
+   about a twenty-third of the area, blending safely the way `.grain`
+   always has. `?maptone=` sets it, 0.16 default.
+2. **`MAP_FADE` is not `BG_FADE`.** BG_FADE (0.07) is split mode's
+   number, tuned for a section that holds its first stop through the
+   entry. Here the first DWELL is 0.10, so a 0.07 fade left the sheet
+   half-transparent for most of the time you stand at Gyeongbokgung —
+   you arrived at the first place before the map it is drawn on
+   existed. Caught at p=0.04 with the sheet at 57%. Now 0.035.
+3. **`var NS` was declared in the road block, below the dispatch.**
+   `var` hoists the declaration and not the assignment, so map mode
+   built its markers with `createElementNS(undefined, …)` — elements in
+   the null namespace, which render as nothing and look like a CSS
+   fault. Moved to the shared constants at the top.
+
+Also caught before it shipped: **`tools/build.js` had no
+`art/journey/`**, so the deploy would have served a road and four seals
+on bare paper. The filenames are now *lifted* from `MAPS`, the same
+"lift, don't type" pattern the village sprites use and for the same
+reason — a missing file here is silent on the page.
+
+### The switch inventory — journey section, current
+
+| switch | default | what it does |
+|---|---|---|
+| `?journey=map` | **default** | the map you walk |
+| `?journey=split` | — | the 2026-08-12 two-column crossfade, untouched |
+| `?journey=road` | — | the original pseudo-3D road, untouched |
+| `?map=ink` / `?map=pirate` | ink | which sheet — **VEN's call** |
+| `?cam=follow` | follow | sit, pull back, travel, settle |
+| `?cam=pan` | — | constant scale and speed; calmer, no zoom |
+| `?cam=fixed` | — | whole sheet on screen. **Poor by construction** — a 9:16 sheet fitted to a 2.3:1 window is a 384px strip (measured at 1600x689). Kept because it was worth answering, not because it is good |
+| `?zoomin=N` | 1.85 | scale when settled on a place |
+| `?zoomout=N` | 1.00 | scale mid-journey |
+| `?dwell=N` | 0.10 | share of the section spent standing at each stop |
+| `?mapfade=N` | 0.035 | how fast the sheet arrives out of the hero |
+| `?maptone=N` | 0.16 | paper veil seating the sheet on our paper |
+| `?focusx=N` / `?focusy=N` | .68 / .50 | where on screen the arrived-at place sits |
+| `?cardspan=N` | 0.40 | how long a card is up. **Must stay under 0.5** or two are legible at once |
+| `?walker=0` | on | the ink dot at the head of the inked road |
+
+### Verified
+
+Measured in Chrome at 1600x689 (DOM measurement, not screenshots — see
+the tooling note in §9q, which bit again this session: the tab was
+backgrounded and the compositor returned stale frames that read as
+layout bugs).
+
+| p | zoom | card up | seals stamped | road inked |
+|---|---|---|---|---|
+| 0.00–0.10 | 1.85 | 1 | 1 | 7% |
+| 0.20 | 1.00 | none | 1 | 18% |
+| 0.30–0.40 | 1.85 | 2 | 1,2 | 28% |
+| 0.50 | 1.00 | none | 1,2 | 49% |
+| 0.60–0.70 | 1.85 | 3 | 1,2,3 | 70% |
+| 0.80 | 1.00 | none | 1,2,3 | 82% |
+| 0.90–1.00 | 1.85 | 4 | all four | 94% |
+
+- **Never two cards at once**, at any p. The sheet's edge never enters
+  frame at any p, at either width (`gap: no` throughout).
+- `?map=pirate` loads; `?journey=split` still builds 4 stops and 4
+  plates; `?journey=road` still builds the stage, 4 panels, 13 road
+  paths and the village arrival; `?motion=0` still serves the static
+  column **with all four blurbs** (§9q's fix holds).
+- Phone, 390x844 via `tools/qa-frame.html`: copy 620→810, no overflow
+  top or bottom, plate 93px, sheet covering on all four sides. The
+  top clamp binds at the first stop — expected, and documented in place.
+- No console errors. `node tools/build.js` → 27 files, 21.6MB, no
+  MISSING lines, both sheets in `dist/art/journey/`.
+
+### Open
+
+- **Which sheet.** The whole point of shipping both.
+- **Weight.** The two sheets are 2.0MB and 2.3MB, so `dist/` went
+  ~17MB → 21.6MB. Picking one gets ~2.1MB back immediately. Beyond
+  that they are already PNG-8 at 1500px; the honest next lever is
+  dropping to ~1200px, which is a `tools/mapprep.js` re-run and a
+  judgement call about how soft the sheet may look at `ZOOM_IN`. Folds
+  into the pre-deploy pass that was already open (LAUNCH DAY §4).
+- **640vh.** The section is longer than the 460vh it replaced, because
+  three journeys need room to read as journeys. If it outstays its
+  welcome, `?dwell=` and the `.journey--map` height are the two knobs.
+- Whether the road should arrive at the village, now that map mode ends
+  with it running off the bottom edge pointing there. See the note in
+  `roadArrival()` in `js/village.js`.
+
+---
+
+## 9s. Session 12, part 2 — the glide, and the map lost its cards
+
+VEN, having scrolled §9r's build: *"can you make the animation
+smoother, it is a bit choppy as i scroll down. overall really cool
+though. I think I want to make it so that we scroll past the actual
+locations, remove the information about each location, I want to
+scroll past each location and maybe subtle text of the name of each
+location in korean that has a handwritten animation that it renders in
+with."*
+
+Two changes, both map-mode only. Split, road and static are untouched
+and re-verified.
+
+### 1. The glide — why it was choppy, and the fix
+
+The camera was driven directly by scroll position, and **wheel
+scrolling is stepped**: each tick jumps ~100px at once. Split mode hid
+that because crossfading opacity has no velocity to notice; a
+travelling camera teleports with every tick. So scroll now sets a
+TARGET and a rAF loop eases the drawn position toward it —
+`cur += (target − cur) · (1 − e^(−GLIDE·dt))`, time-based so it feels
+identical at 60Hz and 144Hz. The loop stops the moment it converges;
+there is no standing animation frame on an idle page. `?glide=N` sets
+the rate (11/s default ≈ 90% of a step absorbed in ~200ms), `?glide=0`
+restores the direct drive.
+
+**The `inLoop` guard in `step()` is not decoration.** §7's QA trick
+patches `requestAnimationFrame` to run synchronously, which would make
+a self-scheduling loop infinitely recursive. Re-entry is detected and
+answered by snapping to the target — a patched tab converges in one
+scroll dispatch, so QA stays deterministic *without* needing
+`?glide=0`, and nothing can hang.
+
+### 2. The cards are gone; the names are written onto the sheet
+
+The info column was split-mode content pasted onto a map. Now the map
+carries everything itself: at each arrival the place's Korean name
+(경복궁, 창덕궁, 남산골, 전주) **writes itself in** beside the marker —
+stacked vertically like a 고지도 place label — finishing exactly as the
+seal stamps. Scrub backwards and it un-writes, the same way the road
+un-inks.
+
+**How the handwriting works, because it is not what it looks like.**
+Hand-authoring Hangul stroke paths for ten syllable blocks would be
+hero-title-sized work per name. Instead the glyphs are Song Myung, and
+the *writing* is the label's mask: `scribble()` lays a serpentine
+brush path over each character cell in writing order, that path is the
+only white in the mask, and revealing it with `stroke-dashoffset`
+(driven by the same `walked` metric as the seal) inks the glyphs in
+brush-width sweeps, character by character. Cheap, resolution-free,
+and it rewinds for free.
+
+Labels live in map units inside the camera — they belong to the sheet
+and travel with the terrain — but their SIZE is set per viewport in
+`measure()`: a map unit is 0.72px on a 390w phone vs 2.96px at 1600w,
+so each label group is scaled to hit ~10% of viewport height (floored
+at 34px). The scale wraps glyphs and mask together, so the writing
+scales with the written. Measured: scale 0.97 at 1600x689, 1.96 at
+390x844, label fully in view at both.
+
+- **`?info=1` restores the card column wholesale** — kept as the way
+  back. The blurbs in `SPOTS` stay regardless: split, road and static
+  modes still use them, so Zico's copy still has a home.
+- **`?en=1`** adds a small English caption under the Korean, fading in
+  only after the name finishes writing. OFF by default — VEN asked for
+  the Korean; this is the cheap way to judge whether Korean-only is
+  too opaque for token visitors. `?labels=0` hides names entirely;
+  `?vlabel=0` lays them horizontally; `?lsize=` `?write=` tune size
+  and the write window.
+- With the cards gone the camera centres its subject (`FOCUS_X` 0.5,
+  was 0.68 to dodge the copy; `?info=1` restores 0.68). The eyebrow is
+  the one piece of screen-pinned chrome left, in the top-left corner.
+- In map mode with info off, the four journey paintings are no longer
+  fetched at all — they still ship for the other three modes.
+
+### Verified
+
+- Default: 0 cards, 4 labels (3/3/3/2 tspans). Write progress along
+  the road: hidden → 0.14 → 0.85 → 1.00 into each stop, complete
+  exactly at arrival, all four standing at p=1.
+- Glide under the §7 rAF patch: converges, no hang, deterministic.
+- `?info=1` → 4 cards + wash back. `?labels=0` → none. `?en=1` → four
+  captions. Split 4 stops, road 4 panels + stage, `?motion=0` 4
+  figures + 4 blurbs.
+- Live captures (window foregrounded per §9q's tooling note): stop 1
+  settled with 경복궁 standing beside the seal; p=0.26 caught 창덕궁
+  HALF-WRITTEN mid-stroke with seal 2 mid-stamp — the mechanism,
+  photographed working.
+- `node tools/build.js` → 27 files, 21.6MB, dist parses.
+
+### Open (in addition to §9r's list, which stands)
+
+- ~~The glide rate~~ — VEN felt it: *"the animation is so much
+  better."* 11/s stands.
+- Whether `?en=1` should ship on. VEN's call after seeing it.
+- Label placement is side-of-marker by a simple rule (away from the
+  sheet's nearer edge). If a name ever sits on busy terrain,
+  `tools/maproute.js` is where a clearing-aware placement would go.
+
+## 9t. Session 12, part 3 — the camera stopped stopping
+
+VEN, on part 2: *"the animation is so much better, I still want to be
+able to scroll past each place though."*
+
+The dwell was the culprit. DWELL 0.10 froze the camera for ~54vh of
+scroll at each stop — a third of the section where the wheel did
+nothing visible. That dead-scroll is what "scroll past" was asking to
+be rid of, both times he said it.
+
+**DWELL is 0 now: there is no scroll position anywhere in the section
+where the camera ignores the wheel.** Verified with 51 evenly spaced
+scroll positions — the camera transform changed at every single one.
+`?dwell=.10&ease=1` restores the old stop-and-hold exactly.
+
+What replaced the holds, so an arrival still reads as one:
+
+- **`EASE` (0.55)** — each leg's pacing is a blend of linear and
+  smoothstep: `(1−EASE)·f + EASE·smooth(f)`. Its derivative bottoms
+  out at `1−EASE` of cruise speed at the stops and never reaches
+  zero — the camera slows into each town and glides through.
+- **`ZHOLD` (0.14)** — the zoom plateaus at full for the first and
+  last 14% of every leg, so the camera is all the way in while you
+  pass THROUGH a place, not only at one instant. Measured profile:
+  1.85 held through each stop, 1.0 mid-leg, continuous throughout.
+- The seal and the name needed no change: both are driven by road
+  length walked and complete exactly as you reach the marker.
+- **`.journey--map` height 640vh → 560vh.** The 640 was sized when a
+  third of it was standing still; with the holds gone that length made
+  every leg half again slower than the tuned pacing.
+
+**A real phone bug fixed on the way past:** `timeline()` was zooming
+with the raw `ZOOM_IN`/`ZOOM_OUT` knobs, not the cover-floored
+`zIn`/`zOut` that `measure()` computes. On a 390x844 phone cover is
+1.21, so every mid-leg dipped to 1.00 and pulled bare paper into the
+top and bottom of the frame. Now floored: measured z = 1.21 at all
+three mid-legs, sheet edge never in frame.
+
+Switch deltas against §9r/§9s: `?dwell=0` (was .10), new `?ease=.55`
+and `?zhold=.14`.
+
+## 9u. Session 12, part 4 — thresholds, the paintings return, and 1.65
+
+VEN, on part 3: *"Can you make the scrolling threshold based rather
+than gradual... when it isnt threshold based it is a bit choppy. Also
+I want the images to come back, I want it to seem like you are
+scrolling from location to location. Also can you zoom out the
+background a tiny bit?"*
+
+### 1. Threshold scrolling is the default (`?step=1`)
+
+VEN's diagnosis was right: even glided, a scroll-linked camera
+inherits the wheel's rhythm — every burst of ticks surges and settles.
+Threshold mode cuts the wheel out of the motion entirely:
+
+- The section divides into **one equal band of scroll per stop**
+  (boundaries at p = 1/6, 1/2, 5/6). Scrolling only decides which band
+  you are in.
+- Crossing a boundary starts a **tween on the rAF clock** —
+  smooth()-eased, `DUR·sqrt(legs)` ms (`?dur=1400`) — from wherever
+  the camera is to the new stop. No amount of ragged scrolling can
+  perturb a journey in flight; it can only retarget it, and a retarget
+  re-plans from the current position, so a hard scroll across the
+  whole sheet reads as ONE longer journey, not three queued ones.
+- The road, zoom, seal and name all ride the tween, so the whole
+  journey plays at one tempo.
+- **`?step=0` restores the continuous scroll-linked camera** (with its
+  part-2 glide), which is also the honest mode for scrubbing — in step
+  mode most scroll positions inside a band draw nothing new, by
+  design. Verified both ways: step mode snaps band-exact; step=0 still
+  moves at all 41 sampled positions.
+- If rAF freezes mid-tween (background tab), the pending frame fires
+  on return, sees the elapsed time, and snaps to target — self-healing,
+  no code needed.
+- Refactor that fell out: `timeline()` split into `timelineU(p)`
+  (pacing only, continuous mode) and **`zoomOf(u)`** — zoom now derives
+  from distance-to-nearest-stop alone, so one function serves the
+  tween and the scroll path identically.
+
+### 2. The paintings are back, as VISTAS (`?vista=0` hides)
+
+Not the cards — just the painting, screen-pinned left (bottom on
+phones), fading up as you arrive at its place and away as you leave.
+`VSPAN` 0.35 < 0.5, so at mid-leg both neighbours are fully gone —
+never two places on screen. Same `artOf`/`settleArt` pipeline, so the
+keyed treatment, ink stand-in and 404 fallback come free. Under
+`?info=1` the cards already carry the painting, so the vista
+suppresses itself. The camera's focus moves right of centre again
+(`FOCUS_X` 0.68) to clear it, exactly as it did for the cards.
+
+Composition at an arrival now: painting left, seal + handwritten
+Korean name right-of-centre on the sheet — *"you are scrolling from
+location to location."*
+
+### 3. `ZOOM_IN` 1.85 → 1.65
+
+"Zoom out the background a tiny bit," done as asked. `?zoomin=` if it
+wants further tuning.
+
+Verified: 4 vistas, band-exact handoffs, one at a time; `?info=1` → 4
+cards + vistas suppressed; `?step=0` continuous alive; split/static
+untouched; phone 390x844 vista 218px along the bottom, no overlap with
+the label, sheet covering, z=1.65. dist rebuilt, 27 files.
+
+### Part 5 — threshold REJECTED, same day. Continuous is the default.
+
+VEN, having scrolled part 4: *"no i think change it back. I dont like
+threshold anymore."*
+
+`?step=0` is the default again — the part-3 continuous glide. The
+vistas and the 1.65 zoom STAY (they were liked; only the scroll drive
+was not). Threshold mode is kept whole behind **`?step=1`** — but note
+the sequence before proposing it afresh: it was asked for by name,
+built, felt, and rejected within the hour. It sounds like a chop fix
+and it IS smooth; what it costs is the scroll's authority — inside a
+band the wheel does nothing and the page moves on the tween's clock,
+not the hand's. That trade is what was disliked.
+
+**Hardening found on the way (real-visitor bug, fixed):** a tab opened
+in the BACKGROUND has never been painted, and browsers defer its
+layout — `clientWidth` is 0. `measure()` then made `cover = H/0 =
+Infinity`, and a transform containing `Infinitypx` is invalid CSS that
+the browser SILENTLY DROPS — the map just never appeared, with no
+error anywhere. Now: `measure()` bails on 0x0 and leaves itself
+unmeasured, `drawMap` no-ops while unmeasured, and `onScroll` +
+`visibilitychange` re-measure the moment the tab has real geometry.
+Surfaced by an MCP tab (they are created unpainted), but the visitor
+case is ordinary: a link opened in a new background tab, visited
+later.
+
+---
+
+## 9v. Session 12, part 6 — the places moved INTO the sheet
+
+VEN, after the vista round: *"We need to discuss a good way to
+integrate an image of each location into the background... what about
+re-generating that background with the images integrated... in the
+corresponding art style"*, then: *"I just want to be able to scroll
+past the actual locations and it looks quite bad right now with the
+current approach we took."*
+
+He was right about why it looked bad: the vista was screen-pinned
+while everything else lived on the sheet, painted at a foreign scale
+with its own light. The fix is the old-map convention itself — the
+landmarks are now PAINTED INTO THE MAP as pictorial vignettes, one at
+each stop, by the same cartographer's hand. Arriving at the vignette
+IS the image moment; nothing floats.
+
+### How the sheet was made — EDIT, don't regenerate (§6b's rule held)
+
+nano-banana-2 image2image, 5 references: the PLAIN ink sheet as the
+base to edit + the four journey paintings as landmark references.
+Prompt: keep the terrain unchanged, add four SMALL vignettes (≤1/5
+sheet width) in the corridor clearings, top to bottom in visit order,
+same ink-and-wash hand, soft ground shadow, NO text, NO trail. Two
+variants; B chosen (organic Jeonju roof-mass beats variant A's walled
+square; masters kept as `map-ink-master.png` / `-alt.png`).
+50 credits each. Full-res crops checked before wiring: no text, no
+style drift, terrain preserved.
+
+**Masters at the project root, in .gitignore like every other master:**
+`map-ink-master.png` (SHIPPED, has vignettes), `map-ink-master-alt.png`
+(runner-up), **`map-ink-master-plain.png` (the pre-vignette terrain —
+KEEP: it is both the `--base` for stop detection and the start point
+for any future re-edit)**, `map-pirate-master.png`.
+
+### Stops are found by DIFFERENCE now — `maproute --base`
+
+Weight-tuning could NOT find the vignettes and it was tried twice:
+detail-stdev cannot tell a painted landmark from a mountain range —
+both are ink. At `INT_W` 0.85 the Namsangol stop landed 10% of the
+sheet below its house; at 2.2 the Changdeokgung stop wandered into the
+terraced fields. Do not try a third weighting.
+
+`node tools/maproute.js art/journey/map-ink.png --base <plain-prep>`
+subtracts the plain sheet's detail field from the vignette sheet's —
+the only thing separating the two IS the landmarks — then picks the N
+strongest road-adjacent rows (±10-row suppression so one vignette
+cannot claim two stops). All four locked on first run, verified on the
+debug render: markers at the palace terrace, the garden gate, the
+hanok's doorstep, the village entrance.
+
+**The label side is emitted too** (third element of each stop): summed
+diff mass left vs right of the road sends the name to the lighter
+side, so 경복궁 does not write itself across the palace roof — which
+the old away-from-the-edge rule would have done at stop 1.
+`js/journey.js` falls back to the edge rule for sheets without sides
+(the pirate entry still has none).
+
+### What changed in the site
+
+- `MAPS.ink`: new sheet (1800x3225 prep, 3.0MB — up from 1500, because
+  the vignettes carry detail the terrain never did; at 1.65 zoom on a
+  1600w screen that is a 1.47x upscale vs 1.76 before), new path, new
+  stops with sides.
+- **`?vista=0` is the default** — the sheet carries the places.
+  `?vista=1` restores the screen-pinned overlay for comparison,
+  `?info=1` the full cards. With no vista the camera focus centres
+  again (the FOCUS_X conditional was already written that way).
+- dist 21.6 → 22.6MB (the 1MB is the richer sheet).
+- The pirate sheet is UNCHANGED — plain terrain, no vignettes, edge
+  rule labels. If VEN picks pirate it needs the same edit pass
+  (`map-pirate-master.png` is the base; the workflow above is the
+  recipe).
+
+### Open
+
+- VEN has not yet scrolled the vignette sheet (tab-visibility QA limits
+  — the stops were verified on the debug render, not in motion).
+- Label 1 sits close to the palace vignette's right eave by
+  arithmetic; if it crowds, `?lsize=` smaller or nudge the 23-unit gap
+  in measure().
+- The four big paintings now appear ONLY in split/road/static modes
+  (map mode fetches none of them unless ?vista=1/?info=1 — a small
+  bandwidth win on the default path).
+
+---
+
+## 9w. Session 12, part 7 — the crane camera, and everything finds blank paper
+
+VEN, with two screenshots (the seal against the hanok's wall + the
+label across the mountains; the road cutting through Changdeokgung's
+pond): *"i want the camera to not be as strictly linked to the path of
+the black line... the sharp changes in directions"*, and *"they
+overlap with the background rather than being put in a blank space."*
+
+### 1. The camera rides a crane, not the road
+
+A camera welded to `pointAt()` inherits every bend of the spline as a
+lateral jerk — VEN's diagnosis was exact. The camera now follows a
+heavily smoothed copy of the road (moving average over ±`?camsmooth=`
+0.09 of its length) and is pulled back onto the TRUE road point on
+approach to a stop (full within 0.10 of a stop, released by 0.30 into
+the leg), so arrival framing is pixel-identical. The road, the walker
+dot and the inking still ride the true path — only the camera is on
+the crane. Verified: 101-sample sweep, no sheet-edge gaps, no
+discontinuities. `?camsmooth=0` welds it back.
+
+### 2. The road detours around landmarks; labels SEARCH for blank paper
+
+Three faults, one root: nothing knew where the vignettes were.
+
+- **`vig` field in maproute (--base):** detail-diff PLUS luminance-drop
+  — the wash apron is smooth (detail-blind) but darkens parchment, so
+  the two terms together cover the whole landmark. Dilated 2 cells
+  into `vigPad`.
+- **The seam is repelled by `vigPad`** (`VIG_W` 3.0, far past any
+  terrain cost) — the road keeps a verge around every vignette and the
+  marker lands beside the landmark, not against its wall.
+- **Labels get a SEARCHED anchor** (stop elements 3+4, absolute
+  fractions): a 2D scan for the quietest label-footprint of parchment,
+  judged on ALL ink (nd + 2·vigPad), bounded by the ARRIVAL FRAME —
+  measured ±0.30 of sheet width but only ±0.073 of height on a
+  1600x689 desktop, so vertical freedom is ±4 rows. Three traps found
+  and documented in place: side-rules can't see terrain; a fat road
+  margin excludes the corridor (the blankest thing on the sheet, and
+  where the road lives); a 7x8 "seal" exclusion blocked the pass when
+  the seal is only ~2 cells. The debug render now draws each label
+  footprint as a box, so "does the name sit on blank paper" is
+  answerable without a browser.
+- `js/journey.js` places labels at the anchor when present; sheets
+  without one (pirate) fall back to the side rule. Verified live: all
+  four labels at their anchors, 창덕궁 caught writing on blank paper.
+
+Re-wiring after any future sheet edit is unchanged: one `maproute
+--base` run, paste path + stops.
+
+### Part 8 — the name is a CAPTION: it sits with its building
+
+VEN, with three more screenshots: *"i still want the writing to be
+next to the buildings though... next to (or above/below) the
+building."* The blankness-first search had scattered 경복궁 and 창덕궁
+across the frame from their buildings. Right call: a place name on a
+map belongs WITH the thing it names.
+
+`labelSpot` reworked, three changes that all mattered:
+
+1. **Adjacency is the objective now**: score = terrain ink + 0.05 per
+   cell of distance from the landmark. Blankness only breaks ties
+   among adjacent spots; only heavy ridge ink is worth walking away
+   from the building for.
+2. **The landmark is a FLOOD-FILLED component**, seeded at the
+   strongest vig cell beside the stop — not a thresholded bbox.
+   image2image drift left vig residue across the sheet, a bbox
+   swallowed a drifted haze patch half a frame away, and
+   distance-to-landmark read zero in the far corner. Connectivity
+   keeps the component honest.
+3. **The candidate footprint is life-size** (3x7 cells, was 5x11 —
+   twice the label's real desktop size), so it can fit the tight
+   pockets beside a building — precisely where the names now go. A
+   footprint may not touch the component at all: caption beside,
+   never on.
+
+Result, verified on the debug render and live label transforms:
+경복궁 between marker and palace; 창덕궁 on the complex's right
+shoulder; 남산골 in the clear corridor on the house's west flank
+(VEN's "move it left" — it found fully blank paper there); Jeonju
+adjacent-left of the village, where VEN already liked it.
+
+### Part 9 — the entry dissolve rides the slide-in
+
+VEN, with a screenshot of a viewport-tall blank slab between the hero
+and the map: *"IT looks like a whole blank screen before we hit the
+threshold that triggers the 'the journey' section to load."*
+
+Exactly what it was. Every version of the entry keyed the dissolve to
+`p` — progress through the PINNED section — and `p` is clamped at 0
+for the entire viewport-height where the journey is still scrolling
+INTO view. The sticky slab slid up empty (its opaque paper background
+hiding the fixed landscape behind it) and only began fading once
+pinned.
+
+Two changes, one effect:
+
+- **`preOf()`** — how far the section's top has climbed the viewport
+  (0 at the fold, 1 at pin) — now drives both the map's opacity and
+  the backdrop's settle to GHOST. The map materialises over the hero's
+  mountains AS it rises, fully opaque the moment it pins; hero and map
+  genuinely cross-dissolve while both are on screen. Sampled in the
+  scroll handlers only (it moves only with real scroll), read by
+  drawMap. **`?mapfade=` is gone** — its job no longer exists.
+- **The sticky's opaque background is gone** (css note in place) — it
+  sat between the semi-transparent map and the landscape, which is
+  what made the slab BLANK rather than a crossfade. The sheet's
+  cover-floored zoom means nothing else ever shows through.
+
+Measured: map 0 → .25 → .50 → .75 → 1.00 across the slide-in,
+backdrop 1.00 → .26 on the same motion, both stable after pinning.
+Split mode untouched (BG_FADE is its own and still in use there).
+
+### Part 10 — footsteps, and the seam finished
+
+Two more from VEN: footsteps for the trail ("but be ready to revert"),
+and the hero seam still not smooth ("make the hero fade out and then
+the journey section fades in").
+
+**Footsteps (`?trail=dots` is the whole revert).** The trail ahead is
+now ~150 small ink prints a stride apart, alternating sides, each
+turned to where the road goes — generated from the same arc-length
+table the camera uses, never drawn by hand. Prints vanish under the
+inked line as they are walked and come back on a scrub. The hide/show
+is INCREMENTAL (an index pointer over the sorted list), so a frame
+touches only the prints actually passed — the build-once discipline
+holds. Verified: 152 prints, 74 hidden at mid-journey, restored
+correctly on scrub-back.
+
+**The seam.** Part 9's opacity dissolve was necessary but not
+sufficient: uniform opacity cannot hide the sheet's GEOMETRIC top edge
+— a hard line slid up the screen however transparent the sheet was
+(VEN's screenshot showed it plainly). Two additions, both riding the
+same `preOf()` value:
+- the sheet's leading edge is FEATHERED with a retreating mask during
+  the entry, removed entirely once pinned (a standing mask on a
+  viewport-sized layer is a per-frame cost nothing here will pay);
+- the hero's own content (`.hero__inner`, `.hero__scroll`) fades out
+  in counterpoint — measured: hero .7/.3/0 against map .3/.7/1.
+The sequence now literally reads hero-out / journey-in, which is what
+VEN asked for in words.
+
+### Part 11 — the exit mirrors the entry
+
+VEN: *"the same fade effect at the bottom of the section"* — done as a
+mirror. `postOf()` measures how far the section's bottom has climbed
+the viewport after unpinning; the map's opacity multiplies by
+(1 − exit), its TRAILING edge feathers with a bottom-anchored mask,
+and it dissolves down into the standing ghost landscape as the
+manifesto arrives. Same gating, mask removed while pinned. Measured:
+opacity 1 → .75 → .50 → .25 across the exit with the mask present,
+restored clean on scrolling back up.
+
+### Open
+
+- `?camsmooth=` has not been felt on a real wheel.
+- Footsteps are unjudged by VEN (`?trail=dots` reverts in one switch).
 
 ---
 

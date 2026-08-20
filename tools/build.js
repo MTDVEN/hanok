@@ -85,6 +85,25 @@ Function("return " + vm[1])().forEach(function(t){
   FILES.push("art/village/" + t.file);
 });
 
+/* THE JOURNEY MAP SHEETS, lifted the same way and for the same reason.
+
+   Typing these here would have shipped a broken journey: the map is
+   the default mode, and if its sheet 404s the section still renders
+   the road, the seals and all four cards over BARE PAPER. It looks
+   like a CSS fault, not a missing file — the same silent class of
+   failure rule 1 above was written about.
+
+   BOTH sheets ship while VEN is still choosing between ?map=ink and
+   ?map=pirate. They are ~2MB each, so once that call is made, delete
+   the loser from js/journey.js's MAPS and it drops out of the build
+   automatically — there is nothing to remember here either. */
+var JSRC = fs.readFileSync(path.join(ROOT, "js", "journey.js"), "utf8");
+var jm = /var MAPS = (\{[\s\S]*?\n  \});/.exec(JSRC);
+if (!jm) throw new Error("could not find MAPS in js/journey.js — " +
+                         "the journey map cannot be shipped without it");
+var maps = Function("return " + jm[1])();
+Object.keys(maps).forEach(function(k){ FILES.push(maps[k].img); });
+
 function copy(rel){
   var src = path.join(ROOT, rel), dst = path.join(DIST, rel);
   if (!fs.existsSync(src)){ console.log("  MISSING  " + rel); return 0; }

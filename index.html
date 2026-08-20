@@ -109,11 +109,19 @@ document.documentElement.classList.add("js");
 </header>
 
 <!-- ================================================================
-     JOURNEY — sticky pseudo-3D road past four places in Korea.
-     Ported from journey-reference.html; one projection drives the
-     road and the panels. The four paintings are wired in
-     js/journey.js (SPOTS[i].img); the inline ink buildings there are
-     now only the placeholder shown until each painting loads.
+     JOURNEY — four places in Korea. THREE modes, all in js/journey.js,
+     switched with ?journey= :
+       map    (default, 2026-08-20) a sheet of map you walk. The camera
+              sits on a place, pulls back, travels down a road that
+              inks itself in behind you, and settles on the next.
+       split  the pinned two-column crossfade — copy left, painting right
+       road   the original sticky pseudo-3D road, ported from
+              journey-reference.html
+     The markup below is what road mode needs; map and split modes
+     remove the stage and the head and build their own. The four
+     paintings are wired in js/journey.js (SPOTS[i].img) and are shared
+     by all three; the inline ink buildings there are the placeholder
+     shown until each painting loads. HANDOFF §5 + §9r.
 ================================================================= -->
 <section class="journey" id="journey" aria-label="The journey through four places in Korea">
   <div class="journey__sticky">

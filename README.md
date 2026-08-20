@@ -150,11 +150,70 @@ captions.
   flag and `tools/` is never deployed.
 - The hero writes itself only while the tab is visible (browsers pause
   animation frames in background tabs — it resumes on focus).
-- `?journey=split|road` switches the whole journey section. `split`
-  (default) is the pinned two-column crossfade — copy left, painting
-  right. `road` is the original pseudo-3D road, kept working. The
-  `?road=` / `?panels=` knobs below apply to road mode; `?panels=` also
-  treats the paintings in split mode.
+- `?journey=map|split|road` switches the whole journey section.
+  **`map` (default)** is a sheet of map you walk: the camera sits on a
+  place, pulls back, travels down a road that inks itself in behind
+  you, and settles on the next. `split` is the pinned two-column
+  crossfade — copy left, painting right. `road` is the original
+  pseudo-3D road. All three kept working. The `?road=` / `?panels=`
+  knobs below apply to road mode; `?panels=` also treats the paintings
+  in split and map mode.
+- **`?map=ink|pirate` picks the sheet, and this is the open decision.**
+  `ink` (default) is a Korean 고지도-style map on palette with the rest
+  of the site; `pirate` is the treasure-map treatment — burnt edges, a
+  sea serpent, a sailing junk — still charting Korea. Both ship until
+  the call is made; deleting the loser from `MAPS` in `js/journey.js`
+  drops it from `tools/build.js` automatically and saves ~2.1MB.
+- Map mode has no info cards (VEN, 2026-08-20 part 2): each place's
+  Korean name handwrites itself onto the sheet as you arrive instead —
+  the glyphs are Song Myung, the writing is a serpentine mask stroke
+  revealed by dashoffset, and scrubbing back un-writes it. `?info=1`
+  restores the card column; `?labels=0` hides the names; `?en=1` adds
+  a small English caption after the Korean finishes; `?vlabel=0` lays
+  names horizontally; `?lsize=24` `?write=.085` tune size and window.
+- Map-mode scroll is GLIDED: scroll sets a target and a rAF loop eases
+  the camera toward it, which is what melts stepped wheel scrolling.
+  `?glide=11` sets the rate, `?glide=0` restores the direct drive (use
+  for deterministic QA measurement).
+- The trail ahead is FOOTSTEPS (part 10) — prints vanish under the ink
+  as walked, return on a scrub. `?trail=dots` restores the dotted line
+  wholesale. The hero cross-fades out as the map materialises over it
+  (feathered edge + counterpoint fade, part 9/10) — no knobs, it rides
+  the section's slide-in.
+- The camera rides a SMOOTHED copy of the road (part 7), pulled onto
+  the exact road point at each stop — `?camsmooth=.09` sets the
+  smoothing window, `0` welds it back to the line. Stops carry
+  searched label anchors (elements 3+4) so names land on blank paper;
+  regenerate with `maproute --base` as above.
+- Map-mode scrolling is CONTINUOUS with the glide (the part-3 drive).
+  `?step=1` switches to threshold mode — one band of scroll per stop,
+  crossing a boundary plays a timed journey on the rAF clock
+  (`?dur=1400` ms/leg) — built to order in part 4 and rejected by VEN
+  the same day (the wheel loses authority inside a band). It stays
+  working as the way back; don't re-propose it without that context.
+- THE PLACES ARE IN THE SHEET (part 6): the ink map carries a painted
+  vignette of each location at its stop — arriving at it is the image
+  moment. Regenerate the wiring after any sheet re-edit with
+  `node tools/maproute.js art/journey/map-ink.png --base <plain-prep>`
+  — the `--base` (a prep of `map-ink-master-plain.png`, the
+  pre-vignette terrain) finds the stops by difference and emits the
+  label side per stop. Never hand-place stops on a vignette sheet, and
+  never delete the plain master. `?vista=1` restores the screen-pinned
+  painting overlay (off by default; `?vspan=.35` its window);
+  `?info=1` the full cards.
+- Map-mode camera: `?cam=follow` (default) / `pan` (constant scale, no
+  zoom) / `fixed` (whole sheet — poor by construction on a wide window,
+  see HANDOFF §9r). Tuning: `?zoomin=1.65` `?zoomout=1.00` `?dwell=0`
+  `?ease=.55` `?zhold=.14` (zoom plateau through each place)
+  `?maptone=.16` `?focusx=` (.68 with a vista or
+  `?info=1`, else .5) `?focusy=.50` `?cardspan=.40` (must stay under
+  0.5) `?walker=0`.
+- The map art is generated, and so is the road on it. `node
+  tools/mapprep.js <master.png> art/journey/map-NAME.png 1500` turns an
+  OpenArt master into the shipped PNG-8; `node tools/maproute.js
+  art/journey/map-NAME.png --debug` finds the road and the four stops by
+  measuring the sheet and prints the two arrays to paste into
+  `js/journey.js`. Never hand-edit those arrays — same rule as `PLOTS`.
 - `?xfade=` `?textgate=` `?textrise=` `?bgfade=` tune split mode's
   crossfade, the text hand-off gate, its rise, and how fast the
   mountain backdrop hands over to paper.
