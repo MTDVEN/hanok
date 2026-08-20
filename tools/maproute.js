@@ -527,18 +527,50 @@ if (BASE){
         if (m < best){ best = m; bx = cx; by = cy; }
       }
     }
-    /* The ENGLISH caption anchor (part 13, VEN's red lines): centred
-       under the landmark itself, a couple of cells below the bottom of
-       its flood-filled component — the component includes the ground
-       wash (the luminance term sees it), so "below the component" is
-       "below the wash", exactly where the red lines were drawn. The
-       caption is one short line, so unlike the Korean column it does
-       not need a blank-paper search: under the building is by
-       construction the wash's quiet lower edge. */
+    /* The ENGLISH caption anchor (part 13, red lines; part 14, the
+       correction): a SEARCHED spot in the band below the landmark, not
+       a blind drop. "A couple of cells under the component" assumed
+       the paper there was quiet, and three of four times it was not —
+       the caption landed on the ridge below Changdeokgung, the ridge
+       beside Namsangol, and Jeonju's own bottom row of roofs (the
+       flood component under-reads a big vignette's extent, so "below
+       the component" was still ON the art — dark text on dark roofs
+       read as missing entirely).
+
+       So: scan a caption-shaped footprint (wide and short, its real
+       aspect) over the band below the component, scoring RAW ink only
+       — sitting on the ground wash is fine and looks good (stop 1 has
+       always sat on it); it is roofs and ridges that kill it — plus a
+       mild pull toward centred-and-close, an arrival-frame bound, and
+       a keep-out around the Korean name so the two texts can never
+       collide. */
+    var ecx = null, ecy = null;
+    if (hasBlob){
+      var bcx = Math.round((bx0 + bx1) / 2);
+      var cbest = Infinity;
+      for (cy = by1 + 2; cy <= Math.min(ROWS - 3, by1 + 9); cy++){
+        for (cx = Math.max(5, bcx - 12); cx <= Math.min(COLS - 6, bcx + 12); cx++){
+          if (Math.abs(cx - rx0) > 18) continue;          /* arrival frame */
+          if (Math.abs(cx - bx) < 7 && Math.abs(cy - by) < 6) continue; /* the name */
+          var s2 = 0, n3 = 0;
+          for (dy = -1; dy <= 1; dy++){
+            var yy2 = cy + dy;
+            if (yy2 < 0 || yy2 >= ROWS) continue;
+            for (dx = -4; dx <= 4; dx++){
+              var xx2 = cx + dx;
+              if (xx2 < 0 || xx2 >= COLS) continue;
+              s2 += nd[yy2 * COLS + xx2]; n3++;
+            }
+          }
+          var m2 = s2 / n3 + Math.abs(cx - bcx) * 0.004 + (cy - by1) * 0.006;
+          if (m2 < cbest){ cbest = m2; ecx = cx; ecy = cy; }
+        }
+      }
+    }
     return {
       lx: (bx + 0.5) / COLS, ly: (by + 0.5) / ROWS,
-      ex: hasBlob ? (bx0 + bx1 + 1) / 2 / COLS : null,
-      ey: hasBlob ? Math.min(ROWS - 2, by1 + 3) / ROWS : null
+      ex: ecx != null ? (ecx + 0.5) / COLS : null,
+      ey: ecy != null ? (ecy + 0.5) / ROWS : null
     };
   }
 

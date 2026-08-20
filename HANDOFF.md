@@ -4041,6 +4041,32 @@ caption sits just past the arrival frame's bottom edge and is seen a
 beat later as the camera exits; on VEN's own window (taller frame,
 ±0.108 of sheet visible) all four are in frame at arrival.
 
+### Part 14 — the caption SEARCHES the band under the building
+
+VEN, three screenshots: Changdeokgung's caption on the ridge below it
+("move right"), Namsangol's on the mountains ("move left"), Jeonju's
+"non existent" — it sat ON the village's own bottom roofs, dark on
+dark, because the flood component under-reads a big vignette's extent
+and "3 cells below the component" was still on the art.
+
+The blind drop is now a SEARCH: a caption-shaped footprint (wide and
+short, its real aspect) scans the band below the component scoring RAW
+ink only — sitting on the ground wash is fine and always looked good;
+roofs and ridges are what kill it — plus a pull toward
+centred-and-close, the arrival-frame bound, and a keep-out around the
+Korean name. All three moved exactly the directions VEN pointed:
+0.340→0.424 (right), 0.493→0.438 (left), and Jeonju's dropped to
+clear paper below the village.
+
+Checks run: debug-render crops of all four caption regions (each bar
+on quiet paper — and the bars are drawn ~2x the caption's true width,
+so the real text has margin); numeric overlap audit at both label
+scales (no caption touches its name or seal on desktop; one
+padded-box graze on phones at stop 3, real ink clears); parse, build,
+push, live-asset check. The known caveat stands: on a short wide
+window captions 2-4 sit just below the arrival frame and appear as
+the camera moves on.
+
 ### Open
 
 - `?camsmooth=` has not been felt on a real wheel.
