@@ -713,8 +713,13 @@
          frame, judged on all ink. Both fixes from VEN's screenshots
          (part 7): the seal on the hanok's wall, the road through
          Changdeokgung's pond, the name across the mountains. */
-      stops: [[0.340, 0.120, 0.396, 0.136], [0.494, 0.360, 0.410, 0.329],
-              [0.612, 0.601, 0.368, 0.632], [0.372, 0.857, 0.326, 0.872]]
+      /* [x, y, labelX, labelY, captionX, captionY] — the last pair is
+         the ENGLISH caption's anchor, centred under the landmark's
+         ground wash (part 13, VEN's red lines) */
+      stops: [[0.340, 0.120, 0.396, 0.136, 0.514, 0.178],
+              [0.494, 0.360, 0.410, 0.329, 0.340, 0.450],
+              [0.612, 0.601, 0.368, 0.632, 0.493, 0.659],
+              [0.372, 0.857, 0.326, 0.872, 0.507, 0.938]]
     },
     pirate: {
       img: "art/journey/map-pirate.png", w: 1500, h: 2688,
@@ -1211,48 +1216,63 @@
               return '<tspan x="' + c.x.toFixed(1) + '" y="' + c.y.toFixed(1) +
                      '" dominant-baseline="central">' + chars[k2] + "</tspan>";
             }).join("") +
-          "</text>" +
-          (EN ? (function(){
-            /* The English writes too — same trick at caption scale: a
-               single wavy stroke swept along the line of text is what
-               handwriting a line IS at this size (the per-character
-               serpentine is for tall glyph cells). The mask box is
-               estimated from character count — letter-spacing .2em
-               puts the advance near 0.78 of the em — with a margin
-               either side, which costs nothing since only the stroke
-               reveals. */
-            var F = S * 0.26, ey = lastY + S * 1.05;
-            var ew2 = sp.name.length * F * 0.82 + F * 2;
-            var seg = ew2 / 6, d2 = "M" + (-ew2 / 2).toFixed(1) + " " + ey.toFixed(1), si;
-            for (si = 1; si <= 6; si++)
-              d2 += " L" + (-ew2 / 2 + seg * si).toFixed(1) + " " +
-                    (ey + (si % 2 ? -1 : 1) * F * 0.16).toFixed(1);
-            return '<defs><mask id="jme' + i2 + '" maskUnits="userSpaceOnUse" x="' +
-              (-ew2 / 2 - F).toFixed(1) + '" y="' + (ey - F * 1.4).toFixed(1) +
-              '" width="' + (ew2 + 2 * F).toFixed(1) + '" height="' + (F * 2.8).toFixed(1) + '">' +
-              '<rect x="' + (-ew2 / 2 - F).toFixed(1) + '" y="' + (ey - F * 1.4).toFixed(1) +
-              '" width="' + (ew2 + 2 * F).toFixed(1) + '" height="' + (F * 2.8).toFixed(1) + '" fill="#000"/>' +
-              '<path d="' + d2 + '" fill="none" stroke="#fff" stroke-width="' +
-              (F * 1.8).toFixed(1) + '" stroke-linecap="round" stroke-linejoin="round"/>' +
-              "</mask></defs>" +
-              '<text class="jmap__en" mask="url(#jme' + i2 + ')" x="0" y="' + ey.toFixed(1) +
-              '" font-size="' + F.toFixed(1) + '" text-anchor="middle">' + sp.name + "</text>";
-          })() : "");
+          "</text>";
         labHost.appendChild(g2);
+
+        /* The English caption is its OWN group, because it no longer
+           lives under the Korean column — VEN part 13, with red lines
+           drawn on four screenshots: centred under a narrow column,
+           the wide caption line stuck out into roofs, ridges and the
+           compass. It anchors UNDER THE BUILDING instead (elements
+           5+6 of the stop, emitted by maproute --base from the
+           landmark's own footprint: the quiet lower edge of its
+           ground wash). Same face, and it writes on a wavy stroke
+           swept along the line — a single pass IS handwriting at
+           caption scale; the per-character serpentine is for tall
+           glyph cells. Sheets without a caption anchor (pirate) fall
+           back to under-the-column. */
+        var ge = null, emp = null, eL = 0;
+        if (EN){
+          var F = S * 0.26;
+          var ew2 = sp.name.length * F * 0.82 + F * 2;
+          var seg = ew2 / 6, d2 = "M" + (-ew2 / 2).toFixed(1) + " 0", si;
+          for (si = 1; si <= 6; si++)
+            d2 += " L" + (-ew2 / 2 + seg * si).toFixed(1) + " " +
+                  ((si % 2 ? -1 : 1) * F * 0.16).toFixed(1);
+          ge = document.createElementNS(NS, "g");
+          ge.setAttribute("class", "jmap__label jmap__enlab");
+          ge.style.display = "none";
+          ge.innerHTML =
+            '<defs><mask id="jme' + i2 + '" maskUnits="userSpaceOnUse" x="' +
+            (-ew2 / 2 - F).toFixed(1) + '" y="' + (-F * 1.4).toFixed(1) +
+            '" width="' + (ew2 + 2 * F).toFixed(1) + '" height="' + (F * 2.8).toFixed(1) + '">' +
+            '<rect x="' + (-ew2 / 2 - F).toFixed(1) + '" y="' + (-F * 1.4).toFixed(1) +
+            '" width="' + (ew2 + 2 * F).toFixed(1) + '" height="' + (F * 2.8).toFixed(1) + '" fill="#000"/>' +
+            '<path d="' + d2 + '" fill="none" stroke="#fff" stroke-width="' +
+            (F * 1.8).toFixed(1) + '" stroke-linecap="round" stroke-linejoin="round"/>' +
+            "</mask></defs>" +
+            '<text class="jmap__en" mask="url(#jme' + i2 + ')" x="0" y="0" font-size="' +
+            F.toFixed(1) + '" text-anchor="middle">' + sp.name + "</text>";
+          labHost.appendChild(ge);
+        }
 
         var mp = g2.querySelector("mask path");
         var LL = mp.getTotalLength();
         mp.style.strokeDasharray = LL.toFixed(1) + " " + LL.toFixed(1);
         mp.style.strokeDashoffset = LL.toFixed(1);
-        var emp = g2.querySelector("#jme" + i2 + " path"), eL = 0;
-        if (emp){
+        if (ge){
+          emp = ge.querySelector("mask path");
           eL = emp.getTotalLength();
           emp.style.strokeDasharray = eL.toFixed(1) + " " + eL.toFixed(1);
           emp.style.strokeDashoffset = eL.toFixed(1);
         }
         labels.push({
           g: g2, mp: mp, L: LL, lw: -1,
-          emp: emp, eL: eL,
+          ge: ge, emp: emp, eL: eL,
+          ex: s.length >= 6 ? s[4] * MW : null,
+          ey: s.length >= 6 ? s[5] * MH : null,
+          /* under-the-column fallback offset, in label-local units */
+          efy: lastY + S * 1.05,
           sx: s[0] * MW, sy: s[1] * MH, side: side,
           ax: ax, ay: ay,
           /* half-extent toward the marker, so measure() can keep a
@@ -1359,6 +1379,15 @@
         lb.g.setAttribute("transform",
           "translate(" + tx.toFixed(1) + " " + ty.toFixed(1) +
           ") scale(" + lq.toFixed(3) + ")");
+        if (lb.ge){
+          /* under the building when the sheet carries an anchor,
+             under the column otherwise */
+          var etx = lb.ex != null ? lb.ex : tx,
+              ety = lb.ey != null ? lb.ey : ty + lq * lb.efy;
+          lb.ge.setAttribute("transform",
+            "translate(" + etx.toFixed(1) + " " + ety.toFixed(1) +
+            ") scale(" + lq.toFixed(3) + ")");
+        }
       });
     }
 
@@ -1500,9 +1529,13 @@
             if (wv <= 0){
               if (labels[k].g.style.display !== "none")
                 labels[k].g.style.display = "none";
+              if (labels[k].ge && labels[k].ge.style.display !== "none")
+                labels[k].ge.style.display = "none";
             } else {
               if (labels[k].g.style.display === "none")
                 labels[k].g.style.display = "";
+              if (labels[k].ge && labels[k].ge.style.display === "none")
+                labels[k].ge.style.display = "";
               labels[k].mp.style.strokeDashoffset =
                 (labels[k].L * (1 - wv)).toFixed(1);
               /* the English writes on its own mask, starting once the

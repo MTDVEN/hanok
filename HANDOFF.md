@@ -4018,6 +4018,29 @@ move from name to caption. Rewinds on a scrub like everything else.
 Verified: four captions, each writing 0 → 1 over its approach.
 `?en=0` hides them.
 
+### Part 13 — the caption moved under the building
+
+VEN, with three overlap screenshots and four red-lined ones: the wide
+English line, centred under the narrow Korean column, stuck out into
+roofs, ridges and the compass. The red lines all pointed to the same
+place — just below each building's ground wash.
+
+So the caption anchors under the LANDMARK now, not under the column.
+`maproute --base` emits it as stop elements 5+6, taken from the
+landmark's own flood-filled footprint: centred on it, a couple of
+cells below its bottom edge — and since the component includes the
+wash (the luminance term sees it), "below the component" IS "below
+the wash", exactly the red lines. The caption is its own SVG group
+(`.jmap__enlab`) with its own transform and write mask; sheets
+without an anchor (pirate) fall back to under-the-column. The debug
+render draws the caption bar too, so placement is checkable without
+a browser.
+
+One caveat, measured: on a short wide window (1600x689) stop 4's
+caption sits just past the arrival frame's bottom edge and is seen a
+beat later as the camera exits; on VEN's own window (taller frame,
+±0.108 of sheet visible) all four are in frame at arrival.
+
 ### Open
 
 - `?camsmooth=` has not been felt on a real wheel.

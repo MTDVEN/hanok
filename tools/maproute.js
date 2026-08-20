@@ -527,7 +527,19 @@ if (BASE){
         if (m < best){ best = m; bx = cx; by = cy; }
       }
     }
-    return { lx: (bx + 0.5) / COLS, ly: (by + 0.5) / ROWS };
+    /* The ENGLISH caption anchor (part 13, VEN's red lines): centred
+       under the landmark itself, a couple of cells below the bottom of
+       its flood-filled component — the component includes the ground
+       wash (the luminance term sees it), so "below the component" is
+       "below the wash", exactly where the red lines were drawn. The
+       caption is one short line, so unlike the Korean column it does
+       not need a blank-paper search: under the building is by
+       construction the wash's quiet lower edge. */
+    return {
+      lx: (bx + 0.5) / COLS, ly: (by + 0.5) / ROWS,
+      ex: hasBlob ? (bx0 + bx1 + 1) / 2 / COLS : null,
+      ey: hasBlob ? Math.min(ROWS - 2, by1 + 3) / ROWS : null
+    };
   }
 
   (function(){
@@ -558,6 +570,7 @@ if (BASE){
       var pt2 = atRow(gy3);
       var spot = labelSpot(gy3, Math.round(road[gy3]));
       pt2.lx = spot.lx; pt2.ly = spot.ly;
+      pt2.ex = spot.ex; pt2.ey = spot.ey;
       stops.push(pt2);
     });
   })();
@@ -618,7 +631,8 @@ console.log("  ];");
 console.log("  var MAP_STOPS = [");
 console.log(stops.map(function(p){
   return "    [" + f3(p.x) + ", " + f3(p.y) +
-         (p.lx != null ? ", " + f3(p.lx) + ", " + f3(p.ly) : "") + "]";
+         (p.lx != null ? ", " + f3(p.lx) + ", " + f3(p.ly) : "") +
+         (p.ex != null ? ", " + f3(p.ex) + ", " + f3(p.ey) : "") + "]";
 }).join(",\n"));
 console.log("  ];");
 console.log("");
@@ -648,9 +662,9 @@ if (DEBUG){
     dot(p.x * img.w, p.y * img.h, 17, [235, 221, 185]);
     /* the label footprint, as a filled box, so the debug render
        answers "does the name sit on blank paper" without a browser */
-    if (p.lx != null){
-      var bw = Math.round(img.w * 0.045), bh = Math.round(img.h * 0.045);
-      var cx2 = Math.round(p.lx * img.w), cy2 = Math.round(p.ly * img.h), x2, y2;
+    function box(cxF, cyF, bwF, bhF){
+      var bw = Math.round(img.w * bwF), bh = Math.round(img.h * bhF);
+      var cx2 = Math.round(cxF * img.w), cy2 = Math.round(cyF * img.h), x2, y2;
       for (y2 = -bh; y2 <= bh; y2++)
         for (x2 = -bw; x2 <= bw; x2++){
           var px2 = cx2 + x2, py2 = cy2 + y2;
@@ -661,6 +675,8 @@ if (DEBUG){
           out[p2 + 2] = (out[p2 + 2] + 17) >> 1;
         }
     }
+    if (p.lx != null) box(p.lx, p.ly, 0.045, 0.045);      /* the name */
+    if (p.ex != null) box(p.ex, p.ey, 0.10, 0.008);       /* the caption */
   });
   var dst = src.replace(/\.png$/i, "-route.png");
   fs.writeFileSync(dst, encodeRGB(img.w, img.h, out));
