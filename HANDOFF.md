@@ -6,6 +6,22 @@ assets, what was already reviewed/fixed (and what was deliberately NOT
 fixed), and the exact next steps. `README.md` is the short ops sheet;
 this file is the deep context.
 
+**SESSION 13 (2026-08-21), READ FIRST IF YOU TOUCH THE MAP ART.**
+Zico's first client note since launch: Namsangol should look like a
+village. It does now — six smaller hanok behind the walled house
+(§9x). The transferable finding is a rule change: **never swap a
+re-generated map sheet in wholesale again.** image2image re-renders
+the entire page (mean 16.7 dRGB), which is invisible to the eye and
+fatal to `maproute --base` — the first swap moved the JEONJU stop off
+its village for no reason but normalisation. Use **`tools/mappatch.js`
+(new)** to take only the changed clearing, and check the result by
+diffing against `map-ink-master.png`: everything outside that clearing
+must come back at 0.00. Second rule from the same session: **a
+vignette may not grow into the corridor the road travels** — a roof at
+x 0.63 sent the Namsangol road to x 0.27 and the seal with it, so the
+patch is clipped at `--limit ...,0.598,...`, which is the widest it
+goes. The clearing is now full; bigger is not available.
+
 Last updated: 2026-08-21 (session 12, fourteen parts, all LIVE —
 **THE JOURNEY IS NOW A MAP YOU WALK, deployed at
 https://tilesongiwa.com.** Private repo `github.com/MTDVEN/hanok`,
@@ -4101,6 +4117,142 @@ the camera moves on.
 
 - `?camsmooth=` has not been felt on a real wheel.
 - Footsteps are unjudged by VEN (`?trail=dots` reverts in one switch).
+
+---
+
+## 9x. Session 13 (2026-08-21) — Namsangol became a village, and the sheet stopped being swappable
+
+Zico, first note of the day: *"for Namsangol Hanok Village visual on
+the website, could we add some more buildings to make it seem a bit
+more like a village"*, and when VEN asked whether he meant variety or
+number: *"yeah just maybe some smaller buildings behind it, but
+similar styles pls"*.
+
+He was reading the map's THIRD vignette, and he was right about it.
+Laid out against the other three, Namsangol was the odd one:
+Gyeongbokgung is one grand hall (correct — it is a palace),
+Changdeokgung is a complex with pavilions and a pond, Jeonju is a
+proper eighteen-roof town — and Namsangol, the one with "Village" in
+its name, was a single walled house alone in a clearing.
+
+**It now has six smaller hanok stepping up the slope behind it** —
+four tiled, two thatched, a lane, a pine — all drawn by the same hand,
+all clearly smaller than the walled house, which is untouched.
+
+### 1. The whole-sheet swap is DEAD. Patch the clearing instead.
+
+This is the session's real finding and it will save the next person
+half a day.
+
+The §9v route — hand OpenArt the master, get an edited master back,
+re-prep, re-route — **works for the picture and breaks the wiring.**
+image2image re-renders the whole page: measured at **mean 16.7 dRGB
+across the sheet** against the master it was given, with the drawing
+itself faithfully preserved (every mountain came back as the same
+mountain, drawn with slightly different strokes; the Gyeongbokgung and
+Jeonju vignettes were indistinguishable by eye).
+
+Harmless — until you remember the sheet is MEASURED. `maproute --base`
+finds the stops by differencing against the plain sheet and normalises
+over the whole grid, so a re-stroked sheet moves landmarks nobody
+touched. On the first whole-sheet swap the **Jeonju stop slid from
+0.372,0.857 to 0.307,0.911** — off the village it exists to frame —
+purely because a new landmark had entered the normalisation. Three
+signed-off vignettes should not move because the fourth was edited.
+
+**`tools/mappatch.js` (new)** takes only the changed clearing:
+
+```
+node tools/mappatch.js map-ink-master.png <edited>.png <out>.png \
+     --limit 0.34,0.49,0.598,0.66 --debug
+```
+
+- The region is FOUND, not typed: a cell counts as new work when the
+  edited sheet differs there AND the base was quiet paper. New ink on
+  bare parchment is exactly what an added building is; a re-stroked
+  mountain fails the second test. Largest blob, dilated, wins.
+- The pixels are chosen by the BASE's local contrast: take the edit
+  where the base is smooth, keep the base where the base carries ink.
+  Two things fall out free — the existing hanok cannot drift (it is
+  ink, so it is kept), and a new roof is admitted on paper but clipped
+  where the hanok already stands, which is the right occlusion for a
+  building further away.
+- The patch is tone-matched to the base over the paper it lands on
+  first; a step in the parchment is the one seam the eye finds.
+- `--debug` writes `<out>-mask.png`, the blend weight over the sheet.
+  Read it before opening anything else.
+
+**Proof it worked, and the check to run every time:** diff the shipped
+master against `map-ink-master.png` — every cell outside the Namsangol
+clearing reads < 2 dRGB and the terrain alignment error is **0.00**.
+Then re-route: stops 2 and 4 came back at the values already in
+`js/journey.js`, stop 3's label anchor (0.368, 0.632 — the west-flank
+pocket VEN picked in §9w part 8) unchanged, and the road within 0.006
+of its old line the whole way down.
+
+### 2. The vignette may NOT grow into the road's corridor
+
+The first good roll put a barn out at x 0.63, across the open channel
+east of the house. `VIG_W` 3.0 is a hard repulsion, so the seam gave
+up on that side entirely: the road went down the FAR side of the
+valley through the rice terraces, x 0.60 → **x 0.27**, and took the
+stop with it. At `ZOOM_IN` 1.65 the arrival frame is 1/1.65 = 0.606 of
+sheet width centred on the marker, so the village would have sat with
+its right-hand third off-screen. Not shippable.
+
+Hence `--limit`. **0.598 is the widest right edge that still leaves
+the road its pass** — walked up to in steps, not guessed, re-routing
+at each one. Put the box edge in a GAP between buildings: at 0.575 it
+cut a thatched roof in half and the fade was visible on screen; at
+0.598 the whole building is inside and the road is unmoved.
+
+**The clearing is now full.** Anyone asked to make this village bigger
+should know the answer is no, not without the road detouring. Two
+rounds were spent proving it: told to stay inside the house's width,
+the model made the cluster *bigger*; told to spill west instead, it
+scattered buildings across the mountains and the pine forest, where
+the ink gate would have shredded them. Four rounds, 13 images, 650
+credits.
+
+### 3. What the prompt had to say
+
+Same §6b rule as ever — EDIT, never generate — plus one new trick
+worth keeping: **the style reference came from the sheet itself.** The
+Jeonju cluster was cropped out of the master at full res and handed
+back as reference 3 ("the size and hand of a single small house to
+match"). A house drawn to match a house already on the page cannot
+drift in weight, hatching or wash. Three references total: the full
+sheet to edit, a close-up of the vignette to change, the Jeonju crop.
+
+The instructions that actually moved the result, in order of value:
+size stated as "the same small size as one house in reference 3";
+"the nearest new roof must be partly hidden behind the existing
+house's roof ridge" (kills the second-village-up-the-valley reading);
+and naming the corridor as something that must stay empty.
+
+### Files
+
+- `map-ink-master-nams.png` — **the shipped master** (patched).
+- `map-ink-master.png` — the pre-village accepted sheet. **KEEP: it is
+  now the `--base` for mappatch as well as the start of any re-edit.**
+- `map-ink-master-plain.png` — unchanged, still `maproute --base`.
+- `map-ink-master-nams-raw.png` — the raw OpenArt return the patch was
+  cut from. `-rawB` (a tighter hamlet) and `-rawC` (a full village,
+  the one that broke the road) are kept beside it.
+- All gitignored, all in the working folder only — **still no backup.**
+- `art/journey/map-ink.png` 3.10 → 3.24MB; dist 22.6 → 22.7MB.
+
+### Open
+
+- Not yet seen in motion by anyone: the Chrome tab went background
+  mid-session (§7's trap — `visibilityState: "hidden"`, frozen rAF,
+  blank captures). The arrival was screenshotted live BEFORE that on
+  the near-identical previous clip and looked right, and the final
+  sheet was verified on the route debug render, which §9r calls the
+  authoritative placement check. **VEN should scroll it.**
+- Jeonju is the only other vignette with "Village" in its name and it
+  already reads as a town, so nothing was done there. If Zico asks for
+  the same treatment anywhere else, the recipe is this section.
 
 ---
 

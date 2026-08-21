@@ -697,14 +697,30 @@
        the starting point for any future re-edit). Stops sit AT the
        vignettes; each stop's third element is the label side, chosen
        away from the vignette's mass so a name never writes across a
-       roof. */
+       roof.
+
+       2026-08-21 (Zico: "could we add some more buildings to make it
+       seem a bit more like a village"): NAMSANGOL now has six smaller
+       hanok stepping up the slope behind the walled house, which is
+       the third vignette only — the shipped sheet is
+       `map-ink-master-nams.png`, and it was NOT swapped in wholesale.
+       The OpenArt edit re-renders the whole page, so only the changed
+       clearing was taken, by `tools/mappatch.js`; the rest of the
+       accepted sheet is untouched. That is why stops 1, 2 and 4 below
+       are unmoved to the thousandth and stop 3's label anchor is
+       unchanged too. The village had to be CLIPPED off the corridor
+       east of the house (`--limit 0.34,0.49,0.598,0.66`): a roof over
+       that channel sends the road down the far side of the valley and
+       the seal with it. tools/mappatch.js's header has the
+       measurement, and 0.598 is the widest clip that still leaves the
+       road its pass — it was walked up to, not guessed. */
     ink: {
       img: "art/journey/map-ink.png", w: 1800, h: 3225,
       path: [
-        [0.221, 0.004], [0.289, 0.081], [0.413, 0.159], [0.510, 0.236],
-        [0.514, 0.306], [0.490, 0.384], [0.530, 0.461], [0.601, 0.539],
-        [0.602, 0.616], [0.546, 0.694], [0.514, 0.764], [0.399, 0.841],
-        [0.304, 0.919], [0.290, 0.996]
+        [0.221, 0.004], [0.289, 0.081], [0.413, 0.159], [0.503, 0.236],
+        [0.505, 0.306], [0.489, 0.384], [0.530, 0.461], [0.610, 0.539],
+        [0.610, 0.616], [0.551, 0.694], [0.518, 0.764], [0.401, 0.841],
+        [0.305, 0.919], [0.293, 0.996]
       ],
       /* [x, y, labelX, labelY] — the road now detours around every
          vignette (maproute's VIG_W penalty), so the marker stands in
@@ -716,9 +732,9 @@
       /* [x, y, labelX, labelY, captionX, captionY] — the last pair is
          the ENGLISH caption's anchor, centred under the landmark's
          ground wash (part 13, VEN's red lines) */
-      stops: [[0.340, 0.120, 0.396, 0.136, 0.521, 0.190],
-              [0.494, 0.360, 0.410, 0.329, 0.424, 0.453],
-              [0.612, 0.601, 0.368, 0.632, 0.438, 0.678],
+      stops: [[0.340, 0.120, 0.396, 0.136, 0.507, 0.182],
+              [0.492, 0.360, 0.410, 0.329, 0.410, 0.453],
+              [0.624, 0.601, 0.368, 0.632, 0.493, 0.694],
               [0.372, 0.857, 0.326, 0.872, 0.465, 0.942]]
     },
     pirate: {

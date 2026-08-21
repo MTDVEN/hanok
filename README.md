@@ -214,6 +214,15 @@ captions.
   art/journey/map-NAME.png --debug` finds the road and the four stops by
   measuring the sheet and prints the two arrays to paste into
   `js/journey.js`. Never hand-edit those arrays — same rule as `PLOTS`.
+- **Re-editing ONE vignette: patch it in, never swap the sheet.**
+  OpenArt re-renders the whole page even when the drawing survives, and
+  a re-stroked sheet moves stops nobody touched (it moved Jeonju's).
+  `node tools/mappatch.js map-ink-master.png <edited>.png <out>.png
+  --limit x0,y0,x1,y1 --debug` finds the changed clearing by difference
+  and takes only that, keeping every existing stroke from the accepted
+  master. Then re-prep, re-route, and confirm the untouched stops come
+  back at the values already in `js/journey.js`. `--limit` also keeps a
+  growing vignette out of the road's corridor — see HANDOFF §9x.
 - `?xfade=` `?textgate=` `?textrise=` `?bgfade=` tune split mode's
   crossfade, the text hand-off gate, its rise, and how fast the
   mountain backdrop hands over to paper.
