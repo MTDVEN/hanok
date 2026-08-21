@@ -6,38 +6,60 @@ assets, what was already reviewed/fixed (and what was deliberately NOT
 fixed), and the exact next steps. `README.md` is the short ops sheet;
 this file is the deep context.
 
-Last updated: 2026-08-16 (session 11 — **THE SITE IS LIVE AT
+Last updated: 2026-08-21 (session 12, fourteen parts, all LIVE —
+**THE JOURNEY IS NOW A MAP YOU WALK, deployed at
 https://tilesongiwa.com.** Private repo `github.com/MTDVEN/hanok`,
-branch `main`, connected to the Vercel project `hanok`, so **a push to
-main deploys**. Everything from here is token-specific and waits on
-Zico. VEN, wrapping the session: *"all adjustments will be made closer
-to token launch date... the ticker and real token name and contract
-address and all that good stuff."*
+branch `main`, push to main deploys.)
 
-This session also: rebuilt the walled compound from its real ground
-band and then took it a further 15% smaller; took the plot count **42 →
-55 → 60**; added **four new sprites**; built **PLAN phase 3B, the
-sleeping Z's**; made the **backdrop global**; stopped honouring the OS
-reduced-motion setting; and fixed a real accessibility bug that was
-deleting the journey's copy.)
+**SESSION 12 IN ONE PARAGRAPH (§9r–§9w are the detail).** The journey
+section was rebuilt as a pirate-map sheet: `?journey=map` is the
+default (`split` and `road` untouched and working). The four places
+are PAINTED INTO the sheet as pictorial vignettes — edited into the
+plain terrain with the four journey paintings as references, never
+generated fresh. The camera glides on scroll along a smoothed "crane"
+track of the road, slowing but never stopping through each place; the
+trail ahead is FOOTSTEPS that vanish under the road as it inks itself
+behind you; on arrival the seal stamps over the X, the place's Korean
+name handwrites itself beside its building, and the English caption
+writes in under the building on searched clear paper. Both seams of
+the section cross-dissolve (hero fades out as the sheet materialises;
+the sheet melts into the ghost landscape at the manifesto). VEN
+iterated all of it live — fourteen parts, each recorded with what was
+tried, rejected and why.
 
-**2026-08-20 (session 12): THE JOURNEY IS NOW A MAP YOU WALK.**
-`?journey=map` is the default — the camera sits on a place, pulls back,
-travels down an inking road to the next, and settles. `split` and `road`
-are untouched. **The one open decision is which sheet: `?map=ink`
-(default) or `?map=pirate`.** Both ship until VEN picks; deleting the
-loser from `MAPS` in `js/journey.js` drops it from the build. Read §9r,
-**then §9s**: VEN reviewed it — the scroll is glided smooth now, the
-info cards are gone (`?info=1` is the way back), and each place's
-Korean name handwrites itself onto the sheet on arrival.
+**Session 12's standing decisions and traps, shortest form:**
+- **Nothing in the map's wiring is hand-placed.** `tools/maproute.js
+  <sheet> --base <plain-prep>` finds the road (openness seam-carve),
+  the stops (diff vs the pre-vignette sheet), the label anchors and
+  the caption anchors (blank-paper searches), and the road's detours
+  around the landmarks. Re-roll the art → one command → paste the two
+  arrays. `tools/mapprep.js` turns a 4K master into the shipped PNG-8.
+- **KEEP `map-ink-master-plain.png`** (project root, gitignored like
+  all masters): it is the `--base` every re-route needs AND the start
+  point for future edits. All four map masters live only in the
+  working folder — **they want a backup**.
+- **Threshold scrolling was built and REJECTED the same day** (§9u
+  part 5, `?step=1` keeps it). Do not re-propose it without that
+  context. Same for the screen-pinned vistas (`?vista=1`) and the
+  info cards (`?info=1`) — superseded, kept as ways back.
+- **Open decisions for VEN:** ink vs pirate sheet (`?map=pirate`; the
+  pirate sheet has NO vignette pass yet — §9v has the recipe);
+  footsteps (`?trail=dots` reverts); glide feel (`?glide=`,
+  `?camsmooth=`).
+- **Chrome QA on this machine:** background/never-painted tabs have
+  ZERO layout — the map self-heals on first paint (part 5 hardening),
+  but measurements in such a tab are garbage. The route debug render
+  (`--debug`) is the authoritative placement check; it draws the road,
+  stops, name boxes and caption bars on the sheet itself.
 
 **If you read nothing else:**
-- **START AT §9q, then the "LAUNCH DAY" section at the very end of this
-  file** — that is the complete list of what is left, and all of it is
-  token-specific. §9q also carries the switch inventory and a hard-won
-  tooling note (a minimized Chrome window freezes rAF, so screenshots
-  come back blank and animation measurements are garbage — it reads
-  exactly like a layout bug that is not there).
+- **START AT §9r–§9w (session 12, the journey rebuild), then §9q, then
+  the "LAUNCH DAY" section at the very end** — LAUNCH DAY is the
+  complete token-specific list. §9q carries the pre-map switch
+  inventory and a hard-won tooling note (a minimized Chrome window
+  freezes rAF, so screenshots come back blank and animation
+  measurements are garbage — it reads exactly like a layout bug that
+  is not there); §9r/§9s/§9u carry the map-mode switch tables.
 - **`perRoof` is STILL undecided and it is the one open decision.** 60
   roofs at $100k fills the field at **$6.0M**; it was $2.0M when that
   number was chosen. ~$33k restores the original ceiling. Tokenomics,
@@ -96,9 +118,11 @@ Korean name handwrites itself onto the sheet on arrival.
   *"no offence that isnt your strong suit."* Inline SVG stays only as
   the 404/offline fallback layer and for structural marks. Anything
   pictorial is a Recraft prompt plus a compositing engine.
-- The journey is a pinned two-column crossfade (`?journey=split`,
-  default); `?journey=road` keeps the old pseudo-3D road fully working.
-  Nothing was deleted — VEN asked explicitly that alternatives stay.
+- The journey is the MAP (`?journey=map`, default, session 12);
+  `?journey=split` keeps the two-column crossfade and `?journey=road`
+  the old pseudo-3D road, both fully working. Nothing was deleted —
+  VEN asked explicitly that alternatives stay. Bullets below that
+  describe split as "the default" predate session 12.
 - **Do not redesign the rest of the page** — the parchment/ink direction
   is client-approved. The manifesto and ledger are still untouched since
   session 3 and are the next design target after the village lands.
@@ -114,59 +138,65 @@ Copy-paste this to begin a session, filling in the one blank:
 > Read HANDOFF.md in this folder start to finish before doing anything.
 > It is the authoritative context: client brief, design system, how
 > every module works, the art wiring and its tuning knobs, environment
-> gotchas, and five sessions of review decisions (including things
-> deliberately rejected — don't re-flag those).
+> gotchas, and twelve sessions of review decisions (including things
+> deliberately rejected — don't re-flag those, §9u part 5 especially).
 >
-> State: the site is visually complete and demo-ready. The journey is a
-> pinned two-column crossfade (`?journey=split`, default) with the old
-> pseudo-3D road kept working at `?journey=road`. The village now
-> composites painted PNGs over a painted base plate; the valley plate is
-> in, and the six building sprites are the one thing outstanding — I
-> generate those in Recraft. Nothing is half-finished.
+> State: the site is LIVE at https://tilesongiwa.com (repo
+> MTDVEN/hanok, push to main deploys). The journey is a pirate-map
+> sheet you walk (`?journey=map`, default; split and road kept): the
+> four places are painted INTO the sheet as vignettes, the camera
+> glides a smoothed track between them, footsteps mark the trail, the
+> Korean names handwrite themselves beside their buildings with the
+> English captions under them. ALL of the map's wiring is generated by
+> `tools/maproute.js` (with `--base` for a vignette sheet) — never
+> hand-place a stop, label or caption; re-run the tool and paste. The
+> village composites painted sprites over a plate; `PLOTS` is
+> generated by tools/plots.js the same way. Nothing is half-finished.
 >
-> **I make the art in Recraft, not you.** Don't hand-author pictorial
-> SVG — write me the prompt and build the machinery. §6b.
+> **I make the art in OpenArt (nano-banana-2, image2image), not you** —
+> and landmark art is EDITED into existing sheets with references, not
+> generated fresh (§6b, §9v). Don't hand-author pictorial SVG — write
+> the prompt and build the machinery.
 >
 > Environment, or you will waste an hour:
 > - Start the preview server yourself: `node tools/serve.js`
 >   (background), then confirm it returns 200 before trusting it. It
 >   does not survive between sessions.
-> - Preview ONLY at `http://localhost:8137/index.html?motion=1` — this
->   machine has OS reduced-motion on, so without `?motion=1` you always
->   see the static site.
-> - This screen gives Chrome ~1280x551, too short to judge the journey.
->   `tools/qa-frame.html` renders real device sizes — but it draws the
->   page in a fixed box on a dark background, so never hand me a
->   qa-frame URL as "the site". Any transform on its iframe also kills
->   `mix-blend-mode`, so the shared backdrop vanishes; set
->   `F.style.transform='none'`.
-> - MCP tabs run backgrounded: rAF and CSS transitions freeze, and
->   screenshots exclude the scrollbar. HANDOFF §7 has every workaround.
+> - Preview at `http://localhost:8137/index.html?motion=1` (with
+>   `?preview=0` to hide the market-cap slider while judging).
+> - Chrome MCP tabs on this machine are often BACKGROUND-CREATED with
+>   ZERO layout: clientWidth 0, no paint, frozen rAF — measurements
+>   there are garbage and screenshots are stale. The map self-heals on
+>   first real paint. For placement questions use the route debug
+>   render (`node tools/maproute.js art/journey/map-ink.png --base
+>   <plain-prep> --debug`) — it draws road, stops, names and captions
+>   on the sheet itself and is the authoritative check. §7 + §9q + §9w
+>   have every workaround.
 >
 > What I want done this session: ______
 >
-> Likely candidates, in HANDOFF §9 priority order:
-> 1. Finish the village: I drop in the new plate and the six transparent
->    `art/village/b-*.png`, then we re-place the plots in
->    `tools/place.html`, retune the scales and flip the mode cascade
->    (§9e "What happens when they land", steps 1–6).
-> 2. Polish the manifesto and the ledger — still on the original design,
->    untouched since session 3, now the weakest part of the page.
-> 3. Zico's deliverables landing — new token name/ticker (means
->    authoring new hero stroke letters + WORD in js/hero.js), the real
->    copy for the manifesto, hero tagline, OG meta, and the four
->    `SPOTS[i].blurb` paragraphs the split journey now needs.
-> 4. Launch day: fill js/config.js (CA, links, chart pool, village
->    numbers), make og.png, favicon.ico + apple-touch-icon, absolutize
->    og:image and add og:url.
-> 5. Pre-deploy: optimise art (~15MB now — see README "Before deploy"),
->    and keep tools/ plus the root .svg masters and field-square.png out
->    of the deploy folder.
+> Likely candidates, in priority order:
+> 1. The open judgement calls on the journey: ink vs pirate sheet
+>    (`?map=pirate` — needs its own vignette pass first, recipe in
+>    §9v), footsteps vs dots (`?trail=dots`), glide feel (`?glide=`,
+>    `?camsmooth=`).
+> 2. Polish the manifesto and the ledger — untouched since session 3,
+>    now clearly the weakest part of the page.
+> 3. Zico's deliverables landing — token name/ticker (hero strokes +
+>    WORD in js/hero.js), manifesto copy, OG meta. The journey no
+>    longer needs blurbs on the default path (map mode carries no
+>    copy), but split/road/static still use `SPOTS[i].blurb`.
+> 4. Launch day: js/config.js (CA, links, chart pool, perRoof — still
+>    undecided), og.png, favicon.ico, absolutize og:image, og:url.
+> 5. Weight: art/ is ~22.6MB deployed now (two map sheets ship until
+>    the ink/pirate call — picking one saves ~2.3MB; §9r "Open" has
+>    the sizing levers).
 >
 > Ask me before changing design direction. Everything else, use your
-> judgement and verify visually in Chrome. When something has more than
-> one plausible treatment, build them behind a URL switch and show me
-> both rather than picking for me — and keep the loser in the code.
+> judgement and verify with the tools first, Chrome second. When
+> something has more than one plausible treatment, build them behind a
+> URL switch and show me both rather than picking for me — and keep
+> the loser in the code.
 
 ---
 
@@ -4135,7 +4165,10 @@ proven interface.
 
 ### 4. Pre-deploy art optimisation, still not done
 
-`art/` is ~17MB and that is the one real cost left on a phone
+`art/` is ~22.6MB deployed (session 12 added the two map sheets —
+picking ink vs pirate drops one, ~2.3MB; the ink sheet itself is 3.0MB
+at 1800px, §9v has the sizing trade) and that is the one real cost on
+a phone
 connection. `field.png` is 2.0MB; the ten `b-*.png` are 65–730KB.
 **The trap, and it has bitten this project before:** do not let
 `tools/optimize.js` give each sprite its own median-cut palette, or the
