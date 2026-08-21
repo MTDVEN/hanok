@@ -189,14 +189,14 @@
         }
         render(candles, labels);
         hasLive = true;
-        if (note) note.textContent = "Live from the ledger — redrawn every few minutes.";
+        if (note) note.textContent = "Live from the ledger, redrawn every few minutes.";
       })
       .catch(function(){
         if (hasLive){
           /* keep the last good live render; just say it's paused */
-          if (note) note.textContent = "Last known ledger — refresh paused.";
+          if (note) note.textContent = "Last known ledger. Refresh paused.";
         } else {
-          if (note) note.textContent = "A preview, drawn in ink — the real ledger begins at launch.";
+          if (note) note.textContent = "A preview, drawn in ink. The real ledger begins at launch.";
           showMock();   // the sheet is never blank
         }
       });

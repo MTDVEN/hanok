@@ -8,6 +8,23 @@
 
 window.HANOK_CONFIG = {
 
+  /* ---- the token's name -----------------------------------------
+     Zico, 2026-08-21: the token is 기와 / GIWA — Korean for roof
+     tiles, and the name of the Upbit L2 it launches on. `ko` is what
+     the hero WRITES, and it is not free text: every character needs
+     brush strokes in LETTERS (js/hero.js), so changing it means
+     authoring those. `roman` is the eyebrow above it.
+
+     `ticker` is still Zico's to give — he wrote "$XXX" in the brief,
+     so null renders exactly that, a placeholder that reads as one.
+     Fill it in and the hero, the <title> and the manifesto all follow;
+     nothing else needs touching. */
+  token: {
+    ko: "기와",
+    roman: "GIWA",
+    ticker: null        // e.g. "GIWA" — rendered as $GIWA
+  },
+
   /* Contract address. null = show "coming at launch". */
   ca: null,
 

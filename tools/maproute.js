@@ -78,6 +78,29 @@ var INSET  = 0.055;  // keep the first/last stop this far off the sheet edge
    thing that separates the two sheets is exactly the thing being
    looked for — and stops lock onto them regardless of any weighting
    here. This ring score remains only for sheets with no vignettes. */
+/* Luma below which a pixel counts as ink, and the field the BLOCK is
+   scored on: the FRACTION of a cell that is that dark.
+
+   It used to be scored on `nd`, the local standard deviation the road
+   seam uses — and that is the wrong question for text. Stdev fires on
+   any texture: mist, a pale wash, the paper's own grain. So the grid
+   read the soft mountain haze west of Gyeongbokgung as expensive as a
+   black ridge line east of it, judged the block already optimally
+   placed, and would not move however the weights were pushed — while
+   VEN, looking at the render, asked three times for it to go left.
+   He was right and the metric was wrong. What makes a caption
+   unreadable is DARK STROKES crossing it; wash behind text is fine
+   and always looked fine (§9w part 14 said so about the caption
+   band). Overlaid on the sheet, the two candidate boxes settle it in
+   one look: the old one straddles a ridge, the new one sits in the
+   gap. The road seam still uses stdev — for finding open GROUND that
+   is the right measure. */
+var DARK_T = 132;
+/* DARK_T MUST BE DECLARED UP HERE: gridsOf() runs long before the
+   knobs further down are assigned, and a `var` read before its
+   assignment is undefined — `l < undefined` is false for every pixel,
+   so the field came back empty and every candidate scored zero. */
+
 var INT_W  = 0.85;
 var INT_R0 = 3, INT_R1 = 8;
 
@@ -191,6 +214,11 @@ var files = argv.filter(function(a, i){
 });
 var src   = files[0];
 var DEBUG = argv.indexOf("--debug") >= 0;
+/* --why dumps the caption-block search: the eight best candidates per
+   stop with every term of the score broken out. Written when VEN said
+   "move the block left" and the tool would not — guessing at weights
+   is exactly what HANDOFF warns against, so look at the numbers. */
+var WHY = argv.indexOf("--why") >= 0;
 var NSTOP = (function(){
   var i = argv.indexOf("--stops");
   return i >= 0 ? parseInt(argv[i + 1], 10) || 4 : 4;
@@ -219,6 +247,7 @@ var ROWS = Math.max(2, Math.round(COLS * img.h / img.w));
    widths land on comparable grids. */
 function gridsOf(im){
   var L = new Float64Array(COLS * ROWS),
+      K = new Float64Array(COLS * ROWS),
       D = new Float64Array(COLS * ROWS), gx, gy;
   for (gy = 0; gy < ROWS; gy++){
     var y0 = Math.floor(gy * im.h / ROWS),
@@ -226,24 +255,26 @@ function gridsOf(im){
     for (gx = 0; gx < COLS; gx++){
       var x0 = Math.floor(gx * im.w / COLS),
           x1 = Math.max(x0 + 1, Math.floor((gx + 1) * im.w / COLS));
-      var s = 0, s2 = 0, n = 0, yy, xx;
+      var s = 0, s2 = 0, n = 0, dk = 0, yy, xx;
       for (yy = y0; yy < y1; yy++){
         for (xx = x0; xx < x1; xx++){
           var p = (yy * im.w + xx) * 3;
           var l = 0.2126 * im.data[p] + 0.7152 * im.data[p + 1] + 0.0722 * im.data[p + 2];
           s += l; s2 += l * l; n++;
+          if (l < DARK_T) dk++;
         }
       }
       var m = s / n;
+      K[gy * COLS + gx] = dk / n;
       L[gy * COLS + gx] = m;
       D[gy * COLS + gx] = Math.sqrt(Math.max(0, s2 / n - m * m));
     }
   }
-  return { lum: L, dev: D };
+  return { lum: L, dev: D, dark: K };
 }
 
 var G = gridsOf(img);
-var lum = G.lum, dev = G.dev;
+var lum = G.lum, dev = G.dev, dark = G.dark;
 
 function norm(arr){
   var lo = Infinity, hi = -Infinity, i;
@@ -457,6 +488,109 @@ if (BASE){
      box over the seal (~2 cells; a 7x8 version once fenced off the
      whole pass). */
   var DIST_W = 0.05;
+
+/* The caption anchor's footprint, in grid cells. It stopped being a
+   caption on 2026-08-21: Zico's copy is written under the English
+   name now, so what has to land on blank paper is the whole BLOCK —
+   a caption line plus up to four lines of body text.
+
+   SIZED FOR THE BIGGEST THE BLOCK EVER GETS, not for one window.
+   Labels are scaled to a target ON-SCREEN size (`want` in
+   js/journey.js), so their size in SHEET units is a function of the
+   viewport: lq = want·1000/(W·ZOOM_IN·LSIZE). On wide screens `want`
+   is min(0.10·H, 0.058·W), and whichever binds, lq tops out at
+   0.058·1000/(1.65·24) = 1.465 — reached whenever H/W ≥ 0.58, which
+   is most real windows and VEN's own. Measured in the browser at
+   lq 1.087 the widest block (Namsangol) is 0.0623 of sheet width
+   half-out and 0.0193 below the anchor; at 1.465 that is 0.084 and
+   0.026 — hence ±6 columns and 4 rows down (±0.083, 0.031). One row
+   up covers the caption line with room to spare.
+
+   Do NOT size this off a screenshot of one window: at lq 1.087 a
+   5-column box looks generous and overflows by a fifth on a taller
+   one. The phone case is not in this number at all — below 861px the
+   copy leaves the sheet entirely (see .jmap__note in css/site.css).
+
+   CAP_NEAR was 0.006 and is 0.02 because VEN drew a red line under
+   Namsangol's wall: *"can you make it so that the name is underneath
+   the image where it is marked in red rather than all the way down
+   where it currently is."* At the old weight a slightly quieter patch
+   five rows further down beat the one under the building; now only
+   real ink is worth walking away from the landmark for. */
+var CAP_W = 6, CAP_UP = 1, CAP_DN = 4;
+var CENTRE_W = 0.004;   /* pull toward the landmark's centre column */
+var CAP_GAP = 2, CAP_BAND = 11, CAP_NEAR = 0.012;
+
+/* How hard mean ink counts. It is the ONLY signal that discriminates
+   here and it was being outvoted: over a 13x6 box in a clearing this
+   tight, PEAK saturates (every candidate around Namsangol scores the
+   same 0.82, so it decides nothing), which left CAP_NEAR and FRAME_W
+   choosing the spot on closeness alone — and closeness put the block
+   in the pinched top of the clearing rather than two rows lower where
+   the paper is genuinely cleaner. At 3.0 a third less ink beats two
+   rows of distance, which is the right trade now that the wash under
+   the block carries legibility. */
+/* REVIEWED OVERRIDES for the text block's x, by stop index.
+
+   Everything else this file emits is measured and nothing in it is
+   hand-placed — that rule is why the road, the stops and the anchors
+   survive an art re-roll. This is the one exception and it is here,
+   in the tool, rather than pasted into js/journey.js, so that a
+   re-run reproduces it instead of quietly losing it.
+
+   STOP 1, 0.549 -> 0.514. VEN asked three times for Gyeongbokgung's
+   block to move left off the mountains, and three different metrics
+   said it was already optimal: local stdev, then dark-pixel fraction,
+   then both with the road folded in. He was right every time. Drawing
+   the block's REAL text footprint onto the sheet at native resolution
+   and looking settles it in one glance — at 0.549 the ridge line runs
+   through the box's right third; at 0.514 the box is on clean paper
+   with the ridge just outside it. (scratchpad/boxes.js draws these.)
+
+   Why the grid cannot see it, as far as it was chased: the ridge
+   there is a THIN dark line over pale ground, so it moves a 25px
+   cell's dark fraction very little, while the mist and hatching to
+   the west move it a lot without ever crossing the words. Cell
+   statistics at 72 columns are simply coarser than the question.
+   Do not delete this without rendering the alternative first.
+
+   ON AN ART RE-ROLL: clear these to null, re-run, and re-check by
+   render. They are corrections to THIS sheet, not to the method. */
+var BLOCK_X = [0.514, null, null, null];
+
+var MEAN_W = 4.5;
+
+/* The road is drawn OVER the sheet by js/journey.js, so nothing in
+   the ink field can see it and the block search walked straight
+   through the footpath until VEN pointed at it. ROAD_HALF is the
+   verge kept either side of the seam, in cells; ROAD_INK is what a
+   cell of it is worth in the ink field. 0.45 is a moderate ridge:
+   text over the trail should lose to clean paper and beat text over
+   a mountain, which is exactly the trade at stops 1 and 2. */
+var ROAD_HALF = 1.6, ROAD_INK = 0.12;
+var FRAME_DN = 10;
+/* half the arrival frame's width in columns: 0.606 of the sheet at
+   ZOOM_IN 1.65, over a 72-column grid. */
+var FRAME_X = 21;
+/* per row the block hangs below the short-window frame. Small on
+   purpose: it must yield to clean paper, never outrank it. */
+var FRAME_W = 0.03;
+
+/* How hard the WORST cell in the block's footprint is punished, on top
+   of the mean. See the note at the score itself: over 78 cells a mean
+   cannot see a ridge line clipping one corner, which is exactly the
+   overlap VEN drew a circle around. At 0.8 a box holding one ridge
+   cell (~0.6) scores ~0.59 against a clean box's ~0.22, so it never
+   wins on a slightly better average. */
+var PEAK_W = 0.8;
+
+/* The Korean name column's own half-extents, in cells/rows, measured
+   in the browser at the largest label scale (getBBox of .jmap__label
+   scaled to lq 1.465): 1.14 wide, 4.15 tall. Rounded out a little for
+   the ink filter's overshoot. Used only to keep the text block off it
+   — see the note at the check. */
+var NAME_HW = 1.4, NAME_HH = 4.4;
+
   function labelSpot(gy0, rx0){
     /* The landmark itself, as a FLOOD-FILLED component, not a
        thresholded bounding box. image2image regenerates the whole
@@ -547,24 +681,187 @@ if (BASE){
     var ecx = null, ecy = null;
     if (hasBlob){
       var bcx = Math.round((bx0 + bx1) / 2);
-      var cbest = Infinity;
-      for (cy = by1 + 2; cy <= Math.min(ROWS - 3, by1 + 9); cy++){
-        for (cx = Math.max(5, bcx - 12); cx <= Math.min(COLS - 6, bcx + 12); cx++){
-          if (Math.abs(cx - rx0) > 18) continue;          /* arrival frame */
-          if (Math.abs(cx - bx) < 7 && Math.abs(cy - by) < 6) continue; /* the name */
-          var s2 = 0, n3 = 0;
-          for (dy = -1; dy <= 1; dy++){
-            var yy2 = cy + dy;
-            if (yy2 < 0 || yy2 >= ROWS) continue;
-            for (dx = -4; dx <= 4; dx++){
-              var xx2 = cx + dx;
-              if (xx2 < 0 || xx2 >= COLS) continue;
-              s2 += nd[yy2 * COLS + xx2]; n3++;
+
+      /* THE WHOLE BLOCK has to be inside the arrival frame, not just
+         its anchor. The caption used to be one line, so bounding its
+         centre was bounding the text; since 2026-08-21 Zico's copy
+         hangs beneath it and the block runs CAP_DN rows further down.
+         Bounding the centre alone would put the last line of a
+         four-line note below the fold at the moment it is meant to be
+         read. FRAME_DN is the short-window frame — a 1600x689 desktop
+         sees ±0.073 of sheet height, about 9 rows.
+
+         But it CANNOT be a hard requirement, and that was measured,
+         not guessed: a big vignette's own footprint already reaches
+         ~8 rows below its stop, so demanding the block finish inside
+         the frame left Changdeokgung and Jeonju with no candidate at
+         all — and no anchor means falling all the way back to
+         under-the-column, which is the exact placement VEN's red
+         lines rejected in part 13. So the bound is a PREFERENCE:
+         search inside the frame, and only if nothing fits there,
+         search again without it. Losing "visible at the instant of
+         arrival" is a much smaller loss than losing "under the
+         building" — the camera keeps moving and the block comes up a
+         beat later, which is the caveat part 14 already recorded. */
+      var why = [];
+      function scan(){
+        var bcy = null, bcx2 = null, cbest = Infinity, cy2, cx2, dy2, dx2;
+        for (cy2 = by1 + CAP_GAP; cy2 <= Math.min(ROWS - 3, by1 + CAP_BAND); cy2++){
+          /* THE ARRIVAL FRAME IS A COST, NOT A WALL. As a hard cut it
+             was the reason VEN's block would not move: it forbade
+             every row below gy0+FRAME_DN, and at Namsangol the
+             clearing is PINCHED at the top and opens out lower down —
+             ten clean columns at row 86, eighteen at row 88. Barred
+             from row 88, the search had nowhere to go but the narrow
+             part, and no amount of peak-ink weighting could help it.
+             Two rows lower is ~70px on a real window and inside the
+             frame on anything taller than the 1600x689 reference;
+             clean paper is worth that and overlap is not. */
+          var late = FRAME_W * Math.max(0, (cy2 + CAP_DN) - (gy0 + FRAME_DN));
+          for (cx2 = Math.max(5, bcx - 12); cx2 <= Math.min(COLS - 6, bcx + 12); cx2++){
+            /* The BLOCK must be inside the arrival frame, not just its
+               centre — the same mistake as the vertical bound, caught
+               the same way. At the settle zoom a window sees 1/ZOOM_IN
+               = 0.606 of the sheet's width, so ±21.8 columns around the
+               marker; bounding the anchor alone let stop 1's block hang
+               its last two columns off the right edge of the screen at
+               the moment it is meant to be read. */
+            if (Math.abs(cx2 - rx0) + CAP_W > FRAME_X) continue;
+            /* KEEP OFF THE KOREAN NAME, by the two boxes' MEASURED
+               extents rather than by a flat 7x6.
+
+               The flat version is what pinned Namsangol's block where
+               VEN circled it: it forbade every position within 7
+               columns of the name, so the block sat hard against that
+               boundary with the mountains on its other side and
+               nowhere left to go. But a block DIRECTLY BELOW the name
+               does not collide with it at all — the name is a narrow
+               vertical column (measured 1.14 cells half-width, ±4.15
+               rows at the largest label scale) and the block hangs
+               below its foot.
+
+               So: clear it sideways OR clear it vertically. That frees
+               the leftward move VEN asked for and still cannot let the
+               two texts touch. */
+            var sepX = Math.abs(cx2 - bx) >= NAME_HW + CAP_W + 0.6;
+            var sepY = (cy2 - CAP_UP) >= by + NAME_HH ||
+                       (cy2 + CAP_DN) <= by - NAME_HH;
+            if (!sepX && !sepY) continue;
+
+            /* KEEP OFF THE ROAD. VEN, on Changdeokgung: *"move this
+               text to the left a bit so it isnt in the footpath."*
+
+               The block search had no idea where the road was, and it
+               could not have: the road is not ON the sheet, it is drawn
+               over it by js/journey.js from the very seam this file
+               emits. So the only thing that ever saw it was the NAME
+               search, which has had a road exclusion since the labels
+               were first placed. The block needs the same, measured the
+               same way — the widest row of the block against the road's
+               column AT THAT ROW, since the seam wanders.
+
+               A cost rather than a cut, like the frame bound: on a
+               sheet where the corridor IS the only open paper, a hard
+               exclusion can leave a stop with nowhere legal at all. */
+            var s2 = 0, n3 = 0, pk = 0, rdInk = 0;
+            for (dy2 = -CAP_UP; dy2 <= CAP_DN; dy2++){
+              var yy2 = cy2 + dy2;
+              if (yy2 < 0 || yy2 >= ROWS) continue;
+              for (dx2 = -CAP_W; dx2 <= CAP_W; dx2++){
+                var xx2 = cx2 + dx2;
+                if (xx2 < 0 || xx2 >= COLS) continue;
+                var iv = dark[yy2 * COLS + xx2];
+                /* THE ROAD COUNTS AS INK. It is not on the sheet —
+                   js/journey.js draws it over the top from this very
+                   seam — so the ink field cannot see it, and the block
+                   search walked through the footpath until VEN pointed
+                   at Changdeokgung. Adding it to the SAME field it is
+                   competing with is what makes it behave: a first
+                   attempt scored it as a separate penalty and, being
+                   on a different scale, it simply won every time —
+                   which shoved stop 1 off the corridor and deeper into
+                   the mountains, the opposite of what was asked. */
+                if (Math.abs(xx2 - road[yy2]) <= ROAD_HALF){
+                  iv += ROAD_INK;
+                  if (yy2 === cy2) rdInk = ROAD_INK;
+                }
+                s2 += iv; n3++;
+                if (iv > pk) pk = iv;
+              }
             }
+            if (!n3) continue;
+            /* MEAN INK IS THE WRONG OBJECTIVE FOR A BIG BOX, and VEN
+               found it: *"move the whole block of text to the left so
+               that the right side of the text is no longer overlapping
+               with the mountains."* The box that placed it scored
+               clear — because it is 78 cells and one ridge cell at
+               0.6 against blank paper at 0.1 moves the mean by 0.006.
+               An average cannot see a thin line crossing a corner; it
+               drowns in the blank majority. That was invisible while
+               the footprint was a single caption line and fatal once
+               it became a paragraph.
+               So the PEAK cell counts too, and heavily: any box with
+               real ink anywhere in it now loses to one with none. */
+            var m2 = MEAN_W * (s2 / n3) + PEAK_W * pk + late
+                   + Math.abs(cx2 - bcx) * CENTRE_W + (cy2 - by1) * CAP_NEAR;
+            if (WHY) why.push({ x: cx2, y: cy2, mean: MEAN_W * (s2 / n3), peak: pk,
+                                pull: Math.abs(cx2 - bcx) * CENTRE_W,
+                                near: (cy2 - by1) * CAP_NEAR + late, road: rdInk, total: m2 });
+            if (m2 < cbest){ cbest = m2; bcx2 = cx2; bcy = cy2; }
           }
-          var m2 = s2 / n3 + Math.abs(cx - bcx) * 0.004 + (cy - by1) * 0.006;
-          if (m2 < cbest){ cbest = m2; ecx = cx; ecy = cy; }
         }
+        return bcy == null ? null : { x: bcx2, y: bcy };
+      }
+      var spot2 = scan();
+      if (spot2){ ecx = spot2.x; ecy = spot2.y; }
+      if (WHY){
+        why.sort(function(a, b){ return a.total - b.total; });
+        console.log("  --why  stop at row " + gy0 + "  landmark cols " + bx0 + "-" + bx1 +
+                    " (centre " + bcx + "), name col " + bx + " row " + by);
+        /* The ink profile of the band the block has to live in, one
+           character per column: the worst cell in that column over the
+           block's own row span. This is the question "how wide is the
+           clear corridor here, really", answered directly — a run of
+           dots is paper the text can stand on. */
+        if (ecy != null){
+          var prof = "", pcx, pdy;
+          for (pcx = 0; pcx < COLS; pcx++){
+            var pv = 0;
+            for (pdy = -CAP_UP; pdy <= CAP_DN; pdy++){
+              var pyy = ecy + pdy;
+              if (pyy < 0 || pyy >= ROWS) continue;
+              if (dark[pyy * COLS + pcx] > pv) pv = dark[pyy * COLS + pcx];
+            }
+            prof += pv < 0.02 ? "." : pv < 0.05 ? ":" : pv < 0.10 ? "o" : pv < 0.18 ? "O" : "#";
+          }
+          console.log("         band ink by column (row " + ecy + "): " + prof);
+          console.log("         chosen block spans cols " +
+                      (ecx - CAP_W) + "-" + (ecx + CAP_W));
+          /* and the raw cell map around the landmark, so the SHAPE of
+             the clearing is visible — a run that is wide at one row
+             and pinched two rows down is the difference between "the
+             text fits" and "the text fits if it is narrow and tall". */
+          var r0 = Math.max(0, by0 - 2), r1 = Math.min(ROWS - 1, by1 + CAP_BAND + 2);
+          console.log("         cell map, cols " + Math.max(0, bcx - 20) +
+                      "-" + Math.min(COLS - 1, bcx + 20) + ", rows " + r0 + "-" + r1 + ":");
+          for (var mr = r0; mr <= r1; mr++){
+            var line = "";
+            for (var mc = Math.max(0, bcx - 20); mc <= Math.min(COLS - 1, bcx + 20); mc++){
+              var mv = dark[mr * COLS + mc];
+              line += mv < 0.02 ? "." : mv < 0.05 ? ":" : mv < 0.10 ? "o" : mv < 0.18 ? "O" : "#";
+            }
+            console.log("           " + (mr < 100 ? " " : "") + mr + " " + line);
+          }
+        }
+        why.slice(0, 8).forEach(function(c){
+          console.log("         x " + c.x + " y " + c.y +
+                      "  total " + c.total.toFixed(4) +
+                      "  = mean " + c.mean.toFixed(4) +
+                      " + peak " + c.peak.toFixed(4) +
+                      " + pull " + c.pull.toFixed(4) +
+                      " + road " + (c.road || 0).toFixed(4) +
+                      " + near " + c.near.toFixed(4));
+        });
       }
     }
     return {
@@ -598,11 +895,17 @@ if (BASE){
         if (s2 >= 0 && s2 < ROWS) rowScore[s2] = -Infinity;
     }
     picked.sort(function(a, b){ return a - b; });
-    picked.forEach(function(gy3){
+    picked.forEach(function(gy3, si3){
       var pt2 = atRow(gy3);
       var spot = labelSpot(gy3, Math.round(road[gy3]));
       pt2.lx = spot.lx; pt2.ly = spot.ly;
       pt2.ex = spot.ex; pt2.ey = spot.ey;
+      if (BLOCK_X[si3] != null && pt2.ex != null){
+        console.log("  review  stop " + (si3 + 1) + " block x " +
+                    pt2.ex.toFixed(3) + " -> " + BLOCK_X[si3].toFixed(3) +
+                    "  (BLOCK_X override, see the note at its definition)");
+        pt2.ex = BLOCK_X[si3];
+      }
       stops.push(pt2);
     });
   })();
@@ -694,10 +997,11 @@ if (DEBUG){
     dot(p.x * img.w, p.y * img.h, 17, [235, 221, 185]);
     /* the label footprint, as a filled box, so the debug render
        answers "does the name sit on blank paper" without a browser */
-    function box(cxF, cyF, bwF, bhF){
+    function box(cxF, cyF, bwF, bhF, upF){
       var bw = Math.round(img.w * bwF), bh = Math.round(img.h * bhF);
+      var up = Math.round(img.h * (upF == null ? bhF : upF));
       var cx2 = Math.round(cxF * img.w), cy2 = Math.round(cyF * img.h), x2, y2;
-      for (y2 = -bh; y2 <= bh; y2++)
+      for (y2 = -up; y2 <= bh; y2++)
         for (x2 = -bw; x2 <= bw; x2++){
           var px2 = cx2 + x2, py2 = cy2 + y2;
           if (px2 < 0 || py2 < 0 || px2 >= img.w || py2 >= img.h) continue;
@@ -708,7 +1012,13 @@ if (DEBUG){
         }
     }
     if (p.lx != null) box(p.lx, p.ly, 0.045, 0.045);      /* the name */
-    if (p.ex != null) box(p.ex, p.ey, 0.10, 0.008);       /* the caption */
+    /* The caption+copy BLOCK, drawn at exactly the footprint the
+       search scored — one caption row up, three copy rows down. It
+       used to be drawn at ~2x the caption's width as deliberate
+       margin; now that real body text fills it, "the box is clear"
+       has to mean the text is clear, so the box is life-size. */
+    if (p.ex != null)
+      box(p.ex, p.ey, CAP_W / COLS, CAP_DN / ROWS, CAP_UP / ROWS);
   });
   var dst = src.replace(/\.png$/i, "-route.png");
   fs.writeFileSync(dst, encodeRGB(img.w, img.h, out));

@@ -104,15 +104,53 @@
   /* `blurb` is PLACEHOLDER COPY — split mode needs a paragraph per stop
      and Zico still owes the real text (§1). Written only so the layout
      can be judged; none of it is final, replace it wholesale. */
+  /* Client copy goes into innerHTML in map mode, so it is escaped on
+     the way in. Nothing in SPOTS needs it today; the next paste from
+     Zico might. */
+  function esc(s){
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  /* `blurb` is split/road/static mode's paragraph — the pinned column
+     has room for a sentence with rhythm. `copy` is MAP mode's, and it
+     is a different job: it is written onto the sheet itself, in a
+     block of blank parchment beside the landmark, so every line is
+     pre-broken and none of them may run long. Keep lines at or under
+     ~52 characters — the block's footprint is what maproute searches
+     blank paper for, and a longer line is a line over a mountain.
+
+     THE CONTENT IS ZICO'S, 2026-08-21, and it is what the journey is
+     actually for now: the palace says what Giwa is, the complex says
+     what the project intends, the village says how to get on-chain.
+
+     Two gaps, both his to fill and neither invented here:
+       - Namsangol's steps. He gave the two headings ("How to access
+         Giwa chain", "How to swap on Giwa chain") and no steps, and a
+         guessed bridge or DEX on a token page is the one mistake that
+         costs somebody money. It says so instead.
+       - Jeonju. He left it blank. An empty `copy` renders name and
+         caption only, exactly as before. */
   var SPOTS = [
     { d0: 1150, s: -1, name: "Gyeongbokgung Palace",   ko: "경복궁",  img: "art/gyeongbokgung.png", art: gate(),
-      blurb: "The palace of shining happiness. Six centuries of court and quiet, burned and raised again, still facing the mountain it was built to answer." },
+      blurb: "The palace of shining happiness. Six centuries of court and quiet, burned and raised again, still facing the mountain it was built to answer.",
+      copy: ["An L2 from Upbit, Korea's largest exchange.",
+             "기와 means roof tile. The chain's own mark is",
+             "two of them: small pieces locking together",
+             "into one strong roof."] },
     { d0: 1900, s:  1, name: "Changdeokgung Palace",   ko: "창덕궁",  img: "art/changdeokgung.png", art: hall(),
-      blurb: "Built to follow the land rather than flatten it. Its rear garden was kept for the king alone, and the trees there are older than the hands that planted them." },
+      blurb: "Built to follow the land rather than flatten it. Its rear garden was kept for the king alone, and the trees there are older than the hands that planted them.",
+      copy: ["More than a meme. Partnerships with local and",
+             "larger charities are coming, and a share of",
+             "funds goes to re-roofing homes for families",
+             "in need."] },
     { d0: 2650, s: -1, name: "Namsangol Hanok Village",ko: "남산골",  img: "art/namsangol.png",     art: hanoks(),
-      blurb: "Five houses carried stone by stone from across the city and set down together beneath the south mountain, so the old way of living would have somewhere to stand." },
+      blurb: "Five houses carried stone by stone from across the city and set down together beneath the south mountain, so the old way of living would have somewhere to stand.",
+      copy: ["How to reach Giwa chain, and how to swap",
+             "once you are on it. The steps are written",
+             "here at launch."] },
     { d0: 3500, s:  1, name: "Jeonju Hanok Village",   ko: "전주",    img: "art/jeonju.png",        art: village(),
-      blurb: "Eight hundred roofs held in one valley — the largest hanok village left, and the only one where someone still lives behind every door." }
+      blurb: "Eight hundred roofs held in one valley: the largest hanok village left, and the only one where someone still lives behind every door.",
+      copy: [] }
   ];
 
   /* The paintings are square 1:1, so the panel box is square too and
@@ -729,13 +767,18 @@
          frame, judged on all ink. Both fixes from VEN's screenshots
          (part 7): the seal on the hanok's wall, the road through
          Changdeokgung's pond, the name across the mountains. */
-      /* [x, y, labelX, labelY, captionX, captionY] — the last pair is
-         the ENGLISH caption's anchor, centred under the landmark's
-         ground wash (part 13, VEN's red lines) */
-      stops: [[0.340, 0.120, 0.396, 0.136, 0.507, 0.182],
-              [0.492, 0.360, 0.410, 0.329, 0.410, 0.453],
-              [0.624, 0.601, 0.368, 0.632, 0.493, 0.694],
-              [0.372, 0.857, 0.326, 0.872, 0.465, 0.942]]
+      /* [x, y, labelX, labelY, blockX, blockY] — the last pair anchors
+         the TEXT BLOCK: the English caption plus Zico's copy under it
+         (2026-08-21). maproute searches blank paper at the block's
+         full footprint, sized for the largest the labels ever scale
+         to, so what it clears is what gets drawn. VEN's red line under
+         Namsangol's wall is why the search now hugs the landmark
+         (CAP_NEAR) instead of taking the quietest patch it could find
+         five rows further down. */
+      stops: [[0.340, 0.120, 0.396, 0.136, 0.514, 0.174],
+              [0.492, 0.360, 0.410, 0.329, 0.438, 0.446],
+              [0.624, 0.601, 0.368, 0.632, 0.438, 0.678],
+              [0.372, 0.857, 0.326, 0.872, 0.396, 0.934]]
     },
     pirate: {
       img: "art/journey/map-pirate.png", w: 1500, h: 2688,
@@ -995,6 +1038,23 @@
       /* the eyebrow is the one piece of chrome left: section identity,
          pinned to the corner, outside the camera */
       '<p class="eyebrow jmap__eyebrow"><span lang="ko">여정</span> · the journey</p>' +
+      /* ZICO'S COPY, NARROW-SCREEN HOME.
+
+         On the sheet the copy is sized off the label scale, and that
+         scale is deliberately window-relative: `want` floors at 34px,
+         so on a 390px phone lq is 2.20 against a desktop's 1.09. Two
+         things follow and both are fatal there — the block grows to a
+         quarter of the sheet's width, which no clearing on this map
+         can hold, and the copy itself renders at about 7px, which
+         nobody can read. The sheet is simply not where a paragraph
+         lives on a phone.
+
+         So under 861px the block comes off the sheet and sits in a
+         strip under the map, one <p> per stop, cross-faded by the
+         same value that fades the SVG copy. Both are built once and
+         only their opacity is touched, so the draw loop stays
+         attributes-only. CSS picks which one is on. */
+      '<div class="jmap__note" aria-hidden="true"></div>' +
       (INFO ? '<div class="jmap__cards"><div class="jmap__stops"></div></div>' : "");
     sticky.appendChild(wrap);
 
@@ -1004,7 +1064,53 @@
         marks  = wrap.querySelector(".jmap__marks"),
         labHost = wrap.querySelector(".jmap__labels"),
         vHost  = wrap.querySelector(".jmap__vistas"),
+        noteHost = wrap.querySelector(".jmap__note"),
         host   = wrap.querySelector(".jmap__stops");
+
+    /* How far either side of a place, in stop units, its note stays on
+       the strip. Under half a unit and the strip is empty for most of
+       the road; over it and two notes overlap in the middle of a leg. */
+    var NOTE_SPAN = qs("notespan", 0.50);
+
+    /* WHERE ZICO'S COPY LIVES. `sheet` (default, VEN's call: *"make it
+       so that the text is back on the page underneath the name of each
+       location, I liked how it was before"*) writes it into the
+       parchment under each caption. `strip` puts it in a note below
+       the map instead, and is what phones get regardless — see the
+       breakpoint in css/site.css.
+
+       THE BLOCK CANNOT ALWAYS BE ON CLEAN PAPER. `maproute --why`
+       measures the clearing under Namsangol's village at SEVEN COLUMNS
+       of the 72-column grid; a caption plus copy needs 12 to 15. No
+       position fits, no line-breaking fits, and shrinking the type to
+       fit puts it under 10px. A wash under the block was built to
+       cover for that and VEN rejected it, so the search does the work
+       instead: it counts the road as ink, bounds the block's edges to
+       the arrival frame, and weighs mean ink above closeness. Where it
+       still has to touch terrain, it touches the least it can. */
+    var COPY_MODE = (function(){
+      var m = /[?&]copy=(sheet|strip)/i.exec(location.search);
+      return m ? m[1].toLowerCase() : "sheet";
+    })();
+    if (COPY_MODE === "strip") wrap.classList.add("jmap--strip");
+
+    /* The note under the map, one paragraph per stop, built once. It is
+       built in BOTH modes and CSS decides which is on: phones get it
+       whatever `copy=` says, because the sheet block is sized off the
+       label scale and that scale floors at 34px — at 390px wide the
+       block would be a quarter of the sheet across while its own text
+       fell to about 7px. Neither is survivable, and it is cheaper to
+       carry four paragraphs than to branch. */
+    var notes = SPOTS.map(function(sp){
+      var body = (sp.copy && sp.copy.length) ? sp.copy.join(" ") : "";
+      if (!body) return null;
+      var p = document.createElement("p");
+      p.className = "jmap__note-p";
+      p.style.opacity = "0";
+      p.innerHTML = "<b>" + esc(sp.name) + "</b>" + esc(body);
+      noteHost.appendChild(p);
+      return p;
+    });
 
     /* ---- arc-length table ------------------------------------------
        getPointAtLength is a geometry query; doing it per frame inside a
@@ -1269,6 +1375,44 @@
             "</mask></defs>" +
             '<text class="jmap__en" mask="url(#jme' + i2 + ')" x="0" y="0" font-size="' +
             F.toFixed(1) + '" text-anchor="middle">' + sp.name + "</text>";
+
+          /* ZICO'S COPY, written on the sheet under the caption.
+
+             It FADES rather than writes, and that is deliberate: the
+             per-line mask sweep that makes one caption look
+             handwritten costs a mask re-rasterisation per line per
+             frame, and four lines of body text swept at once reads as
+             a machine printing, not a hand. The hand writes the name;
+             the note is already on the paper when you arrive.
+
+             The whole block is one <g> so the draw loop touches a
+             single opacity, and it hangs off the caption's own anchor
+             — maproute sizes the blank-paper search to the block, not
+             to the caption alone (COPY_ROWS in tools/maproute.js), so
+             what is measured is what is drawn. */
+          var copy = sp.copy || [];
+          if (copy.length){
+            var CF = F * 0.80, CLH = CF * 1.42, cg = "";
+            copy.forEach(function(line, li){
+              cg += '<text x="0" y="' + (F * 1.55 + li * CLH).toFixed(1) +
+                    '" font-size="' + CF.toFixed(1) + '" text-anchor="middle"' +
+                    ' opacity="0">' + esc(line) + "</text>";
+            });
+
+            /* NO WASH UNDER THE BLOCK. One was built — a bloom of damp
+               paper that veiled whatever terrain the block had to sit
+               on — and VEN rejected it on sight: *"remove the
+               watercolour effect, I dont like it."* It is gone rather
+               than switched off, because the thing it was covering for
+               is now fixed at the source: the search keeps the block
+               off the road and off the ridges instead of hiding the
+               collision. The line-by-line fade below is what remains of
+               *"some sort of animation to fade in"*. */
+            var cwrap = document.createElementNS(NS, "g");
+            cwrap.setAttribute("class", "jmap__copy");
+            cwrap.innerHTML = cg;
+            ge.appendChild(cwrap);
+          }
           labHost.appendChild(ge);
         }
 
@@ -1285,6 +1429,9 @@
         labels.push({
           g: g2, mp: mp, L: LL, lw: -1,
           ge: ge, emp: emp, eL: eL,
+          cg: ge ? ge.querySelector(".jmap__copy") : null,
+          lines: ge ? ge.querySelectorAll(".jmap__copy > text") : null,
+          cw: -1,
           ex: s.length >= 6 ? s[4] * MW : null,
           ey: s.length >= 6 ? s[5] * MH : null,
           /* under-the-column fallback offset, in label-local units */
@@ -1560,8 +1707,49 @@
               if (labels[k].emp)
                 labels[k].emp.style.strokeDashoffset =
                   (labels[k].eL * (1 - cl((wv - 0.6) / 0.4))).toFixed(1);
+              /* THE COPY ARRIVES A LINE AT A TIME. VEN asked for *"some
+                 sort of animation to fade in like watercolours almost"*
+                 and then rejected the wash that came with it, so this
+                 is what is left of it — and it is the better half. Each
+                 line is a beat behind the one above, so the block reads
+                 top to bottom the way it would be written, instead of
+                 appearing whole. The hand writes the name, then the
+                 note settles under it a line at a time.
+
+                 Attributes only, and gated on change like everything
+                 else in this loop: no filter, no blur, nothing that
+                 re-rasterises per frame. */
+              var cop = cl((wv - 0.62) / 0.38);
+              if (labels[k].cg && cop !== labels[k].cw){
+                labels[k].cw = cop;
+                var ln = labels[k].lines, li2;
+                for (li2 = 0; li2 < ln.length; li2++){
+                  var lp = cl((cop - 0.18 - li2 * 0.13) / 0.45);
+                  ln[li2].setAttribute("opacity",
+                    (lp * lp * (3 - 2 * lp)).toFixed(3));
+                }
+              }
             }
           }
+        }
+
+        /* THE NARROW-SCREEN NOTE SHOWS ONE PLACE AT A TIME, and it
+           cannot ride the writing value the way the sheet's copy does.
+           `wv` saturates at 1 on arrival and stays there — correct for
+           ink on a map, which is written once and stays written, and
+           wrong for a strip where all four paragraphs are stacked at
+           the same bottom edge: past the third stop you would be
+           reading three notes printed over each other.
+
+           So the strip is driven by DISTANCE along the road instead —
+           u is in stop units, so |u - k| is how far this place is from
+           the camera — and it fades out behind you as it fades in
+           ahead. Cached, because this runs outside the change-guard
+           above and would otherwise write a style every frame. */
+        if (notes[k]){
+          var nv = cl(1 - Math.abs(u - k) / NOTE_SPAN);
+          var ns = (nv * nv * (3 - 2 * nv)).toFixed(3);
+          if (notes[k]._o !== ns){ notes[k]._o = ns; notes[k].style.opacity = ns; }
         }
 
         /* the seal slams down over the last stretch of the approach */

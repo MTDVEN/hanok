@@ -1,4 +1,4 @@
-# HANOK — launch site
+# 기와 GIWA — launch site
 
 Single-page static site. No build step: host the folder anywhere
 (Vercel/Netlify/GitHub Pages) or preview with `node tools/serve.js`
@@ -37,6 +37,13 @@ somewhere real.
 
 ## Launch-day checklist (all in `js/config.js`)
 
+0. `token.ticker` — Zico has not named it, so the hero, the manifesto
+   and the `<title>` all read "$XXX", a placeholder meant to look like
+   one. Set it once and `js/main.js` writes it into all three.
+   `token.ko` is what the hero WRITES, and it is not free text: every
+   character needs brush strokes in `LETTERS` (js/hero.js), because
+   the animation is stroke-dashoffset along real paths and a webfont
+   glyph has no stroke order to write in.
 1. `ca` — the contract address. The floating pill starts copying it.
 2. `links` — buy / X / dexscreener / telegram. `null` hides footer links
    and marks hero buttons "at launch".
@@ -214,6 +221,26 @@ captions.
   art/journey/map-NAME.png --debug` finds the road and the four stops by
   measuring the sheet and prints the two arrays to paste into
   `js/journey.js`. Never hand-edit those arrays — same rule as `PLOTS`.
+- `node tools/heropng.js [word]` draws the hero title's brush strokes
+  to a PNG straight from `LETTERS` in js/hero.js — the letterforms are
+  checkable without a browser, and the tool cannot drift from what
+  ships because it reads the real file. No ink filter: it renders the
+  GEOMETRY, which is where a stroke reads as ruled or as drawn.
+- **Zico's copy is written on the sheet under each caption**, fading
+  in a line at a time on arrival. A watercolour wash was tried under
+  it and rejected (HANDOFF §9z). `?copy=strip` moves the copy to
+  a note under the map instead (which is what phones get regardless).
+- `node tools/mapbox.js <sheet> <out> cx,cy,hw,up,dn` draws a label's
+  REAL footprint on the sheet. **This is the authority when the grid
+  and the eye disagree** — a 25px cell statistic cannot see a thin
+  ridge line crossing the words, and three rounds of weight-tuning
+  lost to one render (HANDOFF §9z). `BLOCK_X` in maproute carries the
+  one reviewed override that came out of it.
+- `node tools/maproute.js ... --why` dumps the caption-block search —
+  best candidates with every score term, the band's ink profile by
+  column, and a cell map of the clearing. Use it before touching any
+  weight: it is how "the clearing under Namsangol is seven columns
+  wide and the text needs twelve" was established rather than guessed.
 - **Re-editing ONE vignette: patch it in, never swap the sheet.**
   OpenArt re-renders the whole page even when the drawing survives, and
   a re-stroked sheet moves stops nobody touched (it moved Jeonju's).

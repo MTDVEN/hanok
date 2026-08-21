@@ -6,6 +6,14 @@ assets, what was already reviewed/fixed (and what was deliberately NOT
 fixed), and the exact next steps. `README.md` is the short ops sheet;
 this file is the deep context.
 
+**THE TOKEN IS 기와 / GIWA** (Zico, 2026-08-21) — Korean for roof
+tile, and the name of the Upbit L2 it launches on. The hero writes
+hangul now, the ticker is a live "$XXX" placeholder under it, and the
+journey's four stops carry Zico's actual pitch copy written onto the
+map sheet. **§9y** is that whole pass; `CONFIG.token` is the one place
+to set the name and ticker. Still his to send: the ticker, Namsangol's
+bridge/swap steps, and anything at all for Jeonju.
+
 **SESSION 13 (2026-08-21), READ FIRST IF YOU TOUCH THE MAP ART.**
 Zico's first client note since launch: Namsangol should look like a
 village. It does now — six smaller hanok behind the walled house
@@ -4253,6 +4261,346 @@ and naming the corridor as something that must stay empty.
 - Jeonju is the only other vignette with "Village" in its name and it
   already reads as a town, so nothing was done there. If Zico asks for
   the same treatment anywhere else, the recipe is this section.
+
+---
+
+## 9y. Session 13, part 2 — the token got its name, and the journey got its brief
+
+Zico sent the page copy, top to bottom, and it changes what the site
+IS: the journey stops being four pretty places and becomes the pitch.
+**The token is 기와 / GIWA** — Korean for roof tile, and the name of
+the Upbit L2 it launches on, which is why the tile metaphor was in the
+brief all along.
+
+### 1. The hero writes hangul now
+
+`CONFIG.token.ko` drives the title and `js/hero.js` writes it stroke
+by stroke exactly as before — VEN: *"lets give it the same written in
+animation though, keep the animation just change the text."* Three
+things had to be true for that to work and none of them were:
+
+- **Every character needs strokes in `LETTERS`.** There is no font
+  fallback and there cannot be one: the animation is
+  stroke-dashoffset along real paths, and a webfont outline has no
+  stroke order to write in. 기 is two strokes (ㄱ, ㅣ), 와 is five
+  (ㅇ, then ㅗ's stem and bar, then ㅏ's stem and bar), all in Korean
+  writing order — which is what makes it read as a hand rather than a
+  reveal.
+- **The first pass was unreadable and it was worth looking.** ㅇ and
+  ㅗ ran together into one blot and ㅏ's bar landed inside the circle.
+  Fixed by giving the three parts real air: ㅇ small and high, ㅗ's
+  stem long enough to be seen, ㅏ's stem far enough right that its bar
+  clears ㅇ.
+- **ADVANCE, the seal gap and the viewBox are all per-word.** Hangul
+  blocks are square (100 vs 96), 와's ㅏ bar reaches further right than
+  a latin K's foot so the seal was being stamped on top of it (gap 2
+  → 32, and the viewBox is now sized FROM the seal), and the trailing
+  flourish is latin-only — off 와 it leaves from ㅏ's stem and makes
+  the vowel look mis-written. `.hero__title` width 640 → 460px,
+  because the viewBox is `X0 + chars·ADVANCE + 46` and two characters
+  render twice the size of five at the same box width.
+
+Under it, `#heroTicker`. Zico wrote "$XXX" and that is exactly what
+renders until `CONFIG.token.ticker` is set — a placeholder that reads
+as one, like the CA pill's "coming at launch". `js/main.js` writes the
+real one into the hero, the manifesto and the `<title>` from that one
+field.
+
+Also from the brief: the tagline is *"One tile at a time.
+Community-owned. Fair launch. Forever."*, the primary button is **DEX
+Screener** (`#btnDex` → `links.dexscreener`; `btnBuy` is gone from the
+markup, its wiring kept), the manifesto is Zico's rewrite, and the
+eyebrow, `<title>`, og tags and the footer word all moved off 한옥.
+
+### 2. Zico's copy is WRITTEN ON THE SHEET
+
+Each stop now carries `copy: [...]` — pre-broken lines, drawn under
+the English caption in the blank parchment beside its landmark. It
+fades in over the last fifth of the approach rather than writing: four
+lines swept on a mask read as a machine printing, and the mask
+re-rasterises per line per frame. The hand writes the name; the note
+is already on the paper when you arrive.
+
+**The anchor is the caption's, and its footprint grew to match.**
+maproute's caption search scored a 9x3-cell box; what gets drawn now
+is a caption plus four lines, so it scores 13x6 (`CAP_W/CAP_UP/CAP_DN`)
+— and that box is **sized for the biggest the block ever gets, not for
+one window**. Labels scale to a target on-screen size, so their size in
+SHEET units is a function of the viewport: lq tops out at
+0.058·1000/(1.65·24) = **1.465**, reached on any window with H/W ≥
+0.58 — VEN's own. Measured in the browser at lq 1.087 and scaled up,
+the widest block is 0.084 of sheet width half-out against a 0.083
+allowance: 0.7% over, a fifth of a grid cell, and the only one that
+touches its edge. **Do not size this off a screenshot of one window** —
+at lq 1.087 a 5-column box looks generous and overflows by a fifth on
+a taller one.
+
+`--debug` now draws that box life-size and asymmetric (one row up,
+four down) instead of the old 2x-margin bar, so "the box is clear"
+means the text is clear. All four verified on the render: palace and
+hamlet on their clearings, complex above the terraces, Jeonju clear of
+the compass rose.
+
+### 3. VEN's red line: the block moved up under the building
+
+*"can you make it so that the name is underneath the image where it is
+marked in red rather than all the way down where it currently is."*
+`CAP_NEAR` 0.006 → **0.02**. At the old weight a slightly quieter
+patch five rows further down beat the paper directly under the
+landmark; now only real ink is worth walking away for. Namsangol's
+block went 0.694 → **0.663**, against a wall bottom at ~0.64.
+
+The frame bound had to learn to **degrade rather than fail**: requiring
+the whole block to finish inside the arrival frame (`FRAME_DN`) left
+Changdeokgung and Jeonju with no candidate at all, because a big
+vignette's own footprint already reaches ~8 rows below its stop — and
+no anchor means falling back to under-the-column, the exact placement
+part 13's red lines rejected. So the search runs bounded first and
+unbounded only if nothing fits. Losing "visible at the instant of
+arrival" is a far smaller loss than losing "under the building".
+
+### 4. Phones do not get the sheet, and that is measured
+
+`want` floors at 34px, so lq on a 390px phone is **2.20** against a
+desktop's 1.09: the block grows to a quarter of the sheet's width — no
+clearing on this map holds that — while its own text falls to about
+**7px**. Both fatal, so under 861px (journey.js's own `narrow`
+breakpoint) the copy comes off the paper into `.jmap__note`, a strip
+under the map, one paragraph per stop.
+
+The strip **cannot ride the writing value**: `wv` saturates at 1 on
+arrival and stays there, which is right for ink on a map and wrong for
+a strip where all four paragraphs share a bottom edge — past the third
+stop you would be reading three notes printed over each other. It is
+driven by distance along the road instead (`|u - k|`, `?notespan=`
+0.50, so exactly one note is ever up), cached so it does not write a
+style per frame.
+
+### What Zico still owes, and it is visible on the page
+
+- **The ticker.** "$XXX" until `CONFIG.token.ticker` is set.
+- **Namsangol's steps.** He gave two headings — "How to access Giwa
+  chain", "How to swap on Giwa chain" — and no steps. Nothing was
+  invented: a guessed bridge or DEX on a token page is the one mistake
+  that costs somebody money. The copy says the steps arrive at launch.
+- **Jeonju.** He left it blank. An empty `copy` renders name and
+  caption only, exactly as before.
+
+### Open
+
+- **Nothing here has been seen in motion.** The Chrome tab stayed
+  `visibilityState: "hidden"` for the whole session (§7's trap —
+  frozen rAF, blank captures), through a fresh tab and a resize. The
+  hero was screenshotted via `?motion=0`, which draws instantly and
+  needs no rAF; the sheet placement was verified on the route debug
+  render and by a DOM geometry audit (every block's real bbox against
+  the cleared footprint, scaled to worst-case lq). **The narrow strip
+  has never been rendered — VEN should look at a phone width.**
+- `?motion=0` shows static mode, which has no map and therefore none
+  of Zico's copy — it still shows the old poetic `blurb`s. Only
+  reachable by typing the parameter (the OS setting is not honoured),
+  so it is a curiosity, not a launch blocker.
+
+---
+
+## 9z. Session 13, part 3 — the uprights got a hand, and the sheet was measured against the prose
+
+Three notes from VEN, and the middle one turned into the session's real
+finding.
+
+### 1. "The straight lines look so uniform but the curved lines look so handwritten"
+
+Exactly right, and the cause was geometric, not the ink filter. A bowed
+stroke shows its own curvature; a single-arc vertical does not, so
+displacement noise on its edge just wobbles a bar of constant width.
+Two changes, and both were needed:
+
+- **Every upright is an S now.** It leans out, settles back and
+  finishes slightly off where it started — 기's ㅣ, 와's ㅏ stem, ㅗ's
+  bar. A hand cannot draw the old path; a ruler cannot draw this one.
+- **PRESSURE (`SWELL_A/B/W`).** Each stroke over 46 units gets a
+  second, wider pass over its middle 20–80%, sampled off the real path
+  with `getPointAtLength` so it follows curves and uprights alike. A
+  brush is heaviest where the hand bears down and lifts at both ends;
+  one constant width reads as a marker pen however rough its edge is.
+  It reveals on the main stroke's progress remapped onto its own span,
+  so the nib is never ahead of its own ink. Latin gets it too.
+- `feTurbulence baseFrequency` 0.9 → 0.55: coarser noise wanders along
+  a long edge instead of fuzzing it.
+
+**`tools/heropng.js` renders the title to a PNG from hero.js's own
+`LETTERS`** — flatten the cubics, stamp a disc along them, which is
+exactly what a round-cap stroke is. Built because Chrome was dead (see
+Open) and worth keeping: letterforms can now be judged without a
+browser, the same way `maproute --debug` judges the sheet.
+
+### 2. THE SHEET CANNOT HOLD A PARAGRAPH. Measured, not decided.
+
+VEN, on Namsangol: *"move the whole block of text to the left so that
+the right side of the text is no longer overlapping with the
+mountains."* There was nowhere to move it to, and finding that out
+took a new tool rather than another guess at weights.
+
+**`maproute --why`** dumps the caption-block search: the eight best
+candidates per stop with every term broken out, the ink profile of the
+band by column, and a cell map of the clearing. Three things fell out
+of it, in order:
+
+1. **Mean ink is the wrong objective for a big box.** The placement
+   VEN circled scored *clear*: over 78 cells, one ridge cell at 0.6
+   against paper at 0.1 moves the mean by 0.006. An average cannot see
+   a line clipping a corner. `PEAK_W` 0.8 now scores the worst cell
+   too — harmless while the footprint was one caption line, essential
+   once it was a paragraph.
+2. **The keep-out around the Korean name was a flat 7x6** and it was
+   what actually pinned the block: it forbade everything within 7
+   columns of the name, so the block sat against that wall with
+   mountains on its other side. The name is a narrow column (measured
+   1.14 cells half-width, ±4.15 rows at the largest label scale) and a
+   block hanging BELOW its foot does not collide with it at all. Now
+   the two clear each other sideways **or** vertically.
+3. **The arrival-frame bound was a wall and had to be a cost.** At
+   Namsangol the clearing is pinched at the top and opens lower down —
+   ten clean columns at row 86, eighteen at row 88 — and the bound
+   barred every row below `gy0 + FRAME_DN`. `FRAME_W` 0.05/row lets
+   the search buy clean paper two rows lower; that is ~70px, inside
+   the frame on anything taller than the 1600x689 reference.
+
+And then the arithmetic, which no amount of that could fix: **the
+widest box of clean paper under Namsangol's village is SEVEN COLUMNS**
+of the 72-column grid, 0.097 of the sheet's width. A caption plus four
+lines of copy needs **12 to 15**. No position fixes it, no
+line-breaking fixes it, and shrinking the type to fit puts it under
+10px on VEN's own window — trading an overlap for something nobody can
+read. What *does* fit is the caption alone: one line is three rows
+tall instead of six, and a three-row box has twelve clean columns
+there.
+
+The prose left the sheet for about an hour on the strength of that,
+and **VEN sent it straight back**: *"make it so that the text is back
+on the page underneath the name of each location please. I liked how
+it was before."* Right call, and part 4 below is how it was made to
+work. `COPY_MODE` keeps both: `sheet` is the default, `?copy=strip`
+is the note under the map, and phones get the strip whatever the
+switch says (the sheet block is sized off the label scale, which
+floors at 34px — at 390px wide the block is a quarter of the sheet
+across and its own text falls to ~7px).
+
+### 4. The wash was built and thrown away. Fix the collision instead.
+
+A bloom of damp paper was put under each block — paper-coloured, so it
+veiled terrain where the block had to overlap and was invisible where
+it did not — doubling as the *"fade in like watercolours"* VEN asked
+for. He rejected it on sight: *"remove the watercolour effect, I dont
+like it."* It is deleted, not switched off, because everything it was
+covering for is now fixed at the source. What survives of the
+animation is the line-by-line fade: the copy comes up one line at a
+time, each a beat behind the one above, finishing with the seal.
+
+**Three placement faults came out of doing it properly**, and two were
+real bugs of the same kind — a rule written about an anchor when it
+should have been about a box:
+
+1. **PEAK saturates in a tight clearing.** Every 13x6 candidate around
+   Namsangol scores the same 0.82, so that term decided nothing and
+   `CAP_NEAR`/`FRAME_W` were choosing on closeness alone — parking the
+   block in the PINCHED top of the clearing instead of two rows lower
+   where the paper is cleaner. `MEAN_W` 4.5 makes a third less ink
+   beat two rows of distance.
+2. **THE ROAD IS NOT ON THE SHEET.** js/journey.js draws it over the
+   top from the very seam this file emits, so the ink field cannot see
+   it and the block search walked straight through the footpath —
+   VEN, on Changdeokgung: *"move this text to the left a bit so it
+   isnt in the footpath."* The NAME search has had a road exclusion
+   since the labels were first placed; the block never did. It counts
+   as ink now (`ROAD_INK` 0.45, a moderate ridge, over `ROAD_HALF`
+   1.6 cells either side).
+   **Scoring it as a separate penalty first was wrong and instructive:**
+   on its own scale it simply won every time, which shoved stop 1 off
+   the corridor and *deeper* into the mountains — the opposite of what
+   was asked. Folding it into the field it competes with is what made
+   it behave.
+3. **The block's EDGES must be inside the arrival frame**, not its
+   anchor — the same mistake as the vertical bound, found the same
+   way. A window sees 0.606 of the sheet's width at the settle zoom,
+   so ±21.8 columns (`FRAME_X`); bounding the centre alone let stop
+   1's block hang its last columns off the right of the screen at the
+   moment it is meant to be read.
+
+Result: Changdeokgung 0.465 → **0.438** (off the footpath), Namsangol
+0.451 → **0.438** (VEN had already called it fine; this is one column,
+inside the grid's own resolution), Jeonju 0.354 → 0.396.
+
+### 5. THE GRID CAN BE WRONG AND THE EYE RIGHT. Draw the box.
+
+VEN asked **three times** for Gyeongbokgung's block to move left off
+the mountains. Three different metrics said it was already optimal —
+local stdev; then dark-pixel fraction (`DARK_T`, added precisely
+because stdev fires on mist and pale wash, which is a real improvement
+and the reason stops 2-4 landed well); then both with the road folded
+in. He was right every time.
+
+**What finally settled it was drawing the block's real text footprint
+onto the sheet at native resolution and looking.** At 0.549 the ridge
+line runs through the box's right third — exactly what he circled. At
+0.514 the box is on clean paper with the ridge just outside it. One
+glance, no argument. `tools/mapbox.js` does that, and it is now the
+authority whenever the grid and the eye disagree.
+
+Why the grid cannot see it, as far as it was chased: at 72 columns a
+cell is 25px, and a thin dark ridge line barely moves any statistic
+over 625 pixels, while the mist and hatching to the west move it a lot
+without ever crossing the words. **Cell statistics are coarser than
+the question.** Three rounds of weight-tuning could not fix that and
+should not have been attempted for as long as they were — the render
+was available the whole time.
+
+So `BLOCK_X` in tools/maproute.js carries one reviewed override,
+stop 1 only, documented at its definition with the evidence and with
+instructions to clear it on an art re-roll. It lives in the TOOL, not
+in the pasted array, so a re-run reproduces it instead of silently
+losing it — and it prints a line when it fires, so it can never apply
+unnoticed.
+
+Verified by render for all three blocks that carry copy: stop 1 under
+the palace on clean paper, stop 2 below the complex clear of the
+footpath and the terraces, stop 3 below-left of the village clear of
+both.
+
+### 6. Every em dash is off the page
+
+VEN: *"remove all of these characters — in the whole website and
+replace them with other appropriate punctuation, if even necessary."*
+Done per sentence, not by find-and-replace: colons where a list
+follows, full stops where two clauses were joined, commas where the
+aside was parenthetical. `<title>` uses the site's own middot (and
+`js/main.js`'s title rewrite had to follow — it matched on the dash).
+The three stat placeholders were em dashes too and now read "at
+launch", matching the market-cap slot beside them.
+
+**Code comments keep theirs.** "The whole website" is the page; a
+mechanical sweep of every comment in the repo would have buried the
+real change in thousands of lines of noise. Audited on the BUILD, with
+tags and comments stripped: zero em dashes in visible copy, zero in any
+string the JS writes to the page.
+
+### Open
+
+- **Nothing in this pass was seen in a browser at all.** Chrome first
+  went `visibilityState: "hidden"` (§7's trap), then the extension lost
+  its localhost host permission, then the renderer stopped answering
+  CDP entirely; after a reload it managed exactly one draw before
+  freezing again. The hero was judged on `heropng.js`, the sheet on the
+  route debug render, the em dashes on a text audit of `dist/`, and the
+  copy's wiring on a DOM check (eleven lines, opacities being written
+  per line). VEN is running the site himself on :8137 and marking up
+  screenshots, which is the only reason any of this pass could be
+  judged at all. **What nobody has seen is the line-by-line fade in
+  motion, or the note strip at phone width.** The extension may need
+  its localhost permission re-granted.
+- `BLOCK_X` in tools/maproute.js holds one reviewed override (stop 1).
+  It is the only hand-set number the map's wiring contains. Clear it
+  and re-check by render on any art re-roll.
 
 ---
 

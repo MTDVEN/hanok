@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HANOK — an ink-drawn village on Solana</title>
-<meta name="description" content="An ink-drawn journey through the old country. A village raised one roof at a time, on Solana.">
-<meta property="og:title" content="HANOK">
-<meta property="og:description" content="An ink-drawn journey through the old country.">
+<title>기와 GIWA · one tile at a time</title>
+<meta name="description" content="One tile at a time. Community-owned. Fair launch. Forever. 기와 (GIWA) on the Giwa chain.">
+<meta property="og:title" content="기와 · GIWA">
+<meta property="og:description" content="One tile at a time. Community-owned. Fair launch. Forever.">
 <meta property="og:type" content="website">
 <!-- At deploy: make og:image an ABSOLUTE url (X requires it) and add og:url.
      og.png should be a 1200x630 raster of the hero. -->
@@ -85,19 +85,23 @@ document.documentElement.classList.add("js");
        the top of the body — there is no hero-local backdrop. -->
 
   <div class="hero__inner">
-    <p class="hero__eyebrow"><span lang="ko">한옥</span> · the old houses</p>
+    <p class="hero__eyebrow" id="heroRoman">GIWA · roof tiles</p>
 
-    <div class="hero__title" id="heroTitle" role="img" aria-label="HANOK">
-      <span class="hero__title-fallback">HANOK</span>
+    <!-- The title is WRITTEN, stroke by stroke, from CONFIG.token.ko —
+         js/hero.js owns both the strokes and the aria-label. The
+         fallback below is what a no-JS visitor sees. -->
+    <div class="hero__title" id="heroTitle" role="img" aria-label="기와 (GIWA)">
+      <span class="hero__title-fallback" lang="ko">기와</span>
     </div>
 
+    <p class="hero__ticker reveal" id="heroTicker">$XXX</p>
+
     <p class="hero__tagline reveal" id="heroTagline">
-      An ink-drawn journey through the old country.<br>
-      A village raised one roof at a time.
+      One tile at a time. Community-owned. Fair launch. Forever.
     </p>
 
     <div class="hero__actions reveal" id="heroActions">
-      <a class="btn" id="btnBuy" href="#" rel="noopener">Buy on launch</a>
+      <a class="btn" id="btnDex" href="#" rel="noopener">DEX Screener</a>
       <a class="btn btn--quiet" id="btnX" href="#" rel="noopener">Follow on X</a>
     </div>
   </div>
@@ -148,10 +152,11 @@ document.documentElement.classList.add("js");
   <div class="manifesto__inner reveal">
     <p class="manifesto__ko" lang="ko" aria-hidden="true">먹과 종이</p>
     <p class="manifesto__text">
-      Long before charts, fortunes were written with a brush.
-      This one is drawn the same way — ink on old paper, a road through
-      the old country, and a village at the end of it that grows with
-      every hand that holds.
+      Long before charts, roofs were raised one tile at a time.
+      <span class="js-ticker">$XXX</span> is laid the same way: fired clay from the
+      old kilns, a winding path through the hanok valleys, and a house
+      at the end of the road that grows taller and stronger with every
+      hand that holds its share on Giwa.
     </p>
     <div class="manifesto__seal" aria-hidden="true"></div>
   </div>
@@ -166,7 +171,7 @@ document.documentElement.classList.add("js");
   <div class="section-head reveal">
     <p class="eyebrow"><span lang="ko">장부</span> · the ledger</p>
     <h2>Written in candlelight</h2>
-    <p class="section-note" id="ledgerNote">A preview, drawn in ink — the real ledger begins at launch.</p>
+    <p class="section-note" id="ledgerNote">A preview, drawn in ink. The real ledger begins at launch.</p>
   </div>
   <figure class="ledger__frame reveal">
     <svg id="ledgerChart" viewBox="0 0 840 400" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Candlestick price chart"></svg>
@@ -191,15 +196,15 @@ document.documentElement.classList.add("js");
   <div class="village__stats reveal" role="group" aria-label="Village statistics">
     <div class="stat">
       <span class="stat__label">market cap</span>
-      <span class="stat__value" id="statMc">—</span>
+      <span class="stat__value" id="statMc">at launch</span>
     </div>
     <div class="stat">
       <span class="stat__label">roofs raised</span>
-      <span class="stat__value" id="statRoofs">—</span>
+      <span class="stat__value" id="statRoofs">at launch</span>
     </div>
     <div class="stat">
       <span class="stat__label">villager tally</span>
-      <span class="stat__value" id="statHolders">—</span>
+      <span class="stat__value" id="statHolders">at launch</span>
     </div>
   </div>
 
@@ -220,7 +225,7 @@ document.documentElement.classList.add("js");
 <!-- ================================================================ -->
 <footer class="footer">
   <div class="footer__seal" aria-hidden="true"></div>
-  <p class="footer__word" lang="ko">한옥</p>
+  <p class="footer__word" lang="ko">기와</p>
   <nav class="footer__links" aria-label="Links">
     <a id="footX" href="#" rel="noopener">X</a>
     <a id="footDex" href="#" rel="noopener">Dexscreener</a>

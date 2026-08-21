@@ -1257,15 +1257,15 @@
         elNext = document.getElementById("villageNext");
     if (elMc)    elMc.textContent = mc > 0 ? fmtMoney(mc) : "at launch";
     if (elRoofs) elRoofs.textContent = String(count);
-    if (elHold)  elHold.textContent = holders > 0 ? holders.toLocaleString("en-US") : "—";
+    if (elHold)  elHold.textContent = holders > 0 ? holders.toLocaleString("en-US") : "at launch";
     if (elNext){
       if (count >= maxRoofs){
-        elNext.textContent = "The field is full — the village endures.";
+        elNext.textContent = "The field is full. The village endures.";
       } else {
         var toward = mc - count * perRoof,
             pct = Math.min(99, Math.floor(100 * toward / perRoof)),
             at = fmtMoney((count + 1) * perRoof);
-        elNext.textContent = "Next roof rises at " + at + " — " + pct + "% of the way there.";
+        elNext.textContent = "Next roof rises at " + at + ", " + pct + "% of the way there.";
       }
     }
   }

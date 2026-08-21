@@ -8,6 +8,27 @@
 
   var CFG = window.HANOK_CONFIG || {};
 
+  /* ---- the ticker ------------------------------------------------
+     Written into the hero, the manifesto and the <title> from one
+     place, so launch day is a single edit in js/config.js. Until Zico
+     names it, every slot keeps the "$XXX" already in the markup — the
+     same read-as-unfinished placeholder as the CA pill's "coming at
+     launch", and deliberately not a guess at the real ticker. */
+
+  var TOKEN = CFG.token || {};
+  if (TOKEN.ticker){
+    var tick = "$" + String(TOKEN.ticker).replace(/^\$/, "");
+    Array.prototype.forEach.call(
+      document.querySelectorAll("#heroTicker, .js-ticker"),
+      function(el){ el.textContent = tick; }
+    );
+    /* The separator is a middot, not an em dash: VEN, 2026-08-21, asked
+       for every em dash to leave the page. Keep this in step with the
+       <title> in index.html or the replace silently matches nothing. */
+    document.title = document.title.replace(/^[^·]*·/,
+      (TOKEN.ko ? TOKEN.ko + " " : "") + tick + " ·");
+  }
+
   /* ---- scroll reveals (hero reveals are timed by hero.js) ------- */
 
   var toReveal = Array.prototype.filter.call(
@@ -113,6 +134,11 @@
     }
   }
 
+  /* Zico's call, 2026-08-21: the hero's primary button is DEX Screener,
+     not a buy link — so it reads links.dexscreener, the same url the
+     footer uses. `links.buy` is still honoured if a #btnBuy is ever
+     put back. */
+  wire("btnDex", links.dexscreener, false);
   wire("btnBuy", links.buy, false);
   wire("btnX", links.x, false);
   wire("footX", links.x, true);
