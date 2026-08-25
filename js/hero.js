@@ -220,11 +220,17 @@
   /* seal, stamped after the writing (sealX is set with the viewBox) */
   var seal = el("g", { opacity: "0", transform: "translate(" + sealX + " 108)" }, svg);
   el("rect", { x: "-17", y: "-17", width: "34", height: "34", rx: "6", fill: "#8E4A38" }, seal);
+  // One source for the glyph: CONFIG.token.seal, resolved (and
+  // `?seal=`-overridden) in js/config.js so the stamp here, the map
+  // markers and the CSS seals cannot drift apart.
+  var sealG = TOKEN.seal || "韓",
+      sealQ = TOKEN.sealScale || 1;
   var sealText = el("text", {
-    x: "0", y: "9", "text-anchor": "middle",
-    "font-family": "'Song Myung', serif", "font-size": "22", fill: "#EBDDB9"
+    x: "0", y: String(9 * sealQ), "text-anchor": "middle",
+    "font-family": "'Song Myung', serif",
+    "font-size": String(22 * sealQ), fill: "#EBDDB9"
   }, seal);
-  sealText.textContent = "韓";   // same glyph as the CSS seals + favicon
+  sealText.textContent = sealG;
 
   /* reveal helpers ---------------------------------------------- */
 
