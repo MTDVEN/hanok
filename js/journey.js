@@ -29,6 +29,11 @@
   /* ---- stand-in ink drawings ------------------------------------ */
 
   var INK = "#211B11", PINE = "#5C6648", PAPER = "#EBDDB9", SEAL = "#8E4A38";
+  /* the dojang's GLYPH, as opposed to SEAL above which is its colour.
+     One source for all three consumers — see the note in js/config.js. */
+  var SEAL_TOKEN = (window.HANOK_CONFIG || {}).token || {},
+      SEAL_G = SEAL_TOKEN.seal || "韓",
+      SEAL_Q = SEAL_TOKEN.sealScale || 1;
 
   /* Declared up here, not down in the road block where it used to live:
      map mode builds SVG too, and it runs BEFORE that line. `var` hoists
@@ -119,24 +124,43 @@
      ~52 characters — the block's footprint is what maproute searches
      blank paper for, and a longer line is a line over a mountain.
 
-     THE CONTENT IS ZICO'S, 2026-08-21, and it is what the journey is
-     actually for now: the palace says what Giwa is, the complex says
-     what the project intends, the village says how to get on-chain.
+     THE CONTENT IS ZICO'S, 2026-08-21, revised 2026-08-25 against the
+     brief VEN forwarded (Upbit's own framing of the chain). Four
+     stops, four beats: the palace says what Giwa IS, the complex says
+     what the project intends, the village says how to get on-chain,
+     and Jeonju says what the tile MEANS.
 
-     Two gaps, both his to fill and neither invented here:
-       - Namsangol's steps. He gave the two headings ("How to access
-         Giwa chain", "How to swap on Giwa chain") and no steps, and a
-         guessed bridge or DEX on a token page is the one mistake that
-         costs somebody money. It says so instead.
-       - Jeonju. He left it blank. An empty `copy` renders name and
-         caption only, exactly as before. */
+     What the 2026-08-25 brief added, and where each line of it went:
+       - "Giwa chain is launched by Upbit cex. They have 75% of market
+         share in korea."  ->  stop 1. Written as "about three
+         quarters", not "75%": it is a share that moves, the page has
+         no date on it, and a round claim that ages badly on a token
+         site is worth less than an accurate one that does not.
+       - "Giwa directly translates to Tile"  ->  stop 1, kept.
+       - "Small tiles interlocking to form a strong protective
+         roof/foundation" + "relates to korean culture and history"
+         ->  stop 4, which had been blank. It is the metaphor's
+         payoff, so it belongs at the END of the road rather than
+         doubled up with the Upbit facts at the start — and Jeonju,
+         eight hundred roofs in one valley, is the place on this map
+         that argues it without needing to say so.
+       - "Tiles are also the pfp, logo and brand" is the one line NOT
+         written in. It is a fact about the chain's marketing, not
+         about the token, and on the sheet it would read as a brand
+         guideline rather than as a note in the margin of a map.
+
+     One gap remains, Zico's to fill and not invented here: Namsangol's
+     steps. He gave the two headings ("How to access Giwa chain", "How
+     to swap on Giwa chain") and no steps, and a guessed bridge or DEX
+     on a token page is the one mistake that costs somebody money. It
+     says so instead. */
   var SPOTS = [
     { d0: 1150, s: -1, name: "Gyeongbokgung Palace",   ko: "경복궁",  img: "art/gyeongbokgung.png", art: gate(),
       blurb: "The palace of shining happiness. Six centuries of court and quiet, burned and raised again, still facing the mountain it was built to answer.",
-      copy: ["An L2 from Upbit, Korea's largest exchange.",
-             "기와 means roof tile. The chain's own mark is",
-             "two of them: small pieces locking together",
-             "into one strong roof."] },
+      copy: ["An L2 from Upbit, the exchange that carries",
+             "about three quarters of all crypto traded",
+             "in Korea. 기와 means roof tile, and the chain",
+             "takes both its name and its mark from one."] },
     { d0: 1900, s:  1, name: "Changdeokgung Palace",   ko: "창덕궁",  img: "art/changdeokgung.png", art: hall(),
       blurb: "Built to follow the land rather than flatten it. Its rear garden was kept for the king alone, and the trees there are older than the hands that planted them.",
       copy: ["More than a meme. Partnerships with local and",
@@ -150,7 +174,10 @@
              "here at launch."] },
     { d0: 3500, s:  1, name: "Jeonju Hanok Village",   ko: "전주",    img: "art/jeonju.png",        art: village(),
       blurb: "Eight hundred roofs held in one valley: the largest hanok village left, and the only one where someone still lives behind every door.",
-      copy: [] }
+      copy: ["Eight hundred roofs, and not one tile among",
+             "them holds alone. Small pieces interlock",
+             "into a roof that shelters the whole street.",
+             "Korea has built that way for six centuries."] }
   ];
 
   /* The paintings are square 1:1, so the panel box is square too and
@@ -911,6 +938,41 @@
   /* character size in map units; the on-screen size is set per
      viewport in measure(), this is just the authoring scale */
   var LSIZE = qs("lsize", 24);
+  /* CEILING ON THE LABEL SCALE, and it is not a taste knob — it is the
+     contract between this file and tools/maproute.js.
+
+     Every anchor on the sheet is a patch of blank paper that the tool
+     SEARCHED, and it sized that search for the largest scale a desktop
+     ever reaches: lq 1.465 (the arithmetic is in the block above CAP_W
+     in tools/maproute.js). A phone does not obey that number. `want`
+     floors at 34px, so on a 390px screen lq comes out at 2.24 — half
+     again as wide and tall as the paper that was cleared for it, and
+     the name written over the ridge behind Gyeongbokgung in VEN's
+     2026-08-25 screenshot is that 53% and nothing else. No anchor can
+     be re-searched out of it, because the sheet is not being drawn at
+     the size the search was run for.
+
+     So the scale stops near where the clearing stops. The ROOF of a
+     knob, not a floor — every wider screen is already under it and is
+     untouched, so this only ever changes phones. `?lqmax=9` is the
+     old uncapped behaviour exactly.
+
+     1.8, NOT 1.465, AND THE 0.335 IS VEN'S CALL, made on 2026-08-25
+     with the measurement in front of him. 1.465 is the scale the
+     anchors were CLEARED for and is the defensible number; 1.8 is
+     ~28px on a phone against 1.465's ~23px, and what it costs is
+     measured rather than guessed — dark ink inside the name's own
+     glyph box goes 5.6% -> 7.1% at Gyeongbokgung, 1.1% -> 2.4% at
+     Namsangol, 0.3% -> 1.9% at Changdeokgung, and 0.0% -> 0.0% at
+     Jeonju. He looked at both and picked the larger: *"this one looks
+     good. ?lqmax=1.8"*. The full table is in HANDOFF §9aa.8.
+
+     THIS ONLY MOVES THE KOREAN NAME. Under 861px the English caption
+     and Zico's copy are off the sheet entirely (they are in the band
+     — see .jmap__note in css/site.css), so nothing else on the sheet
+     is drawn past the paper that was searched for it. On a desktop
+     lq is ~1.09 and every cap here is inert. */
+  var LQ_MAX = qs("lqmax", 1.8);
   /* share of the road's total length over which a name writes — the
      window ENDS at the stop, so the last character lands exactly as
      the seal stamps */
@@ -1015,6 +1077,25 @@
     var wrap = document.createElement("div");
     wrap.className = "jmap";
     wrap.innerHTML =
+      /* THE CAMERA'S VIEWPORT, which is NOT the whole section.
+
+         It used to be — .jmap was the frame and the note below the
+         map was an absolutely-positioned wash floating on top of
+         whatever terrain happened to be under it. VEN, 2026-08-25,
+         with three red circles drawn on a phone screenshot: the copy
+         may not sit over the mountains, the terraced fields or the
+         buildings. On a phone it cannot avoid them by moving, because
+         the sheet covers the screen edge to edge — the only place
+         with no ink on it is a place the map does not reach. So the
+         map now STOPS above the note and the note owns real paper.
+
+         Everything the camera moves lives in here and is clipped by
+         it; measure() sizes the camera off THIS box, not the sticky,
+         so the zoom floor, the edge clamp and the focus point are all
+         computed against the frame the visitor actually sees. On wide
+         screens the note is display:none, the view is the full sticky
+         and every number is exactly what it was. */
+      '<div class="jmap__view">' +
       '<div class="jmap__cam">' +
         '<img class="jmap__sheet" src="' + sheet.img + '" alt="" decoding="async">' +
         '<svg class="jmap__ink" viewBox="0 0 ' + MW + " " + MH.toFixed(1) +
@@ -1035,6 +1116,7 @@
       /* the vistas — the four paintings, screen-pinned so they never
          scale with the camera, one visible at a time on arrival */
       (VISTA ? '<div class="jmap__vistas"></div>' : "") +
+      "</div>" +   /* /.jmap__view */
       /* the eyebrow is the one piece of chrome left: section identity,
          pinned to the corner, outside the camera */
       '<p class="eyebrow jmap__eyebrow"><span lang="ko">여정</span> · the journey</p>' +
@@ -1053,12 +1135,20 @@
          strip under the map, one <p> per stop, cross-faded by the
          same value that fades the SVG copy. Both are built once and
          only their opacity is touched, so the draw loop stays
-         attributes-only. CSS picks which one is on. */
+         attributes-only. CSS picks which one is on.
+
+         SINCE 2026-08-25 THE STRIP IS NOT AN OVERLAY. It is a band in
+         the flow at the bottom of .jmap, on the page's own parchment,
+         and .jmap__view gives up exactly its height — so there is no
+         terrain behind these words at all, at any scroll position.
+         The wash-over-mountains version is what VEN's red circles
+         were drawn on; see the note at .jmap__view above. */
       '<div class="jmap__note" aria-hidden="true"></div>' +
       (INFO ? '<div class="jmap__cards"><div class="jmap__stops"></div></div>' : "");
     sticky.appendChild(wrap);
 
-    var cam    = wrap.querySelector(".jmap__cam"),
+    var view   = wrap.querySelector(".jmap__view"),
+        cam    = wrap.querySelector(".jmap__cam"),
         inked  = wrap.querySelector(".jmap__inked"),
         walker = wrap.querySelector(".jmap__walker"),
         marks  = wrap.querySelector(".jmap__marks"),
@@ -1093,6 +1183,16 @@
       return m ? m[1].toLowerCase() : "sheet";
     })();
     if (COPY_MODE === "strip") wrap.classList.add("jmap--strip");
+    /* `?copy=sheet` GIVEN EXPLICITLY beats the phone breakpoint as well,
+       so the sheet placement can be LOOKED AT on a phone instead of
+       argued about. It is not survivable there — the block goes a
+       quarter of the sheet wide while its own text falls to about 7px,
+       and the arithmetic is in the note above — but a knob that
+       silently does nothing on the one device where the question is
+       live is worse than one that shows you the answer. Absent the
+       parameter the breakpoint rules, as it must. */
+    if (COPY_MODE === "sheet" && /[?&]copy=/.test(location.search))
+      wrap.classList.add("jmap--onsheet");
 
     /* The note under the map, one paragraph per stop, built once. It is
        built in BOTH modes and CSS decides which is on: phones get it
@@ -1223,9 +1323,10 @@
 
       /* X marks the spot until you get there, then the seal stamps
          over it — the map convention and the site's own dojang in one
-         move, and the same stamp the hero title ends on. 韓 is the
-         seal glyph everywhere (§4) and a marker IS a stamp, so this is
-         the one place seal red is allowed outside the hero/footer. */
+         move, and the same stamp the hero title ends on. The glyph is
+         CONFIG.token.seal, resolved once in js/config.js (§4), and a
+         marker IS a stamp, so this is the one place seal red is
+         allowed outside the hero/footer. */
       var g = document.createElementNS(NS, "g");
       g.setAttribute("class", "jmap__mark");
       g.setAttribute("transform", "translate(" + (s[0] * MW).toFixed(1) +
@@ -1234,7 +1335,8 @@
         '<g class="jmap__x"><path d="M-11 -11 L11 11"/><path d="M11 -11 L-11 11"/></g>' +
         '<g class="jmap__seal">' +
           '<rect x="-15" y="-15" width="30" height="30" rx="5"/>' +
-          '<text x="0" y="8">韓</text>' +
+          '<text x="0" y="' + (8 * SEAL_Q).toFixed(1) + '">' +
+            esc(SEAL_G) + "</text>" +
         "</g>";
       marks.appendChild(g);
 
@@ -1492,7 +1594,32 @@
         zPan = ZOOM_PAN, zFit = 1, fx = FOCUS_X, fy = FOCUS_Y;
 
     function measure(){
-      W = sticky.clientWidth; H = sticky.clientHeight;
+      /* THE BAND'S HEIGHT IS PUBLISHED FIRST, and the order is
+         load-bearing. .jmap__view's bottom inset IS --jnote-h, so the
+         view cannot be measured until the band has been. The band is
+         absolutely positioned and sized by its own text, so nothing
+         about it depends on the view and there is no circularity —
+         one write, one forced layout, then every read below is of the
+         settled box.
+
+         It also reaches the CA pill and the preview bar, both of which
+         are fixed to the WINDOW rather than to this section and would
+         otherwise print themselves over the last line of the copy
+         (VEN's screenshot, 2026-08-25). See .ca-float in css/site.css.
+         Done in measure() because this is the one place in the file
+         already allowed to touch layout, and it only changes with the
+         viewport. */
+      document.documentElement.style.setProperty(
+        "--jnote-h", noteHost.offsetHeight + "px");
+
+      /* THE VIEW, NOT THE STICKY. On a phone the note band takes the
+         bottom of the section, and every number below is about the
+         frame the camera actually fills: `cover` must floor the zoom
+         against the SHORTER box or bare paper shows above the band,
+         the edge clamp must clamp to it, and FOCUS_Y must centre in
+         it. On wide screens the band is display:none, --jnote-h is
+         0px and view == sticky to the pixel. */
+      W = view.clientWidth; H = view.clientHeight;
       /* A tab that has never been painted (opened in the background —
          browsers defer layout) measures 0x0. Everything downstream of
          a zero here is poison with no error to see: camH 0 makes
@@ -1535,7 +1662,7 @@
          group transform), so the writing scales with the writing. */
       var unit = W * zIn / 1000;
       var want = Math.max(34, Math.min(0.10 * H, 0.058 * W));
-      var lq = want / (unit * LSIZE);
+      var lq = Math.min(LQ_MAX, want / (unit * LSIZE));
       labels.forEach(function(lb){
         var tx = lb.ax != null ? lb.ax : lb.sx + lb.side * (23 + lq * lb.hw),
             ty = lb.ay != null ? lb.ay : lb.sy;
@@ -1607,6 +1734,10 @@
         var heroOp = (1 - entry).toFixed(3);
         if (heroInner) heroInner.style.opacity = heroOp;
         if (heroCue)   heroCue.style.opacity = heroOp;
+        /* the bottom-fixed chrome steps over the note band only while
+           the band is actually standing — see --jnote-h in measure() */
+        document.documentElement.classList.toggle(
+          "has-jnote", entry > 0.5 && exit < 0.5);
       }
 
       var z = CAM === "follow" ? zoomOf(u)

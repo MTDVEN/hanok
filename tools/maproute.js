@@ -591,6 +591,37 @@ var PEAK_W = 0.8;
    — see the note at the check. */
 var NAME_HW = 1.4, NAME_HH = 4.4;
 
+/* WHY THE NAME SEARCH IS STILL ON `nd` AND NOT ON `dark` — 2026-08-25.
+
+   The obvious follow-up to the block search's move off local variance
+   (see DARK_T) is to move the NAME search too: same field, same
+   MEAN_W/PEAK_W pair, footprint grown from ±1x±3 cells to the box's
+   real ±1x±4 at lq 1.465, road folded into the ink. It was built and
+   measured and it is NOT an improvement, so it is not here.
+
+   Dark fraction inside each name's own glyph box at lq 1.465, before
+   and after, on the shipped sheet:
+
+       Gyeongbokgung  5.57%  ->  5.57%   (same cell chosen)
+       Changdeokgung  0.33%  ->  1.08%   (WORSE)
+       Namsangol      1.14%  ->  1.14%
+       Jeonju         0.00%  ->  0.00%
+
+   Three stops are unmoved because within the search's window there is
+   no better cell to find — the anchors were already the best the
+   clearings hold. Changdeokgung goes backwards because the taller
+   footprint touches the palace component, which is a hard skip, so the
+   name is pushed off the pocket it had. Tuning the distance weight
+   only trades that for worse: at 0.02 Gyeongbokgung's name walks 20
+   columns off its palace, at 0.20 it climbs onto the ridge.
+
+   The lesson is about the SHEET, not the metric. The pocket beside
+   Gyeongbokgung is narrower than the name drawn at 1.465, so no
+   scoring function can put it on clean paper there — only a bigger
+   clearing in the art can. Do not re-derive this; measure first, and
+   the harness for it is scratchpad-sized (grow the real glyph box
+   about the anchor, count pixels under DARK_T). */
+
   function labelSpot(gy0, rx0){
     /* The landmark itself, as a FLOOD-FILLED component, not a
        thresholded bounding box. image2image regenerates the whole
@@ -633,7 +664,11 @@ var NAME_HW = 1.4, NAME_HH = 4.4;
        wants the names. A footprint may not touch the landmark at all
        (hard skip — a caption beside a building, never on it); among
        the rest, terrain ink plus DIST_W per cell of distance from the
-       component decides. */
+       component decides.
+
+       On why this is scored on `nd` while the block below is scored on
+       `dark`, and why the obvious unification was tried and dropped,
+       see the long note above NAME_HW. */
     var best = Infinity, bx = rx0, by = gy0, dy, dx;
     for (cy = Math.max(6, gy0 - 4); cy <= Math.min(ROWS - 7, gy0 + 4); cy++){
       var rxc = Math.round(road[cy]);

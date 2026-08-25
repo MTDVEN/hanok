@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HANOK — seal glyph comparison</title>
+<!-- Dev-only. Draws the dojang at its three real sizes for each
+     candidate glyph, in the site's own face and colours, so the choice
+     can be made by looking instead of by description. The winner goes
+     into CONFIG.token.seal (js/config.js) AND the favicon data-URI in
+     index.html. Not part of the site — tools/ never ships. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Song+Myung&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #DFCEA5; --paper-light: #EBDDB9; --ink: #211B11;
+    --ink-soft: #4E4636; --ink-faint: #8A7C61; --seal: #8E4A38;
+    --font-display: "Song Myung", serif;
+  }
+  body{
+    margin: 0; padding: 40px 28px 64px;
+    background: var(--paper); color: var(--ink);
+    font: 15px/1.6 "Gowun Batang", Georgia, serif;
+  }
+  h1{ font-family: var(--font-display); font-weight: 400; font-size: 22px; margin: 0 0 6px; }
+  p.note{ color: var(--ink-soft); margin: 0 0 30px; max-width: 62ch; }
+  table{ border-collapse: collapse; width: 100%; max-width: 940px; }
+  th{
+    font-family: var(--font-display); font-weight: 400; text-align: left;
+    font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--ink-faint); padding: 0 14px 10px 0; border-bottom: 1px solid rgba(138,124,97,.34);
+  }
+  td{ padding: 16px 14px 16px 0; border-bottom: 1px solid rgba(138,124,97,.2); vertical-align: middle; }
+  td.gloss{ color: var(--ink-soft); font-size: 14px; max-width: 30ch; }
+  code{ font: 12px ui-monospace, Consolas, monospace; color: var(--ink-soft); }
+
+  /* the stamp itself, exactly as css/site.css cuts it */
+  .seal{
+    background: var(--seal); color: var(--paper-light);
+    display: grid; place-items: center;
+    font-family: var(--font-display); line-height: 1;
+    box-shadow: 0 0 0 1px rgba(142,74,56,.35), inset 0 0 8px rgba(0,0,0,.18);
+  }
+  .s-hero{ width: 46px; height: 46px; border-radius: 9px 6px 10px 5px; transform: rotate(-3deg); }
+  .s-title{ width: 34px; height: 34px; border-radius: 6px; }
+  .s-mark{ width: 30px; height: 30px; border-radius: 5px; }
+  .row{ display: flex; align-items: center; gap: 22px; }
+</style>
+</head>
+<body>
+<h1>Seal glyph — the dojang at its three real sizes</h1>
+<p class="note">
+  Left to right: the manifesto / footer seal (46px), the stamp after the
+  hero title (34px), and a marker on the journey map (30px). Try any of
+  these live on the site with <code>?seal=&lt;glyph&gt;</code>.
+</p>
+<table id="t">
+  <thead><tr><th>Glyph</th><th>Stamped</th><th>Reads</th></tr></thead>
+  <tbody></tbody>
+</table>
+
+<script>
+var CANDIDATES = [
+  ["瓦",   "wa — hanja for a roof tile. The 와 of 기와, and of 청와대 (靑瓦臺), the Blue House, named for its blue tiles. Exact, but the diagonal leaves the stamp's bottom-left corner empty."],
+  ["韓",   "han — Korea. What the site shipped with, chosen before the token had a name. Dense and balanced, the most conventional seal shape here, and says nothing specific."],
+  ["기와", "The name itself, in hangul. A 한글 도장 is an ordinary object, not a compromise. Two syllables set side by side at 0.62 size."],
+  ["와",   "One syllable of the name, in hangul. Round and open — the least ink of any of these."],
+  ["家",   "ga — house, home, household. Balanced and immediately readable; the hanok idea rather than the tile."],
+  ["屋",   "ok — house, roof. A squarer block than 瓦, and still about the roof."],
+  ["甍",   "maeng — the ridge tile at the top of a roof. Exactly right and almost nobody can read it."],
+  ["土",   "to — earth, clay. What a tile is fired from. Very open, very simple."]
+];
+var tb = document.querySelector("#t tbody");
+CANDIDATES.forEach(function(c){
+  var g = c[0], q = g.length > 1 ? 0.62 : 1;
+  var tr = document.createElement("tr");
+  tr.innerHTML =
+    '<td style="font-family:var(--font-display);font-size:26px">' + g +
+      '<div><code>?seal=' + encodeURIComponent(g) + '</code></div></td>' +
+    '<td><div class="row">' +
+      '<div class="seal s-hero"  style="font-size:' + (24 * q) + 'px">' + g + '</div>' +
+      '<div class="seal s-title" style="font-size:' + (22 * q) + 'px">' + g + '</div>' +
+      '<div class="seal s-mark"  style="font-size:' + (21 * q) + 'px">' + g + '</div>' +
+    '</div></td>' +
+    '<td class="gloss">' + c[1] + '</td>';
+  tb.appendChild(tr);
+});
+</script>
+</body>
+</html>

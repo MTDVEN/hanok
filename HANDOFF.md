@@ -11,8 +11,23 @@ tile, and the name of the Upbit L2 it launches on. The hero writes
 hangul now, the ticker is a live "$XXX" placeholder under it, and the
 journey's four stops carry Zico's actual pitch copy written onto the
 map sheet. **§9y** is that whole pass; `CONFIG.token` is the one place
-to set the name and ticker. Still his to send: the ticker, Namsangol's
-bridge/swap steps, and anything at all for Jeonju.
+to set the name and ticker. Still his to send: the ticker and
+Namsangol's bridge/swap steps. (Jeonju's stop was blank until session
+14, when VEN forwarded Upbit's own framing and it took the tile
+metaphor — **§9aa**.)
+
+**SESSION 14 (2026-08-25), READ FIRST IF YOU TOUCH THE MAP'S LAYOUT.**
+VEN looked at the journey on a phone and the copy was standing on the
+mountains. Three things came out of it and all three are structural:
+**(a)** the narrow-screen note is no longer a wash over the sheet —
+`.jmap__view` gives up its height to a real paper band, and the camera
+is measured off the view rather than the sticky; **(b)** `lq` is
+capped at `LQ_MAX` 1.465, which is the scale `tools/maproute.js`
+actually cleared paper for, and a phone had been drawing labels 53%
+over it; **(c)** *do not put a second `overflow:hidden` around
+`.jmap__cam`* — it hangs the renderer on load, same family as §7's
+blend dropouts. §9aa has the whole record, including which QA harness
+settings lie to you.
 
 **SESSION 13 (2026-08-21), READ FIRST IF YOU TOUCH THE MAP ART.**
 Zico's first client note since launch: Namsangol should look like a
@@ -30,7 +45,8 @@ x 0.63 sent the Namsangol road to x 0.27 and the seal with it, so the
 patch is clipped at `--limit ...,0.598,...`, which is the widest it
 goes. The clearing is now full; bigger is not available.
 
-Last updated: 2026-08-21 (session 12, fourteen parts, all LIVE —
+Last updated: 2026-08-25 (session 14 — the journey's copy on a phone,
+§9aa. Before that: session 12, fourteen parts, all LIVE —
 **THE JOURNEY IS NOW A MAP YOU WALK, deployed at
 https://tilesongiwa.com.** Private repo `github.com/MTDVEN/hanok`,
 branch `main`, push to main deploys.)
@@ -360,7 +376,26 @@ Two materials only — paper and ink — plus one green and one red:
 - `--seal #8E4A38` — **dojang red, used ONLY for actual seal stamps**
   (hero stamp, manifesto seal, footer seal, favicon). A review pass
   already stripped it from text accents once; don't reintroduce it.
-  The seal glyph is **韓 everywhere** (was mixed 한/韓 — unified).
+  The seal glyph is **韓 everywhere** — hanja, read 한, the character
+  for Korea itself (한국 / 韓國, 대한민국 / 大韓民國) and still the
+  one-character stand-in for the country in Korean newspaper
+  headlines. Hanja in seal script is what a 도장 has always been
+  carved in, so it is the right register even though the rest of the
+  page is hangul. **It has ONE source since 2026-08-25**:
+  `CONFIG.token.seal` in js/config.js, which resolves `?seal=`,
+  sanitises it, and hands CSS `--seal-glyph` + `--seal-scale`. Three
+  consumers read it (the hero stamp, the map markers, the
+  `.manifesto__seal`/`.footer__seal` rule); **the favicon data-URI in
+  index.html is the one copy that still has to move by hand.**
+  `tools/seal.html` stamps every candidate at all three real sizes
+  and is how the choice gets made.
+
+  瓦 (roof tile, read `wa` — the 와 of 기와 and of 청와대 / 靑瓦臺)
+  held the slot for one round on 2026-08-25 and was rejected on
+  looks: its diagonal leaves the bottom-left of a square stamp empty,
+  so it reads as falling over at 30px. VEN: *"the roof tile character
+  doesnt look all that aesthetic"*, then *"lets just use han"*.
+  Meaning lost to balance, which is the right trade at marker size.
 
 Fonts (Google Fonts, loaded async non-blocking): **Song Myung**
 (display/headings/labels) + **Gowun Batang** (body). Korean-print
@@ -4384,7 +4419,9 @@ style per frame.
   invented: a guessed bridge or DEX on a token page is the one mistake
   that costs somebody money. The copy says the steps arrive at launch.
 - **Jeonju.** He left it blank. An empty `copy` renders name and
-  caption only, exactly as before.
+  caption only, exactly as before. *(Written in session 14 from the
+  brief VEN forwarded on 2026-08-25 — the interlocking-tiles metaphor
+  and the culture-and-history line. §9aa.)*
 
 ### Open
 
@@ -4396,6 +4433,9 @@ style per frame.
   render and by a DOM geometry audit (every block's real bbox against
   the cleared footprint, scaled to worst-case lq). **The narrow strip
   has never been rendered — VEN should look at a phone width.**
+  *(He did, 2026-08-25. It was wrong in three ways and §9aa is the
+  fix. This bullet is why that section exists — an unrendered layout
+  is an unknown layout, however good the geometry audit was.)*
 - `?motion=0` shows static mode, which has no map and therefore none
   of Zico's copy — it still shows the old poetic `blurb`s. Only
   reachable by typing the parameter (the OS setting is not honoured),
@@ -4601,6 +4641,269 @@ string the JS writes to the page.
 - `BLOCK_X` in tools/maproute.js holds one reviewed override (stop 1).
   It is the only hand-set number the map's wiring contains. Clear it
   and re-check by render on any art re-roll.
+
+---
+
+## 9aa. Session 14 (2026-08-25) — the copy stopped standing on the map
+
+VEN looked at the journey on his phone, which §9z had asked for and
+nobody had done, and drew three red circles on the screenshot: one
+round the ridge east of Gyeongbokgung, one round the terraced fields,
+one round the mountains above Jeonju. *"add the text in the journey
+section and then make sure that it doesnt overlap with any mountains
+in the background or anything in the background and none of the
+images too."*
+
+Two separate things were wrong, and only one of them was about text
+placement.
+
+### 1. The brief grew, and two stops carry the new lines
+
+VEN forwarded what Upbit's own framing says: Giwa is launched by
+Upbit, who hold **75% of the Korean market**; **giwa translates to
+"tile"**; the tiles are the pfp, the logo and the brand; the official
+metaphor is **small tiles interlocking into a strong protective
+roof/foundation**; and it all **relates to Korean culture and
+history**.
+
+Where each line went, and why it went there:
+
+- **Stop 1, Gyeongbokgung — what Giwa IS.** Rewritten to carry Upbit
+  and the market share. It says **"about three quarters"**, not
+  "75%": the share moves, the page carries no date, and a round claim
+  that ages badly on a token site is worth less than an accurate one
+  that does not.
+- **Stop 4, Jeonju — what the tile MEANS.** It had been blank since
+  §9z ("he left it blank"), and the interlocking-tiles metaphor plus
+  the culture-and-history line is exactly what belongs at the END of
+  the road rather than doubled up with the Upbit facts at the start.
+  Jeonju is also the place on this map that argues it without needing
+  to: eight hundred roofs in one valley.
+- **"Tiles are the pfp, logo and brand" was NOT written in.** It is a
+  fact about the chain's marketing, not about the token, and on the
+  sheet it would read as a brand guideline rather than as a note in
+  the margin of a map. Say so if it is asked for; it is a deliberate
+  omission, not an oversight.
+- Stops 2 and 3 are untouched — the charity line and the
+  steps-at-launch placeholder are still Zico's words.
+
+Both new blocks are four lines, which is what `CAP_DN` was sized for,
+so **no anchor needed re-searching**. Verified rather than assumed:
+every label and block bbox was read out of the browser, scaled to the
+worst-case `lq` 1.465, and drawn onto the sheet at native resolution
+(the §9z `tools/mapbox.js` method). Stops 2, 3 and 4 are on clean
+paper at maximum scale; **stop 1's Korean column still grazes the
+ridge outline at 1.465**, which is pre-existing and mild — the name
+search's footprint in `labelSpot` is a little smaller than the box it
+is clearing for. Left alone rather than hand-nudged, because nothing
+on this sheet is hand-placed (§9w).
+
+### 2. The phone: the strip was a wash over the mountains
+
+`.jmap__note` was absolutely positioned over the bottom of the map
+with a translucent parchment gradient behind it. That is a wash over
+whatever terrain happens to be under it — the same thing VEN rejected
+on sight in §9z — and on a phone it always has terrain under it,
+because the sheet covers the screen edge to edge.
+
+**There is no position that fixes this.** At 390px the whole sheet
+width is on screen, so the only clean paper is paper the map does not
+reach. And the copy cannot go back onto the sheet at that width: the
+block would be a quarter of the sheet across while its own text fell
+to about 7px (the arithmetic is in the note above `.jmap__note` in
+js/journey.js and has not changed).
+
+So the map now **stops above the note**:
+
+- `.jmap__view` is new — an absolutely-positioned box inset from the
+  bottom by `--jnote-h`, holding the camera and the tone layer.
+  `measure()` sizes the camera off THIS element instead of the
+  sticky, so `cover`, the edge clamp and `FOCUS_Y` are all computed
+  against the frame the visitor actually sees.
+- `.jmap__note` is a band at the bottom on opaque `--paper` with a
+  hairline over it, the four notes stacked in one grid cell so the
+  band's height is the tallest of them and never reflows mid-scroll.
+- `measure()` publishes `--jnote-h` on `<html>` **before** it reads
+  the view, and the order is load-bearing: the view's bottom inset IS
+  that variable. There is no circularity — the band is absolutely
+  positioned and sized by its own text.
+- On anything over 860px the band is `display:none`, `--jnote-h` is
+  `0px`, and `view === sticky` to the pixel. Desktop is untouched.
+
+**The bottom-fixed chrome had to step over it.** The CA pill and the
+preview bar are fixed to the WINDOW, not to the section, so VEN's
+screenshot had the note's last line reading out from behind "coming
+at lau…". Both now take `bottom: calc(their gap + var(--jnote-h))`
+under an `html.has-jnote` class that `drawMap` toggles with the
+entry/exit fade. The devbar rule lives in js/preview.js so it dies
+with that file.
+
+### 3. A NESTED CLIP HANGS THE RENDERER — new §7-class trap
+
+The first version of `.jmap__view` had `overflow: hidden` on it. That
+is the obvious thing to write and it **froze Chrome outright on
+load** — not slow, unresponsive: CDP `Runtime.evaluate` timed out at
+45s and screenshots could not be injected. Bisected with `git stash`
+to be sure it was the change and not the harness.
+
+`.jmap` already clips the section, and `.jmap__cam` is a 2960×5304
+CSS-px layer with `will-change: transform` that `.jmap` puts an entry
+MASK over. Wrapping that in a second clip was enough to tip it into
+work it cannot do. **The view does not clip, and does not need to:**
+the band below is opaque, so the sheet's overhang is covered anyway.
+
+Same family as the two blend dropouts in §7 and the `mix-blend-mode`
+note on `.jmap__sheet` — **this layer is far too big to be given any
+compositing work that is not strictly needed.** Add nothing to its
+ancestor chain without testing the load.
+
+### 4. The English caption came off the sheet on phones
+
+Its anchor is paper that `maproute` cleared at the largest scale a
+desktop reaches. A phone is not on that scale — `want` floors at 34px
+so `lq` is 2.24 at 390px — so the caption ran across Gyeongbokgung's
+own roof AND off the right edge of the screen, in the same frame. It
+renders at about 9px there in any case, and the band below now prints
+the same name as its heading at a size that can be read. Hidden under
+860px; the Korean name stays, because the written name is the whole
+point of the labels (§9s part 2).
+
+### 5. LQ_MAX — the contract with maproute, finally enforced
+
+Every anchor on the sheet is a searched patch of blank paper, and the
+search was sized for `lq` 1.465 (the arithmetic is above `CAP_W` in
+tools/maproute.js). Nothing enforced that ceiling, so a phone drew
+the labels half again as large as the clearing they were given — and
+**the name written over the ridge in VEN's screenshot is that 53% and
+nothing else.** No re-search can fix it, because the sheet is not
+being drawn at the size the search was run for.
+
+`lq` is now `Math.min(LQ_MAX, …)`. A ROOF, not a floor: every wider
+screen is already under it and is unchanged, so this only ever moves
+phones — and under 861px the caption and the copy are off the sheet,
+so the only thing it moves is the Korean name.
+
+**LQ_MAX ships at 1.8, not at 1.465, and that is VEN's call** made
+with the table in part 8 in front of him: *"this one looks good.
+?lqmax=1.8"*. 1.465 is the scale the anchors were cleared for and is
+the defensible number; 1.8 is ~28px on a phone against ~23px, and the
+ink behind the names goes 5.6% → 7.1% (Gyeongbokgung), 1.1% → 2.4%
+(Namsangol), 0.3% → 1.9% (Changdeokgung), 0.0% → 0.0% (Jeonju).
+Uncapped — which is what shipped before any of this — those numbers
+are 8.7%, 6.9%, 6.5% and 0.6%.
+
+### 6. Knobs added
+
+- **`?lqmax=`** — the label-scale ceiling. `?lqmax=9` is the old
+  behaviour exactly, for judging the trade in the browser.
+- **`?copy=sheet` now beats the phone breakpoint** (class
+  `jmap--onsheet`). It is unreadable there, which is the point: a
+  knob that silently does nothing on the one device where the
+  question is live is worse than one that shows you the answer.
+
+### 7. QA notes for whoever is next
+
+- **`tools/qa-frame.html` at `s=1` is the only reliable phone
+  harness.** Scaled down (`s=0.55`, `s=0.62`) the sheet silently
+  fails to paint — bare parchment with the road and seal drawn on
+  nothing, which reads exactly like a missing-image bug and is not
+  one. Confirmed against a stashed tree. Use `s=1` and scroll the
+  OUTER page to see the bottom of the frame.
+- **`?glide=0` is what makes the journey scriptable.** With the glide
+  on, a `GO(p)` and the reading you take 400ms later are of different
+  frames, and stepping backwards never converges inside a script.
+  `?glide=0` draws synchronously from the scroll position. Do not
+  sweep 30 positions in one loop with it on a phone-sized frame — the
+  redraws are expensive enough to look like another freeze.
+- **`SYNC()` in the harness lies about the notes.** It makes rAF
+  synchronous, and the strip's opacities come back stale (0.001 where
+  they should be 1). Use real waits, or `?glide=0`.
+- On this machine the browser viewport tops out around 1280×495-551
+  and `resize_window` cannot shrink it, which is why the harness
+  exists at all (§7).
+
+### 8. "Can the text be larger?" — measured, and the answer splits
+
+VEN asked. It is two different questions with two different answers,
+because there are two texts.
+
+**The paragraph in the band: yes, freely, and it now is.** It is off
+the sheet, so nothing can be behind it however large it gets — the
+band just takes a few more pixels from `.jmap__view`. It was 12.5px
+on a phone only because it used to be a wash over the map, where
+every extra line was another line over a mountain. That constraint no
+longer exists. Now ~15px (`clamp(.92rem, 3.9vw, 1rem)`), heading
+.8rem, band ~147px on a 390x844 phone.
+
+**The Korean name on the sheet: no, not without ink behind it.**
+Measured by growing each name's real glyph box about its anchor and
+counting pixels under `DARK_T` — dark fraction inside the box:
+
+| lq (phone px) | 경복궁 | 창덕궁 | 남산골 | 전주 |
+|---|---|---|---|---|
+| 1.00 (15px)  | 1.12% | 0.00% | 0.35% | 0.00% |
+| 1.20 (18px)  | 3.34% | 0.00% | 0.86% | 0.00% |
+| **1.465 (23px)** | **5.57%** | **0.33%** | **1.14%** | **0.00%** |
+| 1.80 (28px)  | 7.07% | 1.91% | 2.44% | 0.00% |
+| 2.24 (35px)  | 8.65% | 6.48% | 6.91% | 0.64% |
+
+So the shipped cap is already at or slightly past clean for three of
+the four. Jeonju has real headroom (clean to lq 1.8); Changdeokgung
+has a little; **Gyeongbokgung is on ink at every scale, including
+1.0** — the pocket between the ridge and the palace's ground wash is
+narrower than three stacked characters, full stop.
+
+Two things were tried against that and both are recorded as negative
+results rather than left for someone to re-derive:
+
+- **Moving the name search onto the `dark` field** (the obvious
+  unification with the block search). Not an improvement — the note
+  above `NAME_HW` in tools/maproute.js has the before/after table and
+  why Changdeokgung goes backwards. Reverted.
+- **Laying the names horizontally** (`?vlabel=0`, so the box is wide
+  and short instead of tall and narrow). Inconsistent: it helps
+  Changdeokgung a lot (0.00% clean to lq 1.8) and Gyeongbokgung a
+  little at 1.465, but makes Namsangol worse (1.14% → 3.69%) and
+  Gyeongbokgung worse at any larger size. Not worth abandoning the
+  고지도 vertical convention for.
+
+**What would actually buy bigger names is a bigger clearing in the
+art** — Gyeongbokgung's vignette sits too close to the ridge east of
+it. That is a `tools/mappatch.js` job on the sheet, not a code
+change, and it is the only lever left. `?lqmax=1.8` is one parameter
+away if a few percent of ink behind two of the names is acceptable;
+the table above is what it costs.
+
+### 9. The seal got a single source (and stayed 韓)
+
+VEN asked what the seal reads and whether it could say something
+relevant. It read 韓 — "Han", Korea — chosen back when the site was
+called HANOK and the token had no name.
+
+The answer that survived is **architectural, not typographic**: the
+glyph now comes from `CONFIG.token.seal` in js/config.js instead of
+four hard-coded copies that could drift. config.js is the first
+script on the page, so it resolves `?seal=`, sanitises it (it reaches
+innerHTML in js/journey.js and a URL parameter is anyone's to set —
+angle brackets, quotes and slashes come out, length capped at two),
+and publishes `--seal-glyph` and `--seal-scale` for the CSS seals,
+which cannot read a query string themselves. A two-character seal is
+set side by side at 0.62, which is how a two-character 도장 is cut.
+**The favicon in index.html is still a hand-kept copy** — it is a
+static data-URI in the `<head>` and making it dynamic would cost a
+favicon flash on every load.
+
+The glyph itself went 韓 → 瓦 → 韓 inside one session. 瓦 is exactly
+right by meaning and wrong by shape, and looking settled it in one
+glance: `tools/seal.html` (new, dev-only, never ships) stamps every
+candidate at 46/34/30px on the site's own paper. Keep it — the next
+person to ask this question should look rather than read.
+
+### 10. Still Zico's
+
+Unchanged from §9z except Jeonju, which is now written: **the
+ticker**, and **Namsangol's bridge and swap steps**. Nothing invented
+there, for the same reason as before.
 
 ---
 

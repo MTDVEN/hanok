@@ -211,18 +211,35 @@ a{ color: var(--ink); }
 }
 .manifesto__seal::after,
 .footer__seal::after{
-  content: "韓";
+  /* THE SEAL GLYPH COMES FROM js/config.js, through --seal-glyph.
+     CSS cannot read a query string and this rule has to agree with
+     the hero stamp and the map markers, so config.js resolves it once
+     (including `?seal=`) and hands it over as a custom property. The
+     fallback here is only for a no-JS visitor. `--seal-scale` shrinks
+     a two-character seal, which is how a two-character 도장 is cut.
+
+     The favicon in index.html is a static data-URI and is the one
+     copy that still has to be changed by hand alongside the config. */
+  content: var(--seal-glyph, "韓");
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: calc(24px * var(--seal-scale, 1));
+  letter-spacing: 0;
   color: var(--paper-light);
 }
 
 /* floating CA pill --------------------------------------------- */
 
+/* The pill is fixed to the WINDOW, and on a phone the journey's note
+   band is at the bottom of it — so the pill printed itself over the
+   last line of Zico's copy (VEN's screenshot, 2026-08-25). It steps
+   over the band while the band is standing and drops back the moment
+   the journey lets go. --jnote-h is published by measure() in
+   js/journey.js and is 0px everywhere the band is display:none, so
+   this calc is a no-op on every other screen and section. */
 .ca-float{
   position: fixed;
   right: 18px;
@@ -240,6 +257,10 @@ a{ color: var(--ink); }
   transform: none;
   transition: opacity .4s ease, transform .4s ease;
   pointer-events: auto;
+}
+.has-jnote .ca-float{
+  bottom: calc(18px + var(--jnote-h, 0px));
+  transition: opacity .4s ease, transform .4s ease, bottom .3s ease;
 }
 .ca-pill{
   display: flex;
@@ -640,6 +661,28 @@ a{ color: var(--ink); }
   top: 0; left: 0; right: 0; bottom: 0;
   overflow: hidden;
 }
+/* THE CAMERA'S FRAME. On wide screens --jnote-h is 0 and this is the
+   whole of .jmap, so nothing about the map has changed. On a phone
+   the note band below takes its own height out of this box, which is
+   the entire point: there is then no terrain behind the words at any
+   scroll position, rather than a translucent wash over whatever ridge
+   happens to be under them. js/journey.js measures the camera off
+   THIS element, and publishes --jnote-h from the band's own height.
+
+   IT DOES NOT CLIP, and that is deliberate rather than an oversight.
+   .jmap already clips the section, and the band below is opaque
+   paper, so the sheet's overhang is covered either way — while a
+   SECOND overflow:hidden here wraps the camera's 2960x5304 layer in
+   another clip, and with .jmap's entry mask over the top of it that
+   was enough to hang the renderer outright on load. Same family of
+   trap as the two blend dropouts in HANDOFF §7 and the note on
+   .jmap__sheet above: this layer is far too big to be given any
+   compositing work that is not strictly needed. */
+.jmap__view{
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  bottom: var(--jnote-h, 0px);
+}
 
 /* the moving sheet. transform-origin 0 0 keeps the camera maths in
    js/journey.js honest: translate() then scale() about the corner. */
@@ -765,46 +808,81 @@ a{ color: var(--ink); }
   opacity: .78;
 }
 
-/* ZICO'S COPY, SECOND HOME — a note under the map.
+/* ZICO'S COPY, SECOND HOME — a band under the map.
 
-   The sheet is where it lives (VEN: *"I liked how it was before"*), and
-   the wash under the block is what makes that survivable over terrain.
-   But the sheet block is sized off the LABEL scale, and that scale
-   floors at 34px: on a 390px phone it would be a quarter of the
-   sheet's width while its own text fell to about 7px. So phones get
-   this instead, whatever `?copy=` says — and `?copy=strip` forces it
-   at every width. */
+   The sheet is where it lives on a desktop (VEN: *"I liked how it was
+   before"*). But the sheet block is sized off the LABEL scale, and
+   that scale floors at 34px: on a 390px phone the block would be a
+   quarter of the sheet's width while its own text fell to about 7px.
+   So phones get this instead. `?copy=strip` forces it at every width;
+   `?copy=sheet` given by hand overrides it even on a phone, so the
+   alternative can be looked at rather than described.
+
+   A BAND IN THE FLOW, NOT A WASH ON TOP. It used to be absolutely
+   positioned over the bottom of the map with a translucent gradient
+   behind it, and on a phone that put every word over mountains,
+   terraced fields or roofs — the three things VEN circled in red on
+   2026-08-25. There is no position on this sheet that fixes that: at
+   phone width the map covers the screen edge to edge, so the only
+   clean paper is paper the map does not reach. Hence a real band,
+   taking its height OUT of .jmap__view. */
 .jmap__note{
   position: absolute;
-  left: 50%; bottom: clamp(18px, 4.5vh, 46px);
-  transform: translateX(-50%);
-  width: min(540px, 86vw);
+  left: 0; right: 0; bottom: 0;
   display: none;
   pointer-events: none;
   z-index: 3;
+  /* the page's own parchment, opaque — nothing of the sheet behind it */
+  background: var(--paper);
+  border-top: 1px solid rgba(138, 124, 97, .34);
 }
+/* `.jmap--onsheet` is `?copy=sheet` asked for BY HAND, which overrules
+   the breakpoint so the sheet placement can be seen on a phone rather
+   than described — see the note at COPY_MODE in js/journey.js. */
 @media (max-width: 860px){
-  .jmap__note{ display: block; }
-  .jmap__label .jmap__copy{ display: none; }
+  .jmap:not(.jmap--onsheet) .jmap__note{ display: grid; }
+  .jmap:not(.jmap--onsheet) .jmap__label .jmap__copy{ display: none; }
+  /* AND THE ENGLISH CAPTION COMES OFF THE SHEET WITH IT.
+
+     Its anchor is a patch of blank paper that maproute searched at
+     the LARGEST label scale a desktop reaches (lq 1.465, see the
+     block above CAP_W in tools/maproute.js). A phone is not on that
+     scale: `want` floors at 34px, which puts lq at 2.24 on a 390px
+     screen — half again as wide as the paper that was cleared for it.
+     So the caption ran across Gyeongbokgung's own roof and off the
+     right edge of the screen at the same time, which is the overlap
+     in VEN's screenshot that no anchor can fix.
+
+     It is not needed here either: the band below prints the same name
+     as its heading, at a size that can be read, where the sheet's
+     caption renders at about 9px. The Korean name stays — it is the
+     thing that writes itself, and it is the whole point of the
+     labels (VEN, part 2). */
+  .jmap:not(.jmap--onsheet) .jmap__label.jmap__enlab{ display: none; }
 }
-.jmap--strip .jmap__note{ display: block; }
+.jmap--strip .jmap__note{ display: grid; }
 .jmap--strip .jmap__label .jmap__copy{ display: none; }
-/* Paper, not a card: a wash of the page's own parchment with a hairline
-   over it, so it reads as a note written in the margin of the sheet
-   rather than as UI floating above it. */
+/* All four notes share ONE grid cell, so they crossfade in place and
+   the band's height is the tallest of them — fixed for the whole
+   journey, so the map's frame never resizes as you scroll between
+   stops (which would re-run measure() and jump the camera). */
 .jmap__note-p{
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
+  grid-area: 1 / 1;
+  align-self: center;
   margin: 0;
-  padding: .95rem 1.2rem .2rem;
-  /* no hairline: the wash starts transparent at the top edge, so a
-     border there would float with nothing under it */
-  background: linear-gradient(to bottom,
-    rgba(235,221,185,0) 0%, rgba(235,221,185,.86) 34%, rgba(235,221,185,.86) 100%);
+  padding: .9rem clamp(1rem, 5vw, 2.2rem) 1rem;
   color: var(--ink-soft);
-  font-size: clamp(.78rem, 1.05vw, .86rem);
-  line-height: 1.55;
+  /* SIZED FOR READING, not for fitting. This is the one piece of text
+     on the journey whose size is not negotiated with the art: it is
+     off the sheet, so nothing can be behind it however large it gets
+     — the band simply takes another few pixels from .jmap__view. It
+     was 12.5px on a phone because it used to be a wash over the map
+     and every extra line was another line over a mountain. That
+     constraint is gone; this is ~15px. */
+  font-size: clamp(.92rem, 3.9vw, 1rem);
+  line-height: 1.5;
   text-align: center;
+  text-wrap: pretty;
   transition: opacity .2s linear;
 }
 .jmap__note-p b{
@@ -813,9 +891,9 @@ a{ color: var(--ink); }
   font-weight: 400;
   letter-spacing: .2em;
   text-transform: uppercase;
-  font-size: .72rem;
+  font-size: .8rem;
   color: var(--ink);
-  margin-bottom: .3rem;
+  margin-bottom: .35rem;
 }
 /* The one place seal red is allowed outside the hero and footer
    stamps: a map marker IS a stamp. §4. */
@@ -823,7 +901,10 @@ a{ color: var(--ink); }
 .jmap__seal text{
   fill: var(--paper-light);
   font-family: var(--font-display);
-  font-size: 21px;
+  /* a CSS declaration beats a presentation attribute, so the size has
+     to be shrunk for a two-character seal HERE — setting font-size on
+     the <text> in js/journey.js would silently lose to this rule */
+  font-size: calc(21px * var(--seal-scale, 1));
   text-anchor: middle;
 }
 

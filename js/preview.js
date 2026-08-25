@@ -66,7 +66,12 @@
       "background:#1b1814;color:#e8dcc2;border:1px solid #4a4137;border-radius:8px;" +
       "padding:10px 12px;font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;" +
       "box-shadow:0 8px 28px rgba(0,0,0,.45);width:300px;user-select:none;" +
-      "transition:width .18s ease}" +
+      "transition:width .18s ease,bottom .3s ease}" +
+    /* Step over the journey's note band on a phone, the same way the
+       CA pill does — otherwise this dev panel sits on top of Zico's
+       copy and every screenshot of the journey looks broken. Dies
+       with the file; --jnote-h is 0px wherever the band is not up. */
+    ".has-jnote #devbar{bottom:calc(16px + var(--jnote-h,0px))}" +
     /* MINIMISED: the panel keeps its header and drops everything else,
        so what is left is a small labelled pill that still reports the
        roof count — a collapsed control that shows nothing looks like a
