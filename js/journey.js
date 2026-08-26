@@ -805,7 +805,50 @@
       stops: [[0.340, 0.120, 0.396, 0.136, 0.514, 0.174],
               [0.492, 0.360, 0.410, 0.329, 0.438, 0.446],
               [0.624, 0.601, 0.368, 0.632, 0.438, 0.678],
-              [0.372, 0.857, 0.326, 0.872, 0.396, 0.934]]
+              [0.372, 0.857, 0.326, 0.872, 0.396, 0.934]],
+
+      /* SEAL NUDGE — [dx, dy] per stop, normalised like everything
+         else, added to the MARKER only (js/journey.js §markers). It
+         moves the X and the seal together; the stop itself does not
+         move, so the road, STOP_LEN and the label anchors are all
+         still exactly where maproute put them.
+
+         It is a SEPARATE LIST on purpose. maproute does not write
+         this file — it prints MAP_PATH and MAP_STOPS to paste over
+         `stops` above — so a correction typed INTO `stops` is deleted
+         the next time the road is regenerated, silently and with no
+         way to tell it was ever there. Kept out here, a re-paste
+         leaves it standing.
+
+         Why any of it: maproute lands a stop on the most open cell
+         near its row, which is the right rule for a MARKER (open
+         parchment, clear of the landmark) but is blind to the road it
+         just drew — the seam moves on after the snap, so the seal can
+         end up sitting a little off the line it is supposed to mark.
+         Measured against the drawn road, the four seals were 9.7 left,
+         1.7 left, 9.1 RIGHT and 6.5 left of it.
+
+         VEN, 2026-08-26, from screenshots and without the numbers:
+         *"can we make it so that the one in screenshot 1 moves a bit
+         to the left, the one in screenshot two moves a tiny bit to the
+         right. the other two in the the journey section are fine."*
+         That is Namsangol and Gyeongbokgung — the 9.1 and the 9.7,
+         the two worst of the four, called by eye. So the two he named
+         are moved onto the line exactly (dx = the measured gap) and
+         the two he passed are left alone rather than "fixed" to match:
+         a seal a little off a line reads as a stamp placed by hand,
+         and centring all four would cost that. Only correct what
+         actually looks wrong.
+
+         To re-measure after the sheet or the road changes, in the
+         console with the map on screen: for each `.jmap__mark`, walk
+         `path.jmap__inked` with getPointAtLength and take the road's
+         x where it crosses the marker's y. dx is that minus the
+         marker's x, over MW. */
+      sealNudge: [[ 0.0097, 0],    // Gyeongbokgung — right, onto the line
+                  [ 0,      0],    // Changdeokgung — 1.7 out, VEN: fine
+                  [-0.0091, 0],    // Namsangol     — left, onto the line
+                  [ 0,      0]]    // Jeonju        — 6.5 out, VEN: fine
     },
     pirate: {
       img: "art/journey/map-pirate.png", w: 1500, h: 2688,
@@ -1327,10 +1370,17 @@
          CONFIG.token.seal, resolved once in js/config.js (§4), and a
          marker IS a stamp, so this is the one place seal red is
          allowed outside the hero/footer. */
+      /* the hand nudge that sits the seal on the road — see sealNudge
+         in MAPS.ink. Marker only: `s` itself is untouched, so the road
+         and the labels stay on maproute's numbers. A sheet with no
+         list, or a shorter one, simply gets no nudge. */
+      var nud = (sheet.sealNudge || [])[idx] || [0, 0];
+
       var g = document.createElementNS(NS, "g");
       g.setAttribute("class", "jmap__mark");
-      g.setAttribute("transform", "translate(" + (s[0] * MW).toFixed(1) +
-                     " " + (s[1] * MH).toFixed(1) + ")");
+      g.setAttribute("transform",
+                     "translate(" + ((s[0] + nud[0]) * MW).toFixed(1) +
+                     " " + ((s[1] + nud[1]) * MH).toFixed(1) + ")");
       g.innerHTML =
         '<g class="jmap__x"><path d="M-11 -11 L11 11"/><path d="M11 -11 L-11 11"/></g>' +
         '<g class="jmap__seal">' +
