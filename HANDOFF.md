@@ -5346,6 +5346,25 @@ required."*
 - A phone reads the caption at ~8px. It is a label under a building
   beside a 28px Korean name; the note has no heading there now.
 
+### 14. A tail on the road, and Gyeongbokgung's caption by hand
+
+VEN, two screenshots: Jeonju's caption washed out at the end —
+*"extend the 'the journey' section vertically enough so that this
+name is rendered properly"* — and Gyeongbokgung's caption: *"move it
+up and to the left a bit (ie closer to the bottom of the image)"*.
+
+- **The tail.** The road ended exactly where the pinned scroll did,
+  so the last stop was reached at the instant the section began to
+  unpin and its caption faded with the trailing edge (the exit
+  dissolve, part 11 of session 12). `TAIL` 0.10: the journey is done
+  in the first 90% of the pinned scroll and the camera holds on
+  Jeonju for the rest; `.journey--map` grew 560 → 610vh so the legs
+  kept their pacing (460vh/0.9). `?tail=0` is the old ending.
+- **`CAP_XY` in maproute**: the caption anchor's reviewed override,
+  BLOCK_X's contract — stop 1 only, 0.563,0.190 → 0.535,0.178, the
+  ink under it measured there (0.138, so its small clearing moved
+  with it). Cleared on an art re-roll like the rest.
+
 ### Files
 
 - `tools/mapclear.js`, `tools/clearings.json` — new.

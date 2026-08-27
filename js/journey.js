@@ -826,7 +826,7 @@
       /* elements 5+6 are the ENGLISH CAPTION's anchor again (maproute
          --caption, 2026-08-27): searched under the building, as part
          14 had it. The copy is in `clear` below. */
-      stops: [[0.340, 0.120, 0.396, 0.136, 0.563, 0.190],
+      stops: [[0.340, 0.120, 0.396, 0.136, 0.535, 0.178],
               [0.493, 0.360, 0.410, 0.329, 0.410, 0.446],
               [0.623, 0.601, 0.368, 0.632, 0.424, 0.678],
               [0.374, 0.857, 0.326, 0.872, 0.438, 0.934]],
@@ -966,6 +966,9 @@
      something you pass through, not a station you are held at.
      `?dwell=.10&ease=1` restores the old stop-and-hold exactly. */
   var DWELL = qs("dwell", 0);
+  /* share of the pinned scroll spent standing on the LAST stop before
+     the section unpins — see timelineU */
+  var TAIL = qs("tail", 0.10);
   /* What replaced the dwell, so an arrival still reads as one:
      EASE bends each leg's pacing toward smoothstep without reaching
      it — speed drops to (1-EASE) of cruise as you pass a place, and
@@ -1801,6 +1804,16 @@
       return (1 - EASE) * f + EASE * smooth(f);
     }
     function timelineU(p){
+      /* THE TAIL (VEN, 2026-08-27, with Jeonju's caption washed out in
+         the exit dissolve: "extend the 'the journey' section vertically
+         enough so that this name is rendered properly"). The road used
+         to end exactly where the pinned scroll did, so the last stop
+         was reached at the instant the section began to unpin and its
+         name faded with the trailing edge. Now the journey is done in
+         the first 1-TAIL of the scroll and the camera holds on Jeonju
+         for the rest; css/site.css's height grew to match so the
+         legs kept their pacing. `?tail=0` is the old ending. */
+      p = Math.min(1, p / (1 - TAIL));
       var d = DWELL, t = (1 - N * d) / (N - 1), pos = 0, k;
       for (k = 0; k < N; k++){
         if (p < pos + d || k === N - 1) return k;

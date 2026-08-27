@@ -678,6 +678,18 @@ var CAP_GAP = 2, CAP_BAND = 11, CAP_NEAR = 0.012;
    0.514 is kept in the note above as the record of why this list
    exists; the list itself is empty. */
 var BLOCK_X = [null, null, null, null];
+/* REVIEWED OVERRIDES for the CAPTION's anchor (--caption), [x, y] by
+   stop, same contract as BLOCK_X: the tool's own record, printed when
+   it fires, cleared on an art re-roll.
+
+   STOP 1, 0.563,0.190 -> 0.535,0.178. VEN, 2026-08-27, with the
+   caption circled under the palace: "move it up and to the left a bit
+   (ie closer to the bottom of the image)". The search had held it two
+   columns east and a row down to keep its left end off the footpath's
+   verge; VEN's spot puts that end ~15 units from the prints, which he
+   has seen and prefers. The ink under the override is measured like
+   any other candidate's, so mapnote still decides its clearing. */
+var CAP_XY = [[0.535, 0.178], null, null, null];
 
 var MEAN_W = 4.5;
 
@@ -1310,6 +1322,22 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
                     pt2.ex.toFixed(3) + " -> " + BLOCK_X[si3].toFixed(3) +
                     "  (BLOCK_X override, see the note at its definition)");
         pt2.ex = BLOCK_X[si3];
+      }
+      if (CAPTION && CAP_XY[si3] && pt2.ex != null){
+        console.log("  review  stop " + (si3 + 1) + " caption " +
+                    pt2.ex.toFixed(3) + "," + pt2.ey.toFixed(3) + " -> " +
+                    CAP_XY[si3][0].toFixed(3) + "," + CAP_XY[si3][1].toFixed(3) +
+                    "  (CAP_XY override, see the note at its definition)");
+        pt2.ex = CAP_XY[si3][0]; pt2.ey = CAP_XY[si3][1];
+        /* the real ink under the footprint there, for mapnote */
+        var ocx = Math.round(pt2.ex * COLS - 0.5), ocy = Math.round(pt2.ey * ROWS - 0.5), opk = 0, oy, ox;
+        for (oy = -CAP_UP; oy <= CAP_DN; oy++)
+          for (ox = -CAP_W; ox <= CAP_W; ox++){
+            var oyy = ocy + oy, oxx = ocx + ox;
+            if (oyy < 0 || oyy >= ROWS || oxx < 0 || oxx >= COLS) continue;
+            if (dark[oyy * COLS + oxx] > opk) opk = dark[oyy * COLS + oxx];
+          }
+        pt2.epk = opk;
       }
       stops.push(pt2);
     });
