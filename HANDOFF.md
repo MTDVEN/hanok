@@ -5363,14 +5363,14 @@ up and to the left a bit (ie closer to the bottom of the image)"*.
   his ~400px-tall window the village, its caption and its note
   together are as tall as the frame, so the caption lands in the last
   pixels, under the market-cap bar. So the tail WALKS ON instead —
-  `TAIL` 0.14, and past p = 1-TAIL `timelineU` returns u > N-1,
+  `TAIL` 0.042 (20vh of 480 — 0.14 first, then VEN: "you extended it a bit too much, maybe need a quarter of what you added"), and past p = 1-TAIL `timelineU` returns u > N-1,
   `lenAt` carries the camera down the rest of the road to the sheet's
   foot (the zoom held at the settle zoom, the framing offset held at
   the stop's), the village rising up the screen and the caption
   coming clear under it before the section lets go. On a short window
   the village's roofs leave the top of the screen by the end; on a
-  tall one everything stays. `.journey--map` 560 → 640vh so the legs
-  kept their pacing (460vh/0.86). `?tail=0` is the old ending.
+  tall one everything stays. `.journey--map` 560 → 580vh so the legs
+  kept their pacing (460vh, the walk 20vh on top). `?tail=0` is the old ending.
 - **`CAP_XY` in maproute**: the caption anchor's reviewed override,
   BLOCK_X's contract — stop 1, 0.563,0.190 → 0.535,0.178, the ink
   under it measured there (0.138, so its small clearing moved with

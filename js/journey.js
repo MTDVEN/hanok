@@ -968,7 +968,9 @@
   var DWELL = qs("dwell", 0);
   /* share of the pinned scroll spent standing on the LAST stop before
      the section unpins — see timelineU */
-  var TAIL = qs("tail", 0.14);
+  var TAIL = qs("tail", 0.042);   /* 0.14 first; VEN: "you extended it a bit too
+                                      much, maybe need a quarter of what you
+                                      added" — 20vh of 480, see css/site.css */
   /* What replaced the dwell, so an arrival still reads as one:
      EASE bends each leg's pacing toward smoothstep without reaching
      it — speed drops to (1-EASE) of cruise as you pass a place, and
