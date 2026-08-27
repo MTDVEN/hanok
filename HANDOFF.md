@@ -5158,6 +5158,38 @@ still drawing the old label-scale block — four authored lines at
   stands in for the vignette's extent (every one sits roughly centred
   on its stop).
 
+### 9. "Scale up the text a bit so that it fits a bit better in each indentation"
+
+VEN, on the fitted notes: *"can you scale up the text a bit so that
+it fits a bit better in each indentation/clearing that we made but
+make sure to start a new line wherever necessary because we dont want
+it to overflow."* The fit was wrapping to a RECTANGLE inside each
+clearing, and a clearing is not one: east of the road at stop 1 the
+paper is 20 cells wide on the lower rows and 15 at the top, and the
+box took the narrower width for every line.
+
+- **maproute emits the clearing's shape**: for every grid row of the
+  loop, the widest run of usable cells on the box's side of the road
+  (`MAP_CLEAR[k].rows`, from `top` down, `dy` a row). The box stays
+  as the fallback and the extent the tool reports.
+- **setBlock wraps every line to the rows it sits on** — the
+  intersection of their runs — and centres each line in its own run.
+  The note follows the mist's edge: wider where the paper is wider,
+  shifting with it; a band whose rows carry no run is skipped, so
+  nothing ever lands on ink. The caption starts on the first row
+  (in the clearing's upper half) that holds it whole, and wraps only
+  where none does — taking the first row that fit a single word set
+  "JEONJU / HANOK / VILLAGE" on three lines on a desktop and cost the
+  caption its handwriting.
+- Phone caps at `PTEXT` 15 now, desktop at `DTEXT_K` 0.016 (20.5px at
+  1280) up to 26; verge 0.2, inset 0.4, soft 0.15, pad 4, leading 1.4.
+- **Results, phone 390x844:** 15 / 12.5 / 15 / 12.5 px (was 13 / 10 /
+  13 / 9.5). Desktop 1280x551: 20.5px at all four, the captions on
+  their masks, every seal, name and note in frame.
+- The last line of a greedy wrap can be a single word ("one."). Left
+  as is; balancing the last two lines is the obvious next step if it
+  reads as a widow.
+
 ### Files
 
 - `tools/mapclear.js`, `tools/clearings.json` — new.

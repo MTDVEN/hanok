@@ -348,7 +348,7 @@ var CLEAR_INSET = 2.5;
    not down with the other PHONE_ knobs: read before its assignment it
    is undefined, the inset goes NaN, and the mask comes back empty
    without a word (DARK_T's trap, again) */
-var PHONE_INSET = 0.6;
+var PHONE_INSET = 0.4;
 function polyMask(poly, inset){
   var m = new Uint8Array(COLS * ROWS), gx, gy;
   function inside(px, py){
@@ -723,7 +723,7 @@ var COPY_EM = 0.50, COPY_LH = 1.42, COPY_HEAD = 1.6, COPY_WASTE = 1.12;
    where the dark count cannot (a stroke at 20% over paper is luma
    ~190 — well above DARK_T, well below SOFT_T0, which is declared up
    by DARK_T for the same hoisting reason). */
-var PHONE_SOFT = 0.13;   /* PHONE_INSET itself is declared up by polyMask */
+var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
 
 /* WHY THE NAME SEARCH IS STILL ON `nd` AND NOT ON `dark` — 2026-08-25.
 
@@ -1113,7 +1113,7 @@ var PHONE_SOFT = 0.13;   /* PHONE_INSET itself is declared up by polyMask */
        landmark when it can be. Emitted as MAP_CLEAR; a stop with no
        clearing still gets one, searched round the stop, so Jeonju's
        phone block has somewhere measured to go. */
-    var pb = null;
+    var pb = null, pbRows = null;
     (function(){
       /* the loose loop's extent, when there is one */
       var lx0 = COLS, lx1 = -1, ly0 = ROWS, ly1 = -1, li;
@@ -1180,6 +1180,36 @@ var PHONE_SOFT = 0.13;   /* PHONE_INSET itself is declared up by polyMask */
       if (bb) pb = bb;
       if (bb) console.log("  box     stop " + (stopIdx + 1) + "  " + (bb[2] - bb[0]) + "x" + (bb[3] - bb[1]) +
                           " cells, type up to " + bs.toFixed(2) + " cells for " + Math.round(N / COPY_WASTE) + " chars");
+
+      /* THE SHAPE, row by row (2026-08-27, VEN: "scale up the text a
+         bit so that it fits a bit better in each indentation/clearing
+         ... start a new line wherever necessary"). A clearing is not
+         a rectangle: east of the road at stop 1 the paper is 19 cells
+         wide on the lower rows and 15 at the top, and a box takes the
+         narrower width for every line. So each row of the loop is
+         emitted with its widest run of usable cells on the box's side
+         of the road, and js/journey.js wraps every line to the width
+         of the rows it sits on. The box stays as the fallback and the
+         extent the tool prints. */
+      if (bb){
+        var rows = [], ry, rx, r0 = -1, r1 = -1;
+        for (ry = uy0; ry <= uy1; ry++){
+          var bestRun = null, runStart = -1;
+          for (rx = ux0; rx <= ux1 + 1; rx++){
+            var on = rx <= ux1 && use[(ry - uy0) * uw + (rx - ux0)];
+            if (on && runStart < 0) runStart = rx;
+            if (!on && runStart >= 0){
+              /* a run counts if it overlaps the box's columns */
+              if (rx > bb[0] && runStart < bb[2] &&
+                  (!bestRun || rx - runStart > bestRun[1] - bestRun[0])) bestRun = [runStart, rx];
+              runStart = -1;
+            }
+          }
+          rows.push(bestRun);
+          if (bestRun){ if (r0 < 0) r0 = ry; r1 = ry; }
+        }
+        pbRows = { top: r0, rows: rows.slice(r0 - uy0, r1 - uy0 + 1) };
+      }
       if (WHY){
         console.log("  --why  phone box " + (bb ? "cols " + bb[0] + "-" + bb[2] + " rows " + bb[1] + "-" + bb[3] +
                     " (" + (bb[2] - bb[0]) + "x" + (bb[3] - bb[1]) + " cells)" : "NONE"));
@@ -1211,7 +1241,11 @@ var PHONE_SOFT = 0.13;   /* PHONE_INSET itself is declared up by polyMask */
       lx: (bx + 0.5) / COLS, ly: (by + 0.5) / ROWS,
       ex: ecx != null ? (ecx + 0.5) / COLS : null,
       ey: ecy != null ? (ecy + 0.5) / ROWS : null,
-      pb: pb ? [pb[0] / COLS, pb[1] / ROWS, pb[2] / COLS, pb[3] / ROWS] : null
+      pb: pb ? [pb[0] / COLS, pb[1] / ROWS, pb[2] / COLS, pb[3] / ROWS] : null,
+      shape: pbRows ? {
+        top: pbRows.top / ROWS, dy: 1 / ROWS,
+        rows: pbRows.rows.map(function(r){ return r ? [r[0] / COLS, r[1] / COLS] : null; })
+      } : null
     };
   }
 
@@ -1245,7 +1279,7 @@ var PHONE_SOFT = 0.13;   /* PHONE_INSET itself is declared up by polyMask */
                            clearLoose[si3 + 1] || null, si3);
       pt2.lx = spot.lx; pt2.ly = spot.ly;
       pt2.ex = spot.ex; pt2.ey = spot.ey;
-      pt2.pb = spot.pb;
+      pt2.pb = spot.pb; pt2.shape = spot.shape;
       if (BLOCK_X[si3] != null && pt2.ex != null){
         console.log("  review  stop " + (si3 + 1) + " block x " +
                     pt2.ex.toFixed(3) + " -> " + BLOCK_X[si3].toFixed(3) +
@@ -1317,11 +1351,22 @@ console.log(stops.map(function(p){
 }).join(",\n"));
 console.log("  ];");
 if (stops.some(function(p){ return p.pb; })){
-  console.log("  /* the phone's block box per stop, [x0, y0, x1, y1] — see");
-  console.log("     MAP_CLEAR in js/journey.js and phoneBox in tools/maproute.js */");
+  console.log("  /* the note's clearing per stop: `box` [x0, y0, x1, y1] is the widest");
+  console.log("     clean rectangle, `rows` the clean run of paper on each grid row");
+  console.log("     from `top` down, one row `dy` tall — js/journey.js wraps each line");
+  console.log("     to the row it sits on. See setBlock there and the shape in");
+  console.log("     tools/maproute.js. */");
   console.log("  var MAP_CLEAR = [");
   console.log(stops.map(function(p){
-    return p.pb ? "    [" + p.pb.map(f3).join(", ") + "]" : "    null";
+    if (!p.pb) return "    null";
+    var s = "    { box: [" + p.pb.map(f3).join(", ") + "]";
+    if (p.shape){
+      s += ",\n      top: " + f3(p.shape.top) + ", dy: " + (Math.round(p.shape.dy * 100000) / 100000) +
+           ",\n      rows: [" + p.shape.rows.map(function(r){
+             return r ? "[" + f3(r[0]) + ", " + f3(r[1]) + "]" : "null";
+           }).join(", ") + "] }";
+    } else s += " }";
+    return s;
   }).join(",\n"));
   console.log("  ];");
 }

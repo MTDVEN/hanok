@@ -249,21 +249,24 @@ captions.
   against it). `tools/clearings.json` is the one hand-drawn thing in
   the map's wiring — VEN's loops, traced — and the fourth loop (Jeonju)
   is the one VEN did not draw; delete its line and re-run to drop it.
-- **The note is fitted to its clearing on every device** (VEN: "resize
-  the text so that it fits nicely in the new gaps"): re-flowed into
-  its `MAP_CLEAR` box at the largest size that fits. On a phone that
-  is `?ptext=13` down to `?ptextmin=8.5` (13 / 10 / 13 / 9.5 px at the
-  four stops — the two loop-limited boxes are what they are), at a
-  closer settle zoom (`?pzoom=1.9`); on a wider screen the cap grows
-  with the window (`?dtextk=.014` of its width, `?dtextmax=24`, or
-  `?dtext=20` to pin it) and the caption keeps its handwriting. The
-  box itself is chosen by the type size THIS stop's copy can reach in
-  it, not by area (maproute lifts the copy's length from
-  js/journey.js; `--copy 182,147,97,174` overrides). The camera frames
-  seal, name, landmark and note together at every stop, the seal's
-  side winning when a short window cannot hold them all (`?frame=0`
-  restores seal-centred). `?copy=strip` is the band; `?map=solid` is
-  the sheet before the clearings, with the band on phones as before.
+- **The note is fitted to its clearing's SHAPE on every device** (VEN:
+  "resize the text so that it fits nicely in the new gaps", then
+  "scale it up a bit ... start a new line wherever necessary"):
+  maproute emits, per stop, the clean run of paper on every grid row
+  (`MAP_CLEAR[k].rows`), and `setBlock` wraps each line to the rows it
+  sits on at the largest size that fits the whole note — phones
+  `?ptext=15` down to `?ptextmin=8.5` (15 / 12.5 / 15 / 12.5 px at the
+  four stops) at settle zoom `?pzoom=1.9`; wider screens `?dtextk=.016`
+  of the window's width up to `?dtextmax=26`, or `?dtext=20` to pin
+  it, with the caption's handwriting kept. Nothing lands on ink: a row
+  with no clean run is skipped. The box (`MAP_CLEAR[k].box`) is chosen
+  by the type size THIS stop's copy can reach in it, not by area
+  (maproute lifts the copy's length from js/journey.js; `--copy
+  182,147,97,174` overrides). The camera frames seal, name, landmark
+  and note together at every stop, the seal's side winning when a
+  short window cannot hold them all (`?frame=0` restores seal-centred).
+  `?copy=strip` is the band; `?map=solid` is the sheet before the
+  clearings, with the band on phones as before.
 - `node tools/mapbox.js <sheet> <out> cx,cy,hw,up,dn` draws a label's
   REAL footprint on the sheet. **This is the authority when the grid
   and the eye disagree** — a 25px cell statistic cannot see a thin

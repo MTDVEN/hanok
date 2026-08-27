@@ -827,12 +827,26 @@
               [0.492, 0.360, 0.410, 0.329, 0.660, 0.415],
               [0.623, 0.601, 0.368, 0.632, 0.688, 0.709],
               [0.373, 0.857, 0.326, 0.872, 0.396, 0.934]],
-      /* [x0, y0, x1, y1] per stop — the phone block's box, from
-         maproute --clear (MAP_CLEAR). See the phone block in measure(). */
-      clear: [[0.583, 0.178, 0.792, 0.333],
-              [0.569, 0.395, 0.764, 0.481],
-              [0.639, 0.605, 0.806, 0.744],
-              [0.681, 0.798, 0.819, 0.922]],
+      /* the note's clearing per stop, from maproute --clear (MAP_CLEAR):
+         `box` [x0, y0, x1, y1] is the widest clean rectangle, `rows`
+         the clean run of paper on each grid row from `top` down, one
+         row `dy` tall — setBlock wraps every line to the row it sits
+         on, so the note follows the clearing's shape. Paste, never
+         hand-edit. */
+      clear: [
+        { box: [0.583, 0.178, 0.792, 0.333],
+          top: 0.116, dy: 0.00775,
+          rows: [[0.708, 0.722], [0.694, 0.778], [0.681, 0.792], [0.667, 0.778], [0.653, 0.792], [0.639, 0.792], [0.611, 0.806], [0.597, 0.806], [0.583, 0.806], [0.569, 0.806], [0.556, 0.792], [0.486, 0.806], [0.500, 0.792], [0.500, 0.792], [0.514, 0.806], [0.514, 0.792], [0.528, 0.806], [0.528, 0.806], [0.528, 0.806], [0.528, 0.806], [0.528, 0.806], [0.528, 0.806], [0.528, 0.806], [0.528, 0.792], [0.528, 0.806], [0.528, 0.806], [0.528, 0.806], [0.528, 0.806], [0.583, 0.639]] },
+        { box: [0.556, 0.395, 0.764, 0.481],
+          top: 0.372, dy: 0.00775,
+          rows: [[0.639, 0.708], [0.597, 0.736], [0.583, 0.750], [0.556, 0.764], [0.542, 0.778], [0.528, 0.778], [0.528, 0.778], [0.528, 0.778], [0.528, 0.778], [0.542, 0.778], [0.542, 0.778], [0.542, 0.778], [0.556, 0.764], [0.556, 0.764], [0.569, 0.722], [0.583, 0.722]] },
+        { box: [0.639, 0.605, 0.806, 0.744],
+          top: 0.581, dy: 0.00775,
+          rows: [[0.653, 0.681], [0.653, 0.764], [0.653, 0.792], [0.639, 0.819], [0.639, 0.819], [0.625, 0.819], [0.625, 0.819], [0.625, 0.819], [0.625, 0.819], [0.625, 0.819], [0.611, 0.819], [0.611, 0.819], [0.611, 0.806], [0.597, 0.819], [0.569, 0.819], [0.569, 0.819], [0.569, 0.819], [0.569, 0.819], [0.556, 0.819], [0.556, 0.819], [0.556, 0.806], [0.556, 0.792], [0.583, 0.764], [0.653, 0.708]] },
+        { box: [0.667, 0.783, 0.806, 0.907],
+          top: 0.775, dy: 0.00775,
+          rows: [[0.694, 0.764], [0.667, 0.806], [0.667, 0.806], [0.667, 0.819], [0.667, 0.833], [0.667, 0.833], [0.667, 0.833], [0.667, 0.833], [0.667, 0.833], [0.667, 0.833], [0.667, 0.833], [0.667, 0.833], [0.667, 0.833], [0.667, 0.833], [0.667, 0.819], [0.667, 0.819], [0.667, 0.819], [0.681, 0.833], [0.681, 0.833], [0.694, 0.833], [0.694, 0.833], [0.694, 0.792], [0.708, 0.764], [0.722, 0.750]] }
+      ],
 
       /* SEAL NUDGE — [dx, dy] per stop, normalised like everything
          else, added to the MARKER only (js/journey.js §markers). It
@@ -1140,7 +1154,7 @@
                   frame was placed. At 1.9 the widest stop has 17px to
                   spare and the notes are 11 / 9.5 / 11 / 9.5 px.
      `?copy=strip` restores the band. */
-  var PTEXT = qs("ptext", 13), PTEXT_MIN = qs("ptextmin", 8.5);
+  var PTEXT = qs("ptext", 15), PTEXT_MIN = qs("ptextmin", 8.5);
   var PHONE_ZOOM = qs("pzoom", 1.9);
   /* ...AND ON EVERY WIDER SCREEN TOO (VEN, 2026-08-27: "resize the
      text so that it fits nicely in the new gaps/clearings"). The
@@ -1149,7 +1163,7 @@
      fitted to the same box the phone uses, and the box on a desktop is
      huge, so the cap is what sets the size: DTEXT_K of the window's
      width (22px at 1600), never past DTEXT_MAX. `?dtext=20` pins it. */
-  var DTEXT = qs("dtext", 0), DTEXT_K = qs("dtextk", 0.014), DTEXT_MAX = qs("dtextmax", 24);
+  var DTEXT = qs("dtext", 0), DTEXT_K = qs("dtextk", 0.016), DTEXT_MAX = qs("dtextmax", 26);
   /* THE CAMERA FRAMES THE SEAL AND THE NOTE TOGETHER. With the blocks
      in the clearings they sit further from their seals than they used
      to — stop 1's is a third of the sheet east of the road — and a
@@ -1791,7 +1805,7 @@
        a note, not the name of the place (the Korean name beside the
        building is that) — with its tracking eased so it fits the box */
     var CFu = LSIZE * 0.26 * 0.80;
-    var PCAP = 0.82, PCAP_SP = 0.12, PPAD = 6;
+    var PCAP = 0.82, PCAP_SP = 0.12, PPAD = 4, COPY_LH = 1.4;
     /* standing strengths of the copy and the caption; the fade in
        drawMap multiplies them (they used to be in css/site.css, where
        the class rule beat the fade's attribute — see the note there) */
@@ -1825,52 +1839,136 @@
        it fades in as the first line of the note instead — a mask
        re-rasterises its target per frame, which a phone can do
        without. Returns the block's extents in map units. */
-    function setBlock(lb, box, unit, cap, narrow){
-      var sp = lb.sp, x0 = box[0] * MW, y0 = box[1] * MH, x1 = box[2] * MW, y1 = box[3] * MH;
-      var bw = (x1 - x0) * unit - 2 * PPAD, bh = (y1 - y0) * unit - 2 * PPAD;   /* px */
+    function setBlock(lb, c, unit, cap, narrow){
+      var sp = lb.sp, box = c.box;
       var text = (sp.copy || []).join(" "), name = sp.name.toUpperCase();
       var capSp = narrow ? PCAP_SP : 0.2;   /* .jmap__en's own tracking, or the eased one */
-      var cf = Math.max(PTEXT_MIN, cap), fit = null;
-      for (; cf >= PTEXT_MIN - 1e-6; cf -= 0.5){
-        var capPx = cf * PCAP;
-        var capLines = reflow(name, bw, capPx, capSp), lines = reflow(text, bw, cf, 0.01);
-        var h = capLines.length * capPx * 1.25 + cf * 0.55 + lines.length * cf * 1.42 - cf * 0.3;
-        fit = { cf: cf, cap: capLines, lines: lines, h: h };
-        if (h <= bh) break;
+
+      /* THE CLEARING'S SHAPE, ROW BY ROW (VEN, 2026-08-27: "scale up
+         the text a bit so that it fits a bit better in each
+         indentation/clearing ... start a new line wherever necessary
+         because we dont want it to overflow"). A clearing is not a
+         rectangle, and a box wraps every line to its narrowest part.
+         maproute emits the clean run of paper on each grid row
+         (`rows`), so each line here is wrapped to the rows it
+         actually sits on — the intersection of their runs — and
+         centred in that run. The note follows the mist's edge: wider
+         where the paper is wider, shifting with it, and never onto
+         ink, because a band whose rows carry no run is skipped. */
+      var top, dyU, rows;
+      if (c.rows){
+        top = c.top * MH; dyU = c.dy * MH;
+        rows = c.rows.map(function(r){ return r ? [r[0] * MW, r[1] * MW] : null; });
+      } else {
+        top = box[1] * MH; dyU = (box[3] - box[1]) * MH;
+        rows = [[box[0] * MW, box[2] * MW]];
       }
-      if (fit.h > bh)
-        console.warn("journey: the note for " + sp.name + " does not fit its box at " +
-                     PTEXT_MIN + "px (" + Math.round(fit.h) + " of " + Math.round(bh) + "px)");
-      var sq = fit.cf / (CFu * unit), capF = CFu * PCAP, capLH = capF * 1.25, CLH = CFu * 1.42;
-      var yCopy0 = (fit.cap.length - 1) * capLH + CFu * 0.55 + CFu;
-      var masked = !narrow && fit.cap.length === 1, html = "";
+      var padU = PPAD / unit;
+      function span(yU0, yU1, extra){
+        var r0 = Math.floor((yU0 - top) / dyU), r1 = Math.floor((yU1 - top - 1e-6) / dyU), i, x0 = -Infinity, x1 = Infinity;
+        if (r0 < 0) return null;
+        for (i = r0; i <= r1; i++){
+          var r = i < rows.length ? rows[i] : (extra ? rows[rows.length - 1] : null);
+          if (!r) return null;
+          x0 = Math.max(x0, r[0]); x1 = Math.min(x1, r[1]);
+        }
+        return x1 - x0 > 2 * padU ? [x0 + padU, x1 - padU] : null;
+      }
+      /* lay the whole note out at cf px; null when it does not fit.
+         `force` lets it run past the last row (on the last row's
+         width) so a note that fits nowhere is still drawn, and warned. */
+      function layout(cf, force){
+        var capPx = cf * PCAP, out = [], y = top + padU;
+        var bottom = force ? Infinity : top + rows.length * dyU - padU;
+        function flow(words, px, sp, lhPx, isCap){
+          var lh = lhPx / unit, i = 0, skipped = 0;
+          /* THE CAPTION STARTS WHERE IT FITS WHOLE. The top rows of a
+             clearing are its narrowest (stop 1's begin one cell wide
+             under the ridge's diagonal), and taking the first row that
+             holds a single word set "JEONJU / HANOK / VILLAGE" on
+             three lines, and lost the caption its handwriting. So the
+             caption first looks, over the clearing's upper half, for
+             a row that holds all of it; only when none does (a phone's
+             narrow box) does it wrap from the top like the copy. */
+          if (isCap){
+            var whole = words.join(" "), yy = y, half = top + rows.length * dyU * 0.5;
+            while (yy + lh <= Math.min(bottom, half)){
+              var sw = span(yy, yy + lh, force);
+              if (sw && textW(whole, px, sp) <= (sw[1] - sw[0]) * unit){ y = yy; break; }
+              yy += dyU;
+            }
+          }
+          while (i < words.length){
+            if (y + lh > bottom) return false;
+            var s = span(y, y + lh, force);
+            var line = words[i];
+            if (!s || textW(line, px, sp) > (s[1] - s[0]) * unit){
+              /* no paper here, or not enough for the next word: try
+                 the next row down */
+              y += dyU; if (++skipped > 400) return false; continue;
+            }
+            var availPx = (s[1] - s[0]) * unit, j = i + 1;
+            while (j < words.length){
+              var t = line + " " + words[j];
+              if (textW(t, px, sp) > availPx) break;
+              line = t; j++;
+            }
+            out.push({ t: line, y: y + ((lhPx - px) / 2 + px * 0.78) / unit,
+                       cx: (s[0] + s[1]) / 2, w: textW(line, px, sp) / unit, cap: isCap });
+            y += lh; i = j;
+          }
+          return true;
+        }
+        if (!flow(name.split(/\s+/), capPx, capSp, capPx * 1.25, true)) return null;
+        y += cf * 0.3 / unit;
+        if (!flow(text.split(/\s+/).filter(Boolean), cf, 0.01, cf * COPY_LH, false)) return null;
+        return { cf: cf, lines: out, bottom: y };
+      }
+      var fit = null, cf;
+      for (cf = Math.max(PTEXT_MIN, cap); cf >= PTEXT_MIN - 1e-6; cf -= 0.5){
+        fit = layout(cf, false);
+        if (fit) break;
+      }
+      if (!fit){
+        fit = layout(PTEXT_MIN, true);
+        console.warn("journey: the note for " + sp.name + " does not fit its clearing at " + PTEXT_MIN + "px");
+      }
+
+      /* build: sizes in label units, the group scaled by sq so the
+         copy lands at cf px; every line carries its own centre */
+      var sq = fit.cf / (CFu * unit), capF = CFu * PCAP;
+      var capLines = fit.lines.filter(function(l){ return l.cap; }),
+          copyLines = fit.lines.filter(function(l){ return !l.cap; });
+      var masked = !narrow && capLines.length === 1, html = "";
+      function X(l){ return (l.cx / sq).toFixed(2); }
+      function Y(l){ return (l.y / sq).toFixed(2); }
       if (masked){
         /* the caption's writing stroke, as the label block builds it,
-           at this size and this caption's measured width */
-        var ew2 = textW(fit.cap[0], capF, capSp) + capF * 2, seg = ew2 / 6,
-            d2 = "M" + (-ew2 / 2).toFixed(1) + " 0", si;
+           at this size, this width, and this line's own centre */
+        var cl0 = capLines[0], cxL = cl0.cx / sq, cyL = cl0.y / sq;
+        var ew2 = textW(cl0.t, capF, capSp) + capF * 2, seg = ew2 / 6,
+            d2 = "M" + (cxL - ew2 / 2).toFixed(1) + " " + cyL.toFixed(1), si;
         for (si = 1; si <= 6; si++)
-          d2 += " L" + (-ew2 / 2 + seg * si).toFixed(1) + " " + ((si % 2 ? -1 : 1) * capF * 0.16).toFixed(1);
+          d2 += " L" + (cxL - ew2 / 2 + seg * si).toFixed(1) + " " +
+                (cyL + (si % 2 ? -1 : 1) * capF * 0.16).toFixed(1);
         html += '<defs><mask id="jme' + lb.idx + '" maskUnits="userSpaceOnUse" x="' +
-          (-ew2 / 2 - capF).toFixed(1) + '" y="' + (-capF * 1.4).toFixed(1) +
+          (cxL - ew2 / 2 - capF).toFixed(1) + '" y="' + (cyL - capF * 1.4).toFixed(1) +
           '" width="' + (ew2 + 2 * capF).toFixed(1) + '" height="' + (capF * 2.8).toFixed(1) + '">' +
-          '<rect x="' + (-ew2 / 2 - capF).toFixed(1) + '" y="' + (-capF * 1.4).toFixed(1) +
+          '<rect x="' + (cxL - ew2 / 2 - capF).toFixed(1) + '" y="' + (cyL - capF * 1.4).toFixed(1) +
           '" width="' + (ew2 + 2 * capF).toFixed(1) + '" height="' + (capF * 2.8).toFixed(1) + '" fill="#000"/>' +
           '<path d="' + d2 + '" fill="none" stroke="#fff" stroke-width="' +
           (capF * 1.8).toFixed(1) + '" stroke-linecap="round" stroke-linejoin="round"/>' +
           "</mask></defs>";
       }
-      html +=
-        '<text class="jmap__en"' + (masked ? ' mask="url(#jme' + lb.idx + ')"' : ' style="opacity:0"') +
-        ' x="0" y="0" font-size="' + capF.toFixed(2) + '" text-anchor="middle">' +
-        fit.cap.map(function(l, li){
-          return '<tspan x="0"' + (li ? ' dy="' + capLH.toFixed(2) + '"' : "") + ">" + esc(l) + "</tspan>";
-        }).join("") +
-        '</text><g class="jmap__copy">' +
-        fit.lines.map(function(l, li){
-          return '<text x="0" y="' + (yCopy0 + li * CLH).toFixed(2) + '" font-size="' +
-                 CFu.toFixed(2) + '" text-anchor="middle" style="opacity:0">' + esc(l) + "</text>";
-        }).join("") + "</g>";
+      html += capLines.map(function(l){
+        return '<text class="jmap__en"' + (masked ? ' mask="url(#jme' + lb.idx + ')"' : ' style="opacity:0"') +
+               ' x="' + X(l) + '" y="' + Y(l) + '" font-size="' + capF.toFixed(2) +
+               '" text-anchor="middle">' + esc(l.t) + "</text>";
+      }).join("");
+      html += '<g class="jmap__copy">' + copyLines.map(function(l){
+        return '<text x="' + X(l) + '" y="' + Y(l) + '" font-size="' + CFu.toFixed(2) +
+               '" text-anchor="middle" style="opacity:0">' + esc(l.t) + "</text>";
+      }).join("") + "</g>";
       lb.ge.innerHTML = html;
       lb.ge.classList.toggle("jmap__enlab--phone", !!narrow);
       if (masked){
@@ -1887,17 +1985,12 @@
       lb.step = Math.min(0.13, 0.37 / Math.max(1, lb.lines.length - 1));
       lb.cw = -1; lb.lw = -1;
       lb.mode = "box";
-      var cx = (x0 + x1) / 2, top = y0 + PPAD / unit, ty = top + capF * 0.78 * sq;
-      lb.ge.setAttribute("transform",
-        "translate(" + cx.toFixed(1) + " " + ty.toFixed(1) + ") scale(" + sq.toFixed(3) + ")");
-      var wmax = 0, li2;
-      for (li2 = 0; li2 < fit.cap.length; li2++)
-        wmax = Math.max(wmax, textW(fit.cap[li2], fit.cf * PCAP, capSp));
-      for (li2 = 0; li2 < fit.lines.length; li2++)
-        wmax = Math.max(wmax, textW(fit.lines[li2], fit.cf, 0.01));
-      var wU = wmax / unit;
-      return { x0: cx - wU / 2, x1: cx + wU / 2, y0: top,
-               y1: ty + (yCopy0 + (fit.lines.length - 1) * CLH + CFu * 0.3) * sq };
+      lb.ge.setAttribute("transform", "scale(" + sq.toFixed(4) + ")");
+      var ex0 = Infinity, ex1 = -Infinity;
+      fit.lines.forEach(function(l){
+        ex0 = Math.min(ex0, l.cx - l.w / 2); ex1 = Math.max(ex1, l.cx + l.w / 2);
+      });
+      return { x0: ex0, x1: ex1, y0: top, y1: fit.bottom };
     }
     /* the desktop block's extents in map units, from the same measure */
     function deskExtent(lb, etx, ety, lq, unit){
@@ -2001,7 +2094,7 @@
                cap is the phone's PTEXT, or on a wider screen a size
                that grows with the window and stops at DTEXT_MAX */
             var cap = narrow ? PTEXT : (DTEXT || Math.max(13, Math.min(DTEXT_MAX, W * DTEXT_K)));
-            lb.blk = setBlock(lb, lb.pb, unit, cap, narrow);
+            lb.blk = setBlock(lb, lb.pb, unit, cap, narrow);   /* lb.pb is the clearing: box + rows */
           } else {
             setDesk(lb);
             /* under the building when the sheet carries an anchor,
@@ -2040,7 +2133,11 @@
         var lo0 = Math.min(mx - 15, tx - nhw, blk ? blk.x0 : Infinity),
             hi0 = Math.max(mx + 15, tx + nhw, blk ? blk.x1 : -Infinity),
             minC = hi0 - visW / 2 + 12, maxC = lo0 + visW / 2 - 12;
-        fxU = minC <= maxC ? Math.max(minC, Math.min(maxC, fxU)) : (lo0 + hi0) / 2;
+        /* (the 6 units of bias toward the seal's side, when they cannot
+           all fit, is the name's side bearing: Jeonju's 전 measured 2px
+           past the left edge on a phone at an even split, and the
+           note's right margin has more to give) */
+        fxU = minC <= maxC ? Math.max(minC, Math.min(maxC, fxU)) : (lo0 + hi0) / 2 - 6;
         /* DOWN: the same, with the landmark counted in (LAND_H either
            side of the seal — every vignette sits roughly centred on its
            stop) and, when the frame is too short for landmark and note
