@@ -829,10 +829,10 @@
               [0.373, 0.857, 0.326, 0.872, 0.396, 0.934]],
       /* [x0, y0, x1, y1] per stop — the phone block's box, from
          maproute --clear (MAP_CLEAR). See the phone block in measure(). */
-      clear: [[0.597, 0.178, 0.792, 0.333],
-              [0.556, 0.403, 0.764, 0.473],
-              [0.639, 0.605, 0.806, 0.721],
-              [0.667, 0.798, 0.819, 0.907]],
+      clear: [[0.583, 0.178, 0.792, 0.333],
+              [0.569, 0.395, 0.764, 0.481],
+              [0.639, 0.605, 0.806, 0.744],
+              [0.681, 0.798, 0.819, 0.922]],
 
       /* SEAL NUDGE — [dx, dy] per stop, normalised like everything
          else, added to the MARKER only (js/journey.js §markers). It
@@ -1140,8 +1140,16 @@
                   frame was placed. At 1.9 the widest stop has 17px to
                   spare and the notes are 11 / 9.5 / 11 / 9.5 px.
      `?copy=strip` restores the band. */
-  var PTEXT = qs("ptext", 11), PTEXT_MIN = qs("ptextmin", 8.5);
+  var PTEXT = qs("ptext", 13), PTEXT_MIN = qs("ptextmin", 8.5);
   var PHONE_ZOOM = qs("pzoom", 1.9);
+  /* ...AND ON EVERY WIDER SCREEN TOO (VEN, 2026-08-27: "resize the
+     text so that it fits nicely in the new gaps/clearings"). The
+     desktop block used to be the label-scale block — four authored
+     lines at ~14px in a clearing a thousand pixels wide. Now it is
+     fitted to the same box the phone uses, and the box on a desktop is
+     huge, so the cap is what sets the size: DTEXT_K of the window's
+     width (22px at 1600), never past DTEXT_MAX. `?dtext=20` pins it. */
+  var DTEXT = qs("dtext", 0), DTEXT_K = qs("dtextk", 0.014), DTEXT_MAX = qs("dtextmax", 24);
   /* THE CAMERA FRAMES THE SEAL AND THE NOTE TOGETHER. With the blocks
      in the clearings they sit further from their seals than they used
      to — stop 1's is a third of the sheet east of the road — and a
@@ -1149,11 +1157,11 @@
      it is meant to be read. So on arrival the camera centres on the
      midpoint of seal, name and note instead, as far as FRAME_PULL
      (1 = the midpoint, 0 = the old seal-centred framing), moved only
-     as far as keeps all three on screen across, and never so far down
-     that the seal leaves the middle 40% — the landmark has to stay in
-     the picture too. `?frame=0` is the way back. */
+     as far as keeps all three — and the landmark, LAND_H either side
+     of the seal — on screen; where they cannot all fit, the seal's
+     side wins over the note's. `?frame=0` is the way back. */
   var FRAME_PULL = qs("frame", 1);
-  var FRAME_EDGE_Y = 0.30, SEAL_M = 40, NOTE_M = 40;
+  var SEAL_M = 40, NOTE_M = 40, LAND_H = 80;
 
 
   function buildMap(){
@@ -1685,7 +1693,7 @@
           /* for the phone block and the framing: the stop's copy, the
              caption's authored size, the desktop markup to restore, and
              the box the tool cleared for the phone (MAPS.ink.clear) */
-          sp: sp, F: EN ? F : 0, geHTML: ge ? ge.innerHTML : null, mode: "desk",
+          sp: sp, F: EN ? F : 0, geHTML: ge ? ge.innerHTML : null, mode: "desk", idx: i2,
           pb: (sheet.clear && sheet.clear[i2]) ? sheet.clear[i2] : null, blk: null,
           ex: s.length >= 6 ? s[4] * MW : null,
           ey: s.length >= 6 ? s[5] * MH : null,
@@ -1804,21 +1812,28 @@
       lb.step = 0.13; lb.cw = -1; lb.lw = -1;
       lb.mode = "desk";
     }
-    /* the phone's: the caption and the copy re-flowed to the box's
-       width at the largest size (PTEXT down to PTEXT_MIN) at which the
-       whole note fits its height, centred in the box and hung from its
-       top edge so it sits closest to the landmark. No writing mask —
-       the caption fades in as the first line of the note, and a mask
+    /* THE NOTE, FITTED TO ITS CLEARING — every device, since VEN's
+       "resize the text so that it fits nicely in the new gaps". The
+       caption and the copy are re-flowed to the box's width at the
+       largest size, from `cap` px down to PTEXT_MIN, at which the
+       whole note fits the box's height; centred, hung from the box's
+       top edge so it sits closest to the landmark.
+
+       On a desktop the caption keeps its handwriting (part 12): the
+       wavy mask stroke is rebuilt at the fitted size whenever the
+       caption is one line. On a phone (or a caption that had to wrap)
+       it fades in as the first line of the note instead — a mask
        re-rasterises its target per frame, which a phone can do
        without. Returns the block's extents in map units. */
-    function setPhone(lb, box, unit){
+    function setBlock(lb, box, unit, cap, narrow){
       var sp = lb.sp, x0 = box[0] * MW, y0 = box[1] * MH, x1 = box[2] * MW, y1 = box[3] * MH;
       var bw = (x1 - x0) * unit - 2 * PPAD, bh = (y1 - y0) * unit - 2 * PPAD;   /* px */
       var text = (sp.copy || []).join(" "), name = sp.name.toUpperCase();
-      var cf = PTEXT, fit = null;
+      var capSp = narrow ? PCAP_SP : 0.2;   /* .jmap__en's own tracking, or the eased one */
+      var cf = Math.max(PTEXT_MIN, cap), fit = null;
       for (; cf >= PTEXT_MIN - 1e-6; cf -= 0.5){
         var capPx = cf * PCAP;
-        var capLines = reflow(name, bw, capPx, PCAP_SP), lines = reflow(text, bw, cf, 0.01);
+        var capLines = reflow(name, bw, capPx, capSp), lines = reflow(text, bw, cf, 0.01);
         var h = capLines.length * capPx * 1.25 + cf * 0.55 + lines.length * cf * 1.42 - cf * 0.3;
         fit = { cf: cf, cap: capLines, lines: lines, h: h };
         if (h <= bh) break;
@@ -1828,9 +1843,26 @@
                      PTEXT_MIN + "px (" + Math.round(fit.h) + " of " + Math.round(bh) + "px)");
       var sq = fit.cf / (CFu * unit), capF = CFu * PCAP, capLH = capF * 1.25, CLH = CFu * 1.42;
       var yCopy0 = (fit.cap.length - 1) * capLH + CFu * 0.55 + CFu;
-      lb.ge.innerHTML =
-        '<text class="jmap__en" x="0" y="0" font-size="' + capF.toFixed(2) +
-        '" text-anchor="middle" style="opacity:0">' +
+      var masked = !narrow && fit.cap.length === 1, html = "";
+      if (masked){
+        /* the caption's writing stroke, as the label block builds it,
+           at this size and this caption's measured width */
+        var ew2 = textW(fit.cap[0], capF, capSp) + capF * 2, seg = ew2 / 6,
+            d2 = "M" + (-ew2 / 2).toFixed(1) + " 0", si;
+        for (si = 1; si <= 6; si++)
+          d2 += " L" + (-ew2 / 2 + seg * si).toFixed(1) + " " + ((si % 2 ? -1 : 1) * capF * 0.16).toFixed(1);
+        html += '<defs><mask id="jme' + lb.idx + '" maskUnits="userSpaceOnUse" x="' +
+          (-ew2 / 2 - capF).toFixed(1) + '" y="' + (-capF * 1.4).toFixed(1) +
+          '" width="' + (ew2 + 2 * capF).toFixed(1) + '" height="' + (capF * 2.8).toFixed(1) + '">' +
+          '<rect x="' + (-ew2 / 2 - capF).toFixed(1) + '" y="' + (-capF * 1.4).toFixed(1) +
+          '" width="' + (ew2 + 2 * capF).toFixed(1) + '" height="' + (capF * 2.8).toFixed(1) + '" fill="#000"/>' +
+          '<path d="' + d2 + '" fill="none" stroke="#fff" stroke-width="' +
+          (capF * 1.8).toFixed(1) + '" stroke-linecap="round" stroke-linejoin="round"/>' +
+          "</mask></defs>";
+      }
+      html +=
+        '<text class="jmap__en"' + (masked ? ' mask="url(#jme' + lb.idx + ')"' : ' style="opacity:0"') +
+        ' x="0" y="0" font-size="' + capF.toFixed(2) + '" text-anchor="middle">' +
         fit.cap.map(function(l, li){
           return '<tspan x="0"' + (li ? ' dy="' + capLH.toFixed(2) + '"' : "") + ">" + esc(l) + "</tspan>";
         }).join("") +
@@ -1839,19 +1871,28 @@
           return '<text x="0" y="' + (yCopy0 + li * CLH).toFixed(2) + '" font-size="' +
                  CFu.toFixed(2) + '" text-anchor="middle" style="opacity:0">' + esc(l) + "</text>";
         }).join("") + "</g>";
-      lb.ge.classList.add("jmap__enlab--phone");
-      lb.emp = null;
+      lb.ge.innerHTML = html;
+      lb.ge.classList.toggle("jmap__enlab--phone", !!narrow);
+      if (masked){
+        lb.emp = lb.ge.querySelector("mask path");
+        lb.eL = lb.emp.getTotalLength();
+        lb.emp.style.strokeDasharray = lb.eL.toFixed(1) + " " + lb.eL.toFixed(1);
+        lb.emp.style.strokeDashoffset = lb.eL.toFixed(1);
+        lb.lines = lb.ge.querySelectorAll(".jmap__copy > text");
+      } else {
+        lb.emp = null;
+        lb.lines = lb.ge.querySelectorAll("text");   /* the caption first */
+      }
       lb.cg = lb.ge.querySelector(".jmap__copy");
-      lb.lines = lb.ge.querySelectorAll("text");   /* the caption first */
       lb.step = Math.min(0.13, 0.37 / Math.max(1, lb.lines.length - 1));
       lb.cw = -1; lb.lw = -1;
-      lb.mode = "phone";
+      lb.mode = "box";
       var cx = (x0 + x1) / 2, top = y0 + PPAD / unit, ty = top + capF * 0.78 * sq;
       lb.ge.setAttribute("transform",
         "translate(" + cx.toFixed(1) + " " + ty.toFixed(1) + ") scale(" + sq.toFixed(3) + ")");
       var wmax = 0, li2;
       for (li2 = 0; li2 < fit.cap.length; li2++)
-        wmax = Math.max(wmax, textW(fit.cap[li2], fit.cf * PCAP, PCAP_SP));
+        wmax = Math.max(wmax, textW(fit.cap[li2], fit.cf * PCAP, capSp));
       for (li2 = 0; li2 < fit.lines.length; li2++)
         wmax = Math.max(wmax, textW(fit.lines[li2], fit.cf, 0.01));
       var wU = wmax / unit;
@@ -1955,9 +1996,12 @@
           ") scale(" + lq.toFixed(3) + ")");
         lb.blk = null;
         if (lb.ge){
-          if (narrow && !strip && lb.pb){
-            /* the phone block, in the box the tool cleared for it */
-            lb.blk = setPhone(lb, lb.pb, unit);
+          if (!strip && lb.pb){
+            /* the note fitted to the box the tool cleared for it — the
+               cap is the phone's PTEXT, or on a wider screen a size
+               that grows with the window and stops at DTEXT_MAX */
+            var cap = narrow ? PTEXT : (DTEXT || Math.max(13, Math.min(DTEXT_MAX, W * DTEXT_K)));
+            lb.blk = setBlock(lb, lb.pb, unit, cap, narrow);
           } else {
             setDesk(lb);
             /* under the building when the sheet carries an anchor,
@@ -1997,12 +2041,20 @@
             hi0 = Math.max(mx + 15, tx + nhw, blk ? blk.x1 : -Infinity),
             minC = hi0 - visW / 2 + 12, maxC = lo0 + visW / 2 - 12;
         fxU = minC <= maxC ? Math.max(minC, Math.min(maxC, fxU)) : (lo0 + hi0) / 2;
-        /* DOWN: the seal keeps to the middle 40% — the landmark has to
-           stay in the picture on a short desktop window, where the
-           note is below the frame at arrival anyway (the caveat §9w
-           part 14 records) */
-        var limY = visH * (0.5 - FRAME_EDGE_Y);
-        fyU = Math.max(my - limY, Math.min(my + limY, fyU));
+        /* DOWN: the same, with the landmark counted in (LAND_H either
+           side of the seal — every vignette sits roughly centred on its
+           stop) and, when the frame is too short for landmark and note
+           together (a 1280x551 desktop: 261 units tall against stop
+           1's 290), the TOP wins: seal, name and building stay whole
+           and the note's last lines come up as the camera moves on —
+           §9w part 14's caveat, kept on purpose. A midpoint that split
+           the difference here cut 창덕궁's first stroke off the top of
+           a short window. */
+        var nhh = lq * ((lb.sp.ko.length - 1) / 2 * LSIZE * 1.14 + LSIZE * 0.55);
+        var lo0Y = Math.min(my - LAND_H, ty - nhh, blk ? blk.y0 : Infinity),
+            hi0Y = Math.max(my + LAND_H, ty + nhh, blk ? blk.y1 : -Infinity),
+            minCy = hi0Y - visH / 2 + 12, maxCy = lo0Y + visH / 2 - 12;
+        fyU = minCy <= maxCy ? Math.max(minCy, Math.min(maxCy, fyU)) : maxCy;
         frameOff[k] = { x: (fxU - mx) * FRAME_PULL, y: (fyU - my) * FRAME_PULL };
       });
     }

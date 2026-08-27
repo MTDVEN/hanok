@@ -257,6 +257,20 @@ var CLEAR = (function(){
   lst.forEach(function(l){ by[l.stop] = l.poly; });
   return by;
 })();
+/* The copy's length per stop, in characters, for the box score (see
+   COPY_EM). Lifted from js/journey.js's SPOTS the way tools/build.js
+   lifts TYPES — read the real file, never retype it; `--copy 182,147`
+   overrides, and a stop with no figure gets 160. */
+var COPY_N = (function(){
+  var i = argv.indexOf("--copy"), out = [];
+  if (i >= 0) return argv[i + 1].split(",").map(Number);
+  try {
+    var js = fs.readFileSync(require("path").join(__dirname, "..", "js", "journey.js"), "utf8");
+    var re = /copy:\s*\[((?:\s*"[^"]*",?)+)\s*\]/g, m;
+    while ((m = re.exec(js))) out.push(m[1].replace(/"/g, "").replace(/,\s*/g, " ").replace(/\s+/g, " ").trim().length);
+  } catch (e){}
+  return out;
+})();
 
 if (!src){
   console.error("usage: node tools/maproute.js <map.png> [--base <plain.png>] [--stops 4] [--debug]");
@@ -334,7 +348,7 @@ var CLEAR_INSET = 2.5;
    not down with the other PHONE_ knobs: read before its assignment it
    is undefined, the inset goes NaN, and the mask comes back empty
    without a word (DARK_T's trap, again) */
-var PHONE_INSET = 1.0;
+var PHONE_INSET = 0.6;
 function polyMask(poly, inset){
   var m = new Uint8Array(COLS * ROWS), gx, gy;
   function inside(px, py){
@@ -686,8 +700,20 @@ var NAME_HW = 1.4, NAME_HH = 4.4;
    added to ROAD_HALF. The aspect bounds keep the box paragraph-shaped
    (a 2x20 strip is useless to a six-line note); PHONE_NEAR is how
    much area a box gives up per cell of distance from the landmark. */
-var PHONE_DARK = 0.035, PHONE_VERGE = 0.5;
-var PHONE_ASPECT_LO = 0.6, PHONE_ASPECT_HI = 3.5, PHONE_NEAR = 0.04;
+var PHONE_DARK = 0.035, PHONE_VERGE = 0.2;
+var PHONE_ASPECT_LO = 0.5, PHONE_ASPECT_HI = 4.0, PHONE_NEAR = 0.015;
+/* THE BOX IS SCORED BY THE TYPE SIZE THE COPY CAN REACH IN IT, not by
+   its area (2026-08-27, VEN: "resize the text so that it fits nicely
+   in the new gaps"). Area preferred tall-and-narrow at stop 1 — 14x20
+   cells — when a 19x16 box was there for the taking, and a paragraph
+   wants width: at the same area the wider box sets larger type. So
+   for each candidate the largest size (in cells) at which this stop's
+   copy, re-flowed to the box's width, fits its height is found — the
+   same arithmetic js/journey.js's setBlock does on the page, at the
+   same ratios (average glyph COPY_EM wide, lines COPY_LH apart, the
+   caption above) — and that size is the score. The copy's length is
+   lifted from js/journey.js (COPY_N below). */
+var COPY_EM = 0.50, COPY_LH = 1.42, COPY_HEAD = 1.6, COPY_WASTE = 1.12;
 /* The phone box is not held CLEAR_INSET cells inside the loop the way
    the desktop block is — that inset costs five cells of a clearing
    that is only twenty wide. Instead it may go anywhere inside the
@@ -697,7 +723,7 @@ var PHONE_ASPECT_LO = 0.6, PHONE_ASPECT_HI = 3.5, PHONE_NEAR = 0.04;
    where the dark count cannot (a stroke at 20% over paper is luma
    ~190 — well above DARK_T, well below SOFT_T0, which is declared up
    by DARK_T for the same hoisting reason). */
-var PHONE_SOFT = 0.10;   /* PHONE_INSET itself is declared up by polyMask */
+var PHONE_SOFT = 0.13;   /* PHONE_INSET itself is declared up by polyMask */
 
 /* WHY THE NAME SEARCH IS STILL ON `nd` AND NOT ON `dark` — 2026-08-25.
 
@@ -731,8 +757,9 @@ var PHONE_SOFT = 0.10;   /* PHONE_INSET itself is declared up by polyMask */
    about the anchor, count pixels under DARK_T). */
 
   /* cm: this stop's clearing mask (see --clear), or null; cml: the
-     same loop with the smaller PHONE_INSET, for the phone box */
-  function labelSpot(gy0, rx0, cm, cml){
+     same loop with the smaller PHONE_INSET, for the box; stopIdx for
+     the copy length the box is scored against */
+  function labelSpot(gy0, rx0, cm, cml, stopIdx){
     /* The landmark itself, as a FLOOD-FILLED component, not a
        thresholded bounding box. image2image regenerates the whole
        sheet, so the vig field carries a residue of drift everywhere;
@@ -1123,7 +1150,19 @@ var PHONE_SOFT = 0.10;   /* PHONE_INSET itself is declared up by polyMask */
         return S[(y1 + 1) * (uw + 1) + x1 + 1] - S[y0 * (uw + 1) + x1 + 1]
              - S[(y1 + 1) * (uw + 1) + x0] + S[y0 * (uw + 1) + x0];
       }
-      var best = 0, bb = null, x0, y0, x1, y1;
+      /* the largest type size, in cells, at which N characters of copy
+         re-flowed to w cells fit h cells — the box's score */
+      var N = (COPY_N[stopIdx] || 160) * COPY_WASTE;
+      function typeSize(w, h){
+        var lo = 0.05, hi = 4, it;
+        for (it = 0; it < 24; it++){
+          var s = (lo + hi) / 2, cpl = Math.floor(w / (COPY_EM * s));
+          var lines = cpl > 0 ? Math.ceil(N / cpl) : Infinity;
+          if (lines * COPY_LH * s + COPY_HEAD * s <= h) lo = s; else hi = s;
+        }
+        return lo;
+      }
+      var best = 0, bb = null, bs = 0, x0, y0, x1, y1;
       for (y0 = 0; y0 < uh; y0++)
         for (y1 = y0 + 2; y1 < uh; y1++)
           for (x0 = 0; x0 < uw; x0++)
@@ -1134,10 +1173,13 @@ var PHONE_SOFT = 0.10;   /* PHONE_INSET itself is declared up by polyMask */
               var gx0 = ux0 + x0, gx1 = ux0 + x1, gy0b = uy0 + y0, gy1b = uy0 + y1;
               var dd = hasBlob
                 ? Math.max(0, bx0 - gx1, gx0 - bx1) + Math.max(0, by0 - gy1b, gy0b - by1) : 0;
-              var sc = w * h * Math.max(0.2, 1 - PHONE_NEAR * dd);
-              if (sc > best){ best = sc; bb = [gx0, gy0b, gx1 + 1, gy1b + 1]; }
+              var ts = typeSize(w, h);
+              var sc = ts * Math.max(0.2, 1 - PHONE_NEAR * dd);
+              if (sc > best){ best = sc; bs = ts; bb = [gx0, gy0b, gx1 + 1, gy1b + 1]; }
             }
       if (bb) pb = bb;
+      if (bb) console.log("  box     stop " + (stopIdx + 1) + "  " + (bb[2] - bb[0]) + "x" + (bb[3] - bb[1]) +
+                          " cells, type up to " + bs.toFixed(2) + " cells for " + Math.round(N / COPY_WASTE) + " chars");
       if (WHY){
         console.log("  --why  phone box " + (bb ? "cols " + bb[0] + "-" + bb[2] + " rows " + bb[1] + "-" + bb[3] +
                     " (" + (bb[2] - bb[0]) + "x" + (bb[3] - bb[1]) + " cells)" : "NONE"));
@@ -1200,7 +1242,7 @@ var PHONE_SOFT = 0.10;   /* PHONE_INSET itself is declared up by polyMask */
     picked.forEach(function(gy3, si3){
       var pt2 = atRow(gy3);
       var spot = labelSpot(gy3, Math.round(road[gy3]), clearMask[si3 + 1] || null,
-                           clearLoose[si3 + 1] || null);
+                           clearLoose[si3 + 1] || null, si3);
       pt2.lx = spot.lx; pt2.ly = spot.ly;
       pt2.ex = spot.ex; pt2.ey = spot.ey;
       pt2.pb = spot.pb;

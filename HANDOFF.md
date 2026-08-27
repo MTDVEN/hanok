@@ -5123,6 +5123,41 @@ audit — every seal, name and block inside the frame at all four
 stops, stop 3's block bottoming at y 707 — and by the route render.
 Jeonju on a phone is verified by the DOM audit and the render only.
 
+### 8. "Resize the text so that it fits nicely in the new gaps"
+
+VEN, on seeing it: *"okay that is good BUT can we resize the text so
+that it fits nicely in the new gaps/clearings that we created?"* Two
+things were small about it. The phone fit only ever stepped DOWN from
+11px, so a box with room to spare still got 11; and the desktop was
+still drawing the old label-scale block — four authored lines at
+~14px in a clearing a thousand pixels wide.
+
+- **The fit is for every device now** (`setBlock`, was `setPhone`).
+  A phone caps at `PTEXT` 13; a wider screen at `DTEXT_K` 0.014 of its
+  width (18px at 1280, 22 at 1600) up to `DTEXT_MAX` 24, `?dtext=` to
+  pin. On a desktop the caption is one line, so its handwriting mask
+  is rebuilt at the fitted size and it still writes; a wrapped
+  caption (phones) fades as the first line.
+- **The box is scored by the type size the copy can reach in it**,
+  not by area. Area preferred 14x20 at stop 1 when 19x16 was there;
+  a paragraph wants width. maproute lifts each stop's copy length
+  from js/journey.js (`COPY_N`, `--copy` overrides) and finds, per
+  candidate, the largest size in cells at which that many characters
+  re-flowed to the box's width fit its height — the same arithmetic
+  setBlock does on the page — and takes the best. Verge 0.2, inset
+  0.6, soft 0.13, to stop giving cells away.
+- Phone results: **13 / 10 / 13 / 9.5 px** (was 11 / 9.5 / 11 / 9.5).
+  Stops 2 and 4 are loop-limited — nine rows above the range, eleven
+  columns between village and coast — and only a bigger loop moves
+  them. Desktop at 1280x551: 17.9px, four to seven lines, every note
+  inside the frame at arrival.
+- **The vertical framing counts the landmark**, and when a short
+  window cannot hold landmark and note together, the seal's side
+  wins. Before that, the midpoint cut 창덕궁's first stroke off the top
+  of a 551-tall window. `LAND_H` 80 units either side of the seal
+  stands in for the vignette's extent (every one sits roughly centred
+  on its stop).
+
 ### Files
 
 - `tools/mapclear.js`, `tools/clearings.json` — new.
