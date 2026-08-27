@@ -16,18 +16,27 @@ Namsangol's bridge/swap steps. (Jeonju's stop was blank until session
 14, when VEN forwarded Upbit's own framing and it took the tile
 metaphor — **§9aa**.)
 
-**SESSION 15 (2026-08-27), READ FIRST IF YOU TOUCH THE MAP ART OR THE
-COPY.** The terrain inside VEN's three red loops is faded to bare
-parchment (`tools/mapclear.js` + `tools/clearings.json`), the text
-blocks live in those clearings on every device, and phones have the
-copy back on the sheet, re-flowed into a measured box, with the
-camera framing seal, name and note together. A fourth loop beside
-Jeonju is the one thing VEN did not draw. **§9ab** is the whole
-record; README's THE CLEARINGS is the four-command pipeline. Two new
-traps there: `--terrain` (carve the road on the pre-clearing sheet or
-it wanders into the paper cleared for the text) and the screenshot
-timeout in the harness (first capture after a change fails, second
-works).
+**SESSION 15 (2026-08-27), READ FIRST IF YOU TOUCH THE MAP ART, THE
+COPY, OR THE JOURNEY'S ENDING.** One long day with VEN, fourteen
+parts, all LIVE, and the shape it settled into is this: each of
+Zico's four notes is a plain rectangular block of the display serif
+at a size fixed in SHEET units, and the map has a small clearing cut
+to that block plus one margin (`tools/mapnote.js` → `tools/
+mapclear.js`), the mountains standing everywhere else; the English
+caption sits under its building on a searched anchor (with a mini
+clearing where the paper was inked); the Korean name is where it
+always was; the note writes itself on one brush-stroke mask; the
+trail is the footsteps alone; and at the end of the road the camera
+pans a little further so Jeonju's caption has paper beneath it. The
+pipeline is README's THE CLEARINGS (five commands). **§9ab** is the
+whole record — including everything VEN rejected on the way (a
+shaped, ragged note; a handwriting face; larger clearings with small
+text; the road inking on past the last stop), which is worth reading
+before proposing any of them again. Traps found: `--terrain` (carve
+the road on the pre-clearing sheet or it wanders into the paper
+cleared for the text), the `.jmap__note` class collision (the band's
+CSS swallowed the note), and the harness screenshot timeout (first
+capture after a change fails, second works).
 
 **SESSION 14 (2026-08-25), READ FIRST IF YOU TOUCH THE MAP'S LAYOUT.**
 VEN looked at the journey on a phone and the copy was standing on the
@@ -5368,12 +5377,42 @@ up and to the left a bit (ie closer to the bottom of the image)"*.
   extending the footpath, that is irrelevant. Just the background").
   So: `TAIL` 0.06 (30vh of 490), and in it `timelineU` returns
   u > N-1 and `lenAt` carries the CAMERA down the rest of the road
-  (`TAIL_WALK` 1, the sheet's foot; the zoom and the framing
-  offset held at the stop's), while drawMap holds everything the
-  road drives — the inking, the walker, the prints, the names and
-  seals — at the last stop (`walked = min(camLen, STOP_LEN[N-1])`).
-  `.journey--map` 560 → 590vh so the legs kept their 460vh.
-  `?tail=0` is the old ending, `?walk=` how far the camera goes.
+  (`TAIL_WALK`; the zoom and the framing offset held at the stop's),
+  while drawMap holds everything the road drives — the inking, the
+  walker, the prints, the names and seals — at the last stop
+  (`walked = min(camLen, STOP_LEN[N-1])`). `.journey--map` 560 →
+  590vh so the legs kept their 460vh. **`TAIL_WALK` is 0.1, VEN's
+  number, set by eye with the knob** (*"walk = 0.1 is enough"*): a
+  tenth of the rest of the road, about 25 units of sheet. `TAIL` 0.06
+  he left as it was (*"tail i dont understand it so just dont change
+  whatever value its at now"*). `?tail=0` is the old ending, `?walk=`
+  how far the camera goes.
+
+### Where things stood when VEN went to sleep (end of session 15)
+
+Everything above is LIVE at tilesongiwa.com (last push: the walk at
+0.1). No open asks from VEN. What the next session inherits:
+
+- **The pipeline** for any change to a note (copy, size, leading,
+  margin): README's THE CLEARINGS, five commands, then paste
+  `MAP_STOPS` (caption anchors) and `MAP_CLEAR` (note blocks) into
+  js/journey.js. `SIZE_CAP`, `LH`, `MARGIN`, `CAP_SIZE` in
+  tools/mapnote.js are the knobs; `COPY_LH` and `CAPU` in journey.js
+  must match `LH` and `CAP_SIZE`.
+- **The reviewed overrides**, both in tools/maproute.js: `CAP_XY`
+  (stops 1 and 3), `BLOCK_X` (empty). Clear on an art re-roll.
+- **The masters**: `map-ink-master-clear.png` (shipped) and
+  `map-ink-master-plain-clear.png` (the `--base`), both regenerable
+  from `-nams` / `-plain` + tools/clearings.json. Still gitignored,
+  still not backed up anywhere.
+- **Phones** read the same blocks ~2.5x smaller (about 11 / 9 / 11 /
+  8 px, captions ~8px). VEN judged everything on his ~960x400 CSS
+  desktop window today and has not looked at a phone since the
+  clearings were cut to the blocks. If he does, the honest levers are
+  `SIZE_CAP` (bigger blocks, bigger clearings) or `?copy=strip` (the
+  band).
+- **Still Zico's** (unchanged all session): the ticker, Namsangol's
+  bridge and swap steps, the CA. LAUNCH DAY below is the list.
 - **`CAP_XY` in maproute**: the caption anchor's reviewed override,
   BLOCK_X's contract — stop 1, 0.563,0.190 → 0.535,0.178, the ink
   under it measured there (0.138, so its small clearing moved with

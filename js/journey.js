@@ -972,7 +972,7 @@
   /* ...and how far along the rest of the road the CAMERA walks in it
      (1 = to the sheet's foot). See lenAt, and drawMap for why the road
      itself stays where it was. */
-  var TAIL_WALK = qs("walk", 1);
+  var TAIL_WALK = qs("walk", 0.1);   /* VEN, by eye with the knob: "walk = 0.1 is enough" */
   /* What replaced the dwell, so an arrival still reads as one:
      EASE bends each leg's pacing toward smoothstep without reaching
      it — speed drops to (1-EASE) of cruise as you pass a place, and
