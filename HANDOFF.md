@@ -5361,9 +5361,13 @@ up and to the left a bit (ie closer to the bottom of the image)"*.
   Jeonju for the rest; `.journey--map` grew 560 → 610vh so the legs
   kept their pacing (460vh/0.9). `?tail=0` is the old ending.
 - **`CAP_XY` in maproute**: the caption anchor's reviewed override,
-  BLOCK_X's contract — stop 1 only, 0.563,0.190 → 0.535,0.178, the
-  ink under it measured there (0.138, so its small clearing moved
-  with it). Cleared on an art re-roll like the rest.
+  BLOCK_X's contract — stop 1, 0.563,0.190 → 0.535,0.178, the ink
+  under it measured there (0.138, so its small clearing moved with
+  it); then stop 3, 0.424,0.678 → 0.424,0.664 (VEN: "move namsangol
+  village up a little bit, i feel like it is a bit too far down"),
+  which put it over the ground hatching at the wall's foot (0.077)
+  and earned it a clearing of its own — the wall itself is held out
+  by --keep. Six loops now. Cleared on an art re-roll like the rest.
 
 ### Files
 

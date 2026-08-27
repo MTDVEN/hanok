@@ -688,8 +688,13 @@ var BLOCK_X = [null, null, null, null];
    columns east and a row down to keep its left end off the footpath's
    verge; VEN's spot puts that end ~15 units from the prints, which he
    has seen and prefers. The ink under the override is measured like
-   any other candidate's, so mapnote still decides its clearing. */
-var CAP_XY = [[0.535, 0.178], null, null, null];
+   any other candidate's, so mapnote still decides its clearing.
+
+   STOP 3, 0.424,0.678 -> 0.424,0.664. VEN, 2026-08-27, on the same
+   screenshot round: "move namsangol village up a little bit, i feel
+   like it is a bit too far down" — the caption, up toward the walled
+   house's foot (its wall bottom is at ~0.65). */
+var CAP_XY = [[0.535, 0.178], null, [0.424, 0.664], null];
 
 var MEAN_W = 4.5;
 
