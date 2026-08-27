@@ -828,7 +828,7 @@
          14 had it. The copy is in `clear` below. */
       stops: [[0.340, 0.120, 0.396, 0.136, 0.535, 0.178],
               [0.493, 0.360, 0.410, 0.329, 0.410, 0.446],
-              [0.623, 0.601, 0.368, 0.632, 0.424, 0.678],
+              [0.623, 0.601, 0.368, 0.632, 0.424, 0.664],
               [0.374, 0.857, 0.326, 0.872, 0.438, 0.934]],
       /* the note's clearing per stop, from maproute --clear (MAP_CLEAR):
          `box` [x0, y0, x1, y1] is the widest clean rectangle, `rows`
