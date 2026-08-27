@@ -44,9 +44,11 @@ var path = require("path");
 
 /* ---- knobs (all overridable on the command line) ---------------- */
 
-var SIZE   = 17;     // copy size, map units (sheet width = 1000): 12.6px on
-                     // a 390px phone at PHONE_ZOOM 1.9, 27px on a 960px window
-var LH     = 1.5;    // line height, ems — the block's rhythm (COPY_LH in journey.js)
+var SIZE   = 13.5;   // copy size, map units (sheet width = 1000). 17 until
+                     // VEN: "scale down all of the english text" — a fifth
+                     // smaller: ~21px on his 960px window, ~11px on a phone
+var LH     = 1.38;   // line height, ems — the block's rhythm (COPY_LH in
+                     // journey.js; 1.5 "looks too dispersed", VEN)
 var MARGIN = 24;     // map units of paper between the text and the loop's line;
                      // mapclear's FEATHER must ramp inside this, see there
 var CAP    = 0.82;   // caption size, ems of the copy (small caps, tracked .2em)
@@ -57,6 +59,12 @@ var MEAS_MAX = 36, MEAS_MIN = 18;   // measure, in characters, widest first
    village, and on a 390px phone at PHONE_ZOOM 2.0 the frame is 500
    units — a 23-character block there ran 15px off the right edge. */
 var MEAS_CAP = [36, 36, 36, 20];
+/* per-stop ceilings on the size (`--sizes 13.5,11,13.5,10`). SIZE alone
+   is a common cap, and a narrow loop that could never reach it (the
+   terraces, Jeonju) would not shrink with the others when SIZE is
+   lowered — VEN asked for ALL the text a fifth smaller, so each stop's
+   ceiling is a fifth under what it had (16 / 13 / 17 / 12). */
+var SIZE_CAP = [13.5, 11, 13.5, 10];
 var RADIUS = 30;     // the loop's corner radius, map units
 
 /* ---- args ------------------------------------------------------- */
@@ -68,6 +76,7 @@ for (i = 0; i < argv.length; i++){
   else if (argv[i] === "--margin") MARGIN = +argv[++i];
   else if (argv[i] === "--out") OUT = argv[++i];
   else if (argv[i] === "--measmax") MEAS_CAP = argv[++i].split(",").map(Number);
+  else if (argv[i] === "--sizes") SIZE_CAP = argv[++i].split(",").map(Number);
   else src = argv[i];
 }
 if (!src){
@@ -171,7 +180,7 @@ shape.stops.forEach(function(st, k){
   /* the largest size that fits anywhere; at that size the widest
      measure; at that measure the highest start */
   var measMax = Math.min(MEAS_MAX, MEAS_CAP[k] || MEAS_MAX);
-  for (S = SIZE; S >= 8 && !best; S -= 0.5)
+  for (S = Math.min(SIZE, SIZE_CAP[k] || SIZE); S >= 8 && !best; S -= 0.5)
     for (chars = measMax; chars >= MEAS_MIN && !best; chars -= 1){
       var b = block(k, S, chars), halfW = b.w / 2 + MARGIN;
       for (y = R.top; y + b.h + 2 * MARGIN <= R.top + R.runs.length * R.dy && !best; y += R.dy / 2){

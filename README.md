@@ -264,9 +264,11 @@ captions.
   block and its size in sheet units, from tools/mapnote.js; `setBlock`
   wraps the copy to the box's width at that size and centres it. What
   changes with the screen is only how large the sheet is drawn —
-  phones at settle zoom `?pzoom=2.0` (about 12.5 / 10 / 13 / 9.4 px),
-  a 960px window ~25px, wider windows capped at `?dtextmax=32` (the
-  block then sits centred a little smaller). The camera frames seal,
+  phones at settle zoom `?pzoom=2.1` (about 11 / 9 / 11 / 8 px), a
+  960px window ~21px, wider windows capped at `?dtextmax=32` (the
+  block then sits centred a little smaller). Sizes are `SIZE_CAP` in
+  tools/mapnote.js (`--sizes 13.5,11,13.5,10`), leading `LH` there and
+  `?leading=1.38` here — the two must agree. The camera frames seal,
   name, landmark and note together at every stop, the seal's side
   winning when a short window cannot hold them all (`?frame=0`
   restores seal-centred). `?copy=strip` is the band; `?map=solid` is
@@ -277,8 +279,8 @@ captions.
   names staying Song Myung. The note writes itself on one brush-stroke
   mask (`?fade=1` for the old line fade); lines sit `?leading=1.5`
   apart (the value tools/mapnote.js plans with — change both). The
-  trail is footsteps over a faint dotted road (`?trail=steps` /
-  `?trail=dots` for one or the other).
+  trail is the footsteps alone (`?trail=foot` adds a faint dotted road
+  under them, `?trail=dots` is the line alone).
 - `node tools/mapbox.js <sheet> <out> cx,cy,hw,up,dn` draws a label's
   REAL footprint on the sheet. **This is the authority when the grid
   and the eye disagree** — a 25px cell statistic cannot see a thin

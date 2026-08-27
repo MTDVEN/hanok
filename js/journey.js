@@ -841,10 +841,10 @@
          same block on every device. Paste, never hand-edit; the
          pipeline is README's THE CLEARINGS. */
       clear: [
-        { box: [0.607, 0.192, 0.774, 0.319], fs: 16 },
-        { box: [0.621, 0.393, 0.739, 0.497], fs: 13 },
-        { box: [0.649, 0.637, 0.795, 0.745], fs: 17 },
-        { box: [0.691, 0.808, 0.790, 0.924], fs: 12 }
+        { box: [0.566, 0.215, 0.778, 0.277], fs: 13.5 },
+        { box: [0.580, 0.409, 0.749, 0.459], fs: 11 },
+        { box: [0.635, 0.676, 0.793, 0.735], fs: 13.5 },
+        { box: [0.691, 0.800, 0.773, 0.890], fs: 10 }
       ],
 
       /* SEAL NUDGE — [dx, dy] per stop, normalised like everything
@@ -1141,7 +1141,10 @@
      one is standing. */
   var TRAIL = (function(){
     var m = /[?&]trail=([a-z]+)/i.exec(location.search);
-    return m ? m[1].toLowerCase() : "foot";
+    /* `steps` — the prints alone — since VEN, 2026-08-27: "make it so
+       there is only one set of footsteps"; the dotted road under them
+       read as a second, smaller set. `foot` draws both, `dots` the line. */
+    return m ? m[1].toLowerCase() : "steps";
   })();
   /* strength of the paper veil that seats the sheet on our paper. This
      is the job .scene-backdrop does with mix-blend-mode on the image
@@ -1174,9 +1177,10 @@
   /* the pen's glyphs are narrower and lighter than the serif's, so the
      same legibility wants a larger size: the caps step up with the hand */
   var PTEXT = qs("ptext", HAND === "0" ? 15 : 18), PTEXT_MIN = qs("ptextmin", HAND === "0" ? 8.5 : 10);
-  var PHONE_ZOOM = qs("pzoom", 2.0);   /* 1.9 → 2.0 once the blocks were fixed in
-                                          sheet units; 2.1 was tried and Jeonju's
-                                          name and note no longer fit one frame */
+  var PHONE_ZOOM = qs("pzoom", 2.1);   /* 1.9 → 2.0 once the blocks were fixed in
+                                          sheet units, 2.1 once they were scaled
+                                          down: Jeonju's name and note span 475
+                                          units now, and 2.1 shows 476 */
   /* ...AND ON EVERY WIDER SCREEN TOO (VEN, 2026-08-27: "resize the
      text so that it fits nicely in the new gaps/clearings"). The
      desktop block used to be the label-scale block — four authored
@@ -1856,10 +1860,10 @@
        gaps between each line of text to be a bit larger (in order to
        simulate handwritten content)" */
     var PCAP = HAND === "0" ? 0.82 : 1.05, PCAP_SP = HAND === "0" ? 0.12 : 0.02, PPAD = 4,
-        COPY_LH = qs("leading", HAND === "0" ? 1.5 : 1.65);
-    /* 1.5 for the serif since the notes were made uniform blocks: it is
-       the LH tools/mapnote.js plans the block's height with — change
-       one, change the other, or the block runs past its clearing */
+        COPY_LH = qs("leading", HAND === "0" ? 1.38 : 1.65);
+    /* 1.38 for the serif (1.5 "looks too dispersed", VEN): it is the LH
+       tools/mapnote.js plans the block's height with — change one,
+       change the other, or the block runs past its clearing */
     /* 1.65, not the 1.75 first tried: on a phone the two asks pull
        against each other — every tenth of leading is a line the
        shallow clearings cannot hold, and 1.75 cost stops 1 and 2 a

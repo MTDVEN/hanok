@@ -5294,6 +5294,30 @@ at ~10px) and a short desktop window reads a tall column whose last
 lines arrive on scroll. The clearings could not be both tight on a
 desktop and roomy for a phone; his ask was the desktop's.
 
+### 12. A fifth smaller, tighter, one set of prints
+
+VEN: *"scale down all of the english text in the 'the journey'
+section and make sure the clearings scale down to appropriately hold
+that now smaller text, also reduce the gaps between each row of text
+slightly, it looks too dispersed. Also make it so there is only one
+set of footsteps, do not edit the footsteps and keep the original
+larger ones."*
+
+- `SIZE_CAP` in mapnote (`--sizes`): each stop's ceiling a fifth
+  under what it had — 13.5 / 11 / 13.5 / 10 units (from 16 / 13 / 17
+  / 12). A common cap alone would not have moved the two narrow stops,
+  which never reached it. With the smaller type the wide corridors
+  take a wider measure: stops 1 and 2 are 36-character blocks of
+  1+5 lines now, squat rather than tall. LH 1.38 in both tool and
+  page (1.5 "looks too dispersed"). Re-cut, re-prepped: the loops are
+  ~6% of the sheet.
+- The "second set of footsteps" was the dotted road drawn under the
+  prints in part 10. `TRAIL` defaults to `steps` — the prints alone,
+  at the size and weight they have had since part 10; `?trail=foot`
+  is prints over dots, `?trail=dots` the line.
+- `PHONE_ZOOM` 2.0 → 2.1 (Jeonju's name and note span 475 units now).
+  Phone: about 11 / 9 / 11 / 8.2 px — small, and the desktop's ask.
+
 ### Files
 
 - `tools/mapclear.js`, `tools/clearings.json` — new.
