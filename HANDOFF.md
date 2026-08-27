@@ -5356,10 +5356,21 @@ up and to the left a bit (ie closer to the bottom of the image)"*.
 - **The tail.** The road ended exactly where the pinned scroll did,
   so the last stop was reached at the instant the section began to
   unpin and its caption faded with the trailing edge (the exit
-  dissolve, part 11 of session 12). `TAIL` 0.10: the journey is done
-  in the first 90% of the pinned scroll and the camera holds on
-  Jeonju for the rest; `.journey--map` grew 560 → 610vh so the legs
-  kept their pacing (460vh/0.9). `?tail=0` is the old ending.
+  dissolve, part 11 of session 12). A hold on Jeonju for the last
+  tenth was the first answer, and VEN still could not see the name:
+  *"extend the LENGTH of the section so that it actually has space to
+  render underneath the image COMFORTABLY."* The geometry is why: on
+  his ~400px-tall window the village, its caption and its note
+  together are as tall as the frame, so the caption lands in the last
+  pixels, under the market-cap bar. So the tail WALKS ON instead —
+  `TAIL` 0.14, and past p = 1-TAIL `timelineU` returns u > N-1,
+  `lenAt` carries the camera down the rest of the road to the sheet's
+  foot (the zoom held at the settle zoom, the framing offset held at
+  the stop's), the village rising up the screen and the caption
+  coming clear under it before the section lets go. On a short window
+  the village's roofs leave the top of the screen by the end; on a
+  tall one everything stays. `.journey--map` 560 → 640vh so the legs
+  kept their pacing (460vh/0.86). `?tail=0` is the old ending.
 - **`CAP_XY` in maproute**: the caption anchor's reviewed override,
   BLOCK_X's contract — stop 1, 0.563,0.190 → 0.535,0.178, the ink
   under it measured there (0.138, so its small clearing moved with

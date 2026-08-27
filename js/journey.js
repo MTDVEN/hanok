@@ -968,7 +968,7 @@
   var DWELL = qs("dwell", 0);
   /* share of the pinned scroll spent standing on the LAST stop before
      the section unpins — see timelineU */
-  var TAIL = qs("tail", 0.10);
+  var TAIL = qs("tail", 0.14);
   /* What replaced the dwell, so an arrival still reads as one:
      EASE bends each leg's pacing toward smoothstep without reaching
      it — speed drops to (1-EASE) of cruise as you pass a place, and
@@ -1463,8 +1463,8 @@
          toward the note (frameOff), on the same weight, so the seal
          and the note arrive in frame together and the shift melts
          away as the camera moves on */
-      var k = Math.round(u), off = frameOff[k] || { x: 0, y: 0 };
-      var dist = Math.abs(u - k);
+      var k = Math.round(Math.min(u, N - 1)), off = frameOff[k] || { x: 0, y: 0 };
+      var dist = Math.abs(Math.min(u, N - 1) - k);
       var w = 1 - smooth(cl((dist - 0.10) / 0.20));
       if (CAMS <= 0){
         var tp = pointAt(len);
@@ -1806,13 +1806,23 @@
     function timelineU(p){
       /* THE TAIL (VEN, 2026-08-27, with Jeonju's caption washed out in
          the exit dissolve: "extend the 'the journey' section vertically
-         enough so that this name is rendered properly"). The road used
-         to end exactly where the pinned scroll did, so the last stop
-         was reached at the instant the section began to unpin and its
-         name faded with the trailing edge. Now the journey is done in
-         the first 1-TAIL of the scroll and the camera holds on Jeonju
-         for the rest; css/site.css's height grew to match so the
-         legs kept their pacing. `?tail=0` is the old ending. */
+         enough so that this name is rendered properly", then, still
+         unable to see it: "extend the LENGTH of the section so that it
+         actually has space to render underneath the image
+         COMFORTABLY"). The road used to end exactly where the pinned
+         scroll did, so the last stop was reached at the instant the
+         section began to unpin and its name faded with the trailing
+         edge. A hold on Jeonju was the first answer and it was not
+         enough: on a short window the village, its caption and its
+         note together are as tall as the screen, and the caption
+         lands in the last pixels under the bottom-fixed chrome. So
+         the last TAIL of the scroll WALKS ON — u runs past N-1 and
+         lenAt carries the camera down the rest of the road to the
+         sheet's foot, the village rising up the screen and the
+         caption coming clear beneath it, before the section lets go.
+         css/site.css's height grew to match so the legs kept their
+         pacing. `?tail=0` is the old ending. */
+      if (TAIL > 0 && p > 1 - TAIL) return (N - 1) + (p - (1 - TAIL)) / TAIL;
       p = Math.min(1, p / (1 - TAIL));
       var d = DWELL, t = (1 - N * d) / (N - 1), pos = 0, k;
       for (k = 0; k < N; k++){
@@ -1824,6 +1834,7 @@
       return N - 1;
     }
     function zoomOf(u){
+      if (u > N - 1) u = N - 1;                 /* the tail keeps the settle zoom */
       var dist = Math.abs(u - Math.round(u));   /* 0 at a stop, .5 mid-leg */
       return zIn + (zOut - zIn) *
         smooth(cl((dist - ZHOLD * 0.5) / (0.5 - ZHOLD * 0.5)));
@@ -1831,6 +1842,8 @@
 
     function lenAt(u){
       var k = Math.floor(u), f = u - k;
+      /* past the last stop (the tail): the rest of the road, to its end */
+      if (u > N - 1) return STOP_LEN[N - 1] + (TOTAL - STOP_LEN[N - 1]) * Math.min(1, u - (N - 1));
       if (k >= N - 1) return STOP_LEN[N - 1];
       if (k < 0) return STOP_LEN[0];
       return STOP_LEN[k] + (STOP_LEN[k + 1] - STOP_LEN[k]) * f;

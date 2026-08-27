@@ -658,10 +658,10 @@ a{ color: var(--ink); }
      Shorten this and the travel stops reading as travel; lengthen it
      and the section outstays its welcome.
 
-     610vh since 2026-08-27: the last tenth of the pinned scroll is a
-     hold on Jeonju (TAIL in js/journey.js), so the legs needed
-     460vh/0.9 to keep the pacing above. */
-  height: 610vh;
+     640vh since 2026-08-27: the last 14% of the pinned scroll walks on
+     past Jeonju to the sheet's foot (TAIL in js/journey.js), so the
+     legs needed 460vh/0.86 to keep the pacing above. */
+  height: 640vh;
 }
 /* NO opaque background on the sticky — load-bearing absence (part 9).
    The entry dissolve slides the semi-transparent map up OVER the

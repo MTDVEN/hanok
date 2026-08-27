@@ -208,6 +208,11 @@ captions.
   never delete the plain master. `?vista=1` restores the screen-pinned
   painting overlay (off by default; `?vspan=.35` its window);
   `?info=1` the full cards.
+- The last `?tail=.14` of the pinned scroll walks on past Jeonju to
+  the sheet's foot, so its caption comes clear beneath the village
+  before the section unpins (HANDOFF §9ab.14); `.journey--map` is
+  640vh to give that walk its scroll. `?tail=0` ends the road at the
+  last stop as before.
 - Map-mode camera: `?cam=follow` (default) / `pan` (constant scale, no
   zoom) / `fixed` (whole sheet — poor by construction on a wide window,
   see HANDOFF §9r). Tuning: `?zoomin=1.65` `?zoomout=1.00` `?dwell=0`
