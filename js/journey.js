@@ -971,6 +971,9 @@
   var TAIL = qs("tail", 0.042);   /* 0.14 first; VEN: "you extended it a bit too
                                       much, maybe need a quarter of what you
                                       added" — 20vh of 480, see css/site.css */
+  /* ...and how far along the rest of the road that tail walks (1 = to
+     the sheet's foot). See lenAt. */
+  var TAIL_WALK = qs("walk", 0.25);
   /* What replaced the dwell, so an arrival still reads as one:
      EASE bends each leg's pacing toward smoothstep without reaching
      it — speed drops to (1-EASE) of cruise as you pass a place, and
@@ -1844,8 +1847,12 @@
 
     function lenAt(u){
       var k = Math.floor(u), f = u - k;
-      /* past the last stop (the tail): the rest of the road, to its end */
-      if (u > N - 1) return STOP_LEN[N - 1] + (TOTAL - STOP_LEN[N - 1]) * Math.min(1, u - (N - 1));
+      /* past the last stop (the tail): TAIL_WALK of the rest of the road.
+         All of it first, and VEN twice: "you extended it a bit too
+         much" — the village left the top of the screen. A quarter
+         lifts the caption clear of the bottom chrome and keeps the
+         village. */
+      if (u > N - 1) return STOP_LEN[N - 1] + (TOTAL - STOP_LEN[N - 1]) * TAIL_WALK * Math.min(1, u - (N - 1));
       if (k >= N - 1) return STOP_LEN[N - 1];
       if (k < 0) return STOP_LEN[0];
       return STOP_LEN[k] + (STOP_LEN[k + 1] - STOP_LEN[k]) * f;

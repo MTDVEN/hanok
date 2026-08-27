@@ -5364,7 +5364,7 @@ up and to the left a bit (ie closer to the bottom of the image)"*.
   together are as tall as the frame, so the caption lands in the last
   pixels, under the market-cap bar. So the tail WALKS ON instead —
   `TAIL` 0.042 (20vh of 480 — 0.14 first, then VEN: "you extended it a bit too much, maybe need a quarter of what you added"), and past p = 1-TAIL `timelineU` returns u > N-1,
-  `lenAt` carries the camera down the rest of the road to the sheet's
+  `lenAt` carries the camera TAIL_WALK (0.25 — all the way first, and the village left the top of the screen; "no its still too long") of the rest of the road toward the sheet's
   foot (the zoom held at the settle zoom, the framing offset held at
   the stop's), the village rising up the screen and the caption
   coming clear under it before the section lets go. On a short window
