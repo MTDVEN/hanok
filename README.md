@@ -208,7 +208,7 @@ captions.
 - The last `?tail=.06` (30vh) of the pinned scroll pans the camera on past Jeonju toward
   the sheet's foot, so its caption comes clear beneath the village
   before the section unpins; `.journey--map` is
-  590vh to give that pan its scroll; the road itself stays inked to the seal (the owner: "dont worry about extending the footpath"). `?tail=0` ends it at the
+  590vh to give that pan its scroll; the road itself stays inked to the seal (the owner: "dont worry about extending the footpath"). `?walk=.1` is how far it pans (the owner's number, by eye), `?tail=0` ends it at the
   last stop as before.
 - Map-mode camera: `?cam=follow` (default) / `pan` (constant scale, no
   zoom) / `fixed` (whole sheet — poor by construction on a wide window). Tuning: `?zoomin=1.65` `?zoomout=1.00` `?dwell=0`
