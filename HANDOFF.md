@@ -5190,6 +5190,56 @@ box took the narrower width for every line.
   as is; balancing the last two lines is the obvious next step if it
   reads as a widow.
 
+### 10. The hand: a handwriting face, the note writes itself, the path shows
+
+VEN, with a desktop screenshot at stop 1 (a 960px-wide window — a
+1920 screenshot at 2x): *"i want the text to be a bit larger, I want
+the gaps between each line of text to be a bit larger (in order to
+simulate handwritten content) and i want a handwritten font and
+rendering animation to be applied to all text in the journey
+section. also ... the 'path' ... is not visible, make it obvious
+where the path is or reduce the size of each clearing."*
+
+- **The hand.** First pick was Nanum Pen Script on every word
+  including the Korean names; VEN, on sight: *"I dont like this
+  'handwritten' font, try another one. and revert the font of the
+  korean characters please."* So: the Korean names are Song Myung
+  again (the scribble mask never cared which face), and the ENGLISH —
+  caption and note — takes one of three Latin hands from the same
+  Google Fonts link as the serifs: `--font-hand` **Caveat** (default),
+  `--font-hand-2` Kalam (`?hand=kalam`), `--font-hand-3` Patrick Hand
+  (`?hand=patrick`); `?hand=0` is the serif for the English too. Song
+  Myung sits second in each stack so the 기와 inside the note still
+  has a Hangul glyph. In the hand the caption is a line of the same
+  hand a shade larger (PCAP 1.05, tracking .02em, written as the
+  place is named, not small caps), and the lines sit 1.65 apart
+  (`?leading=`; 1.75 was tried and cost the phone's shallow clearings
+  a size). The eyebrow "여정 · THE JOURNEY" is section chrome like
+  every other section's and is left alone. Desktop 28px at 1280, 21
+  at 960; phone about 13–16px, the loop-limited stops at 11.
+- **The note writes itself.** One mask per block: a stroke along
+  every line in reading order, caption first, each its own subpath
+  (dashing continues across subpaths, and a subpath per line means
+  the reveal never sweeps a diagonal between lines). One dashoffset a
+  frame — the Korean name's cost, not a mask per line, which is what
+  made the line fade the cheaper choice in §9y. It starts half-way
+  through the name and takes the rest of the approach; `WRITE`
+  0.085 → 0.11 so it has the road to do it in. `?fade=1` puts the
+  line-by-line fade back.
+- **Larger.** The desktop cap follows the window's width, and VEN's
+  is 960px across, so he was getting 15px. `DTEXT_K` 0.016 → 0.022
+  (21px at 960, 28 at 1280, 30 at the cap), phone `PTEXT` 15 → 18 in
+  the hand (its glyphs are narrower and lighter than the serif's).
+  **The start row is searched as well as the size:** hung from the
+  clearing's top, stop 1's note began at the narrow tip of the wedge
+  under the ridge; the wide paper was ten rows down. Every start row
+  is tried for every size from the cap downward, and the first size
+  that fits anywhere wins, at its highest start.
+- **The path.** The clearings stay. Footsteps .42 → .66 and a fifth
+  larger, with the dotted road drawn faintly under them
+  (`.jmap__road--under`, .2) — `?trail=steps` is the prints alone
+  (the previous default), `?trail=dots` the line alone.
+
 ### Files
 
 - `tools/mapclear.js`, `tools/clearings.json` — new.

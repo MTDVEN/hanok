@@ -1079,7 +1079,23 @@
   /* share of the road's total length over which a name writes — the
      window ENDS at the stop, so the last character lands exactly as
      the seal stamps */
-  var WRITE = qs("write", 0.085);
+  var WRITE = qs("write", 0.11);   /* 0.085 until the note wrote too (2026-08-27) */
+  /* THE HAND — VEN, 2026-08-27: *"a handwritten font and rendering
+     animation to be applied to all text in the journey section"*, then
+     of the first pick (Nanum Pen Script): *"I dont like this
+     'handwritten' font, try another one. and revert the font of the
+     korean characters please."* So the Korean names are the display
+     serif again, and the English is one of three Latin hands:
+     `caveat` (default), `kalam`, `patrick`; `0` is the serif for the
+     English too. See --font-hand in css/site.css. The animation is the
+     writing mask every label already had, now on the note too
+     (setBlock); `?fade=1` puts the line-by-line fade back in its place. */
+  var HAND = (function(){
+    var m = /[?&]hand=([a-z0-9]+)/i.exec(location.search);
+    var h = m ? m[1].toLowerCase() : "caveat";
+    return h === "kalam" || h === "patrick" || h === "0" ? h : "caveat";
+  })();
+  var FADE = qs("fade", 0);
   /* English caption under the Korean — ON since part 12 (VEN: "add
      the english names next to each korean name too please. Same font
      and same written animation"). Same display face, and it WRITES
@@ -1154,7 +1170,9 @@
                   frame was placed. At 1.9 the widest stop has 17px to
                   spare and the notes are 11 / 9.5 / 11 / 9.5 px.
      `?copy=strip` restores the band. */
-  var PTEXT = qs("ptext", 15), PTEXT_MIN = qs("ptextmin", 8.5);
+  /* the pen's glyphs are narrower and lighter than the serif's, so the
+     same legibility wants a larger size: the caps step up with the hand */
+  var PTEXT = qs("ptext", HAND === "0" ? 15 : 18), PTEXT_MIN = qs("ptextmin", HAND === "0" ? 8.5 : 10);
   var PHONE_ZOOM = qs("pzoom", 1.9);
   /* ...AND ON EVERY WIDER SCREEN TOO (VEN, 2026-08-27: "resize the
      text so that it fits nicely in the new gaps/clearings"). The
@@ -1163,7 +1181,9 @@
      fitted to the same box the phone uses, and the box on a desktop is
      huge, so the cap is what sets the size: DTEXT_K of the window's
      width (22px at 1600), never past DTEXT_MAX. `?dtext=20` pins it. */
-  var DTEXT = qs("dtext", 0), DTEXT_K = qs("dtextk", 0.016), DTEXT_MAX = qs("dtextmax", 26);
+  /* 0.016 → 0.022 on 2026-08-27, VEN on a 960px-wide window: "I want the
+     text to be a bit larger" — 21px there, 28 at 1280, the cap at 1600+ */
+  var DTEXT = qs("dtext", 0), DTEXT_K = qs("dtextk", 0.022), DTEXT_MAX = qs("dtextmax", HAND === "0" ? 26 : 30);
   /* THE CAMERA FRAMES THE SEAL AND THE NOTE TOGETHER. With the blocks
      in the clearings they sit further from their seals than they used
      to — stop 1's is a third of the sheet east of the road — and a
@@ -1184,6 +1204,11 @@
 
     journey.classList.add("journey--map");
     if (stage) stage.remove();
+    if (HAND !== "0"){
+      journey.classList.add("jmap--hand");
+      if (HAND === "kalam") journey.classList.add("jmap--hand-2");
+      if (HAND === "patrick") journey.classList.add("jmap--hand-3");
+    }
     /* "Four places, one road" named the road mode's road. The map has
        its own, and the eyebrow rides on the card instead. */
     var head = journey.querySelector(".journey__head");
@@ -1248,9 +1273,13 @@
         '<img class="jmap__sheet" src="' + sheet.img + '" alt="" decoding="async">' +
         '<svg class="jmap__ink" viewBox="0 0 ' + MW + " " + MH.toFixed(1) +
           '" preserveAspectRatio="none" aria-hidden="true">' +
+          /* `foot` (default): the dotted road faintly UNDER the prints
+             since 2026-08-27 — VEN could not find the path across the
+             cleared paper — `steps` the prints alone, `dots` the line */
           (TRAIL === "dots"
             ? '<path class="jmap__road" d="' + ROAD_D + '"/>'
-            : '<g class="jmap__steps"></g>') +
+            : (TRAIL === "steps" ? "" : '<path class="jmap__road jmap__road--under" d="' + ROAD_D + '"/>') +
+              '<g class="jmap__steps"></g>') +
           '<path class="jmap__inked" d="' + ROAD_D + '"/>' +
           (WALKER ? '<circle class="jmap__walker" r="6"/>' : "") +
           /* labels UNDER marks, so the seal stamps over a name that
@@ -1464,8 +1493,8 @@
         var ang = Math.atan2(b2.y - a2.y, b2.x - a2.x);
         var sd = (steps.length % 2) ? 1 : -1;
         var e2 = document.createElementNS(NS, "ellipse");
-        e2.setAttribute("rx", "1.9");
-        e2.setAttribute("ry", "3.4");
+        e2.setAttribute("rx", "2.3");   /* 1.9 x 3.4 until 2026-08-27; see .jmap__steps */
+        e2.setAttribute("ry", "4.1");
         e2.setAttribute("transform",
           "translate(" + (a2.x + Math.cos(ang + Math.PI / 2) * 3.4 * sd).toFixed(1) +
           " " + (a2.y + Math.sin(ang + Math.PI / 2) * 3.4 * sd).toFixed(1) +
@@ -1775,18 +1804,29 @@
        before it is drawn. The face arrives after first paint; the
        fonts.ready hook below re-measures. */
     var DISPLAY_FONT = (getComputedStyle(document.documentElement)
-                          .getPropertyValue("--font-display") || "").trim() ||
+                          .getPropertyValue(HAND === "0" ? "--font-display" :
+                                            HAND === "kalam" ? "--font-hand-2" :
+                                            HAND === "patrick" ? "--font-hand-3" : "--font-hand") || "").trim() ||
                        '"Song Myung", serif';
-    var mctx = null;
+    /* ask for the hand up front, so fonts.ready (below) fires with it
+       loaded and the note is measured in the face it is set in */
+    if (document.fonts && document.fonts.load){
+      try { document.fonts.load("100px " + DISPLAY_FONT, "An L2 from Upbit"); } catch (e){}
+    }
+    var mctx = null, wcache = {};
     function textW(str, px, spacingEm){
-      if (mctx === null){
-        try { mctx = document.createElement("canvas").getContext("2d"); } catch (e){ mctx = false; }
+      var key = str + "|" + spacingEm;
+      var w100 = wcache[key];
+      if (w100 == null){
+        if (mctx === null){
+          try { mctx = document.createElement("canvas").getContext("2d"); } catch (e){ mctx = false; }
+        }
+        if (mctx){ mctx.font = "100px " + DISPLAY_FONT; w100 = mctx.measureText(str).width; }
+        else w100 = str.length * 50;
+        if (spacingEm) w100 += Math.max(0, str.length - 1) * spacingEm * 100;
+        wcache[key] = w100;
       }
-      var w;
-      if (mctx){ mctx.font = "100px " + DISPLAY_FONT; w = mctx.measureText(str).width * px / 100; }
-      else w = str.length * px * 0.5;
-      if (spacingEm) w += Math.max(0, str.length - 1) * spacingEm * px;
-      return w;
+      return w100 * px / 100;
     }
     /* greedy fill to maxW px at the given size */
     function reflow(text, maxW, px, spacingEm){
@@ -1805,7 +1845,16 @@
        a note, not the name of the place (the Korean name beside the
        building is that) — with its tracking eased so it fits the box */
     var CFu = LSIZE * 0.26 * 0.80;
-    var PCAP = 0.82, PCAP_SP = 0.12, PPAD = 4, COPY_LH = 1.4;
+    /* in the hand the caption is a line of the same hand a shade larger
+       and barely tracked, and the lines sit further apart — VEN: "the
+       gaps between each line of text to be a bit larger (in order to
+       simulate handwritten content)" */
+    var PCAP = HAND === "0" ? 0.82 : 1.05, PCAP_SP = HAND === "0" ? 0.12 : 0.02, PPAD = 4,
+        COPY_LH = qs("leading", HAND === "0" ? 1.4 : 1.65);
+    /* 1.65, not the 1.75 first tried: on a phone the two asks pull
+       against each other — every tenth of leading is a line the
+       shallow clearings cannot hold, and 1.75 cost stops 1 and 2 a
+       size (12.5 / 10.5 px against 14 / 11 at 1.6). `?leading=` */
     /* standing strengths of the copy and the caption; the fade in
        drawMap multiplies them (they used to be in css/site.css, where
        the class rule beat the fade's attribute — see the note there) */
@@ -1841,8 +1890,10 @@
        without. Returns the block's extents in map units. */
     function setBlock(lb, c, unit, cap, narrow){
       var sp = lb.sp, box = c.box;
-      var text = (sp.copy || []).join(" "), name = sp.name.toUpperCase();
-      var capSp = narrow ? PCAP_SP : 0.2;   /* .jmap__en's own tracking, or the eased one */
+      /* in the hand the caption is written as the place is named —
+         "Gyeongbokgung Palace" — not in small caps */
+      var text = (sp.copy || []).join(" "), name = HAND === "0" ? sp.name.toUpperCase() : sp.name;
+      var capSp = HAND !== "0" ? PCAP_SP : (narrow ? PCAP_SP : 0.2);   /* .jmap__en's own tracking, or the eased one */
 
       /* THE CLEARING'S SHAPE, ROW BY ROW (VEN, 2026-08-27: "scale up
          the text a bit so that it fits a bit better in each
@@ -1877,8 +1928,8 @@
       /* lay the whole note out at cf px; null when it does not fit.
          `force` lets it run past the last row (on the last row's
          width) so a note that fits nowhere is still drawn, and warned. */
-      function layout(cf, force){
-        var capPx = cf * PCAP, out = [], y = top + padU;
+      function layout(cf, force, start){
+        var capPx = cf * PCAP, out = [], y = top + (start || 0) * dyU + padU;
         var bottom = force ? Infinity : top + rows.length * dyU - padU;
         function flow(words, px, sp, lhPx, isCap){
           var lh = lhPx / unit, i = 0, skipped = 0;
@@ -1924,13 +1975,18 @@
         if (!flow(text.split(/\s+/).filter(Boolean), cf, 0.01, cf * COPY_LH, false)) return null;
         return { cf: cf, lines: out, bottom: y };
       }
-      var fit = null, cf;
-      for (cf = Math.max(PTEXT_MIN, cap); cf >= PTEXT_MIN - 1e-6; cf -= 0.5){
-        fit = layout(cf, false);
-        if (fit) break;
-      }
+      /* THE START ROW IS SEARCHED TOO. Hung from the clearing's top the
+         note at stop 1 began at the narrow tip of the wedge under the
+         ridge and came out small; the wide paper was ten rows further
+         down. So for each size, from the cap downward, every start row
+         is tried in turn, and the first size that fits anywhere wins,
+         at its highest start — the largest type the clearing holds,
+         as close to the landmark as that size allows. */
+      var fit = null, cf, st, nStarts = Math.max(1, rows.length - 3);
+      for (cf = Math.max(PTEXT_MIN, cap); cf >= PTEXT_MIN - 1e-6 && !fit; cf -= 0.5)
+        for (st = 0; st < nStarts && !fit; st++) fit = layout(cf, false, st);
       if (!fit){
-        fit = layout(PTEXT_MIN, true);
+        fit = layout(PTEXT_MIN, true, 0);
         console.warn("journey: the note for " + sp.name + " does not fit its clearing at " + PTEXT_MIN + "px");
       }
 
@@ -1939,36 +1995,49 @@
       var sq = fit.cf / (CFu * unit), capF = CFu * PCAP;
       var capLines = fit.lines.filter(function(l){ return l.cap; }),
           copyLines = fit.lines.filter(function(l){ return !l.cap; });
-      var masked = !narrow && capLines.length === 1, html = "";
+      var masked = !FADE, html = "";
       function X(l){ return (l.cx / sq).toFixed(2); }
       function Y(l){ return (l.y / sq).toFixed(2); }
       if (masked){
-        /* the caption's writing stroke, as the label block builds it,
-           at this size, this width, and this line's own centre */
-        var cl0 = capLines[0], cxL = cl0.cx / sq, cyL = cl0.y / sq;
-        var ew2 = textW(cl0.t, capF, capSp) + capF * 2, seg = ew2 / 6,
-            d2 = "M" + (cxL - ew2 / 2).toFixed(1) + " " + cyL.toFixed(1), si;
-        for (si = 1; si <= 6; si++)
-          d2 += " L" + (cxL - ew2 / 2 + seg * si).toFixed(1) + " " +
-                (cyL + (si % 2 ? -1 : 1) * capF * 0.16).toFixed(1);
+        /* THE NOTE WRITES ITSELF (VEN, 2026-08-27: the writing
+           animation on all of the journey's text). One mask for the
+           whole block: a stroke along every line in reading order —
+           the caption's lines first, then the note's — each its own
+           subpath, so the reveal runs left to right down the page and
+           never sweeps a diagonal between lines. Dashing continues
+           across subpaths, so one dashoffset writes it all: the same
+           cost per frame the Korean name has always had, not a mask
+           per line (which is what made the earlier line fade the
+           cheaper choice). The stroke is wide enough for ascenders and
+           descenders at the larger of the two sizes. */
+        var bx0 = Infinity, bx1 = -Infinity, by0 = Infinity, by1 = -Infinity, dM = "";
+        fit.lines.forEach(function(l){
+          var sz = l.cap ? capF : CFu, x0 = l.cx / sq - l.w / sq / 2 - sz * 0.3,
+              x1 = l.cx / sq + l.w / sq / 2 + sz * 0.3, yc = l.y / sq - sz * 0.28;
+          dM += "M" + x0.toFixed(1) + " " + yc.toFixed(1) + " L" + x1.toFixed(1) + " " + yc.toFixed(1) + " ";
+          bx0 = Math.min(bx0, x0); bx1 = Math.max(bx1, x1);
+          by0 = Math.min(by0, yc - sz); by1 = Math.max(by1, yc + sz);
+        });
         html += '<defs><mask id="jme' + lb.idx + '" maskUnits="userSpaceOnUse" x="' +
-          (cxL - ew2 / 2 - capF).toFixed(1) + '" y="' + (cyL - capF * 1.4).toFixed(1) +
-          '" width="' + (ew2 + 2 * capF).toFixed(1) + '" height="' + (capF * 2.8).toFixed(1) + '">' +
-          '<rect x="' + (cxL - ew2 / 2 - capF).toFixed(1) + '" y="' + (cyL - capF * 1.4).toFixed(1) +
-          '" width="' + (ew2 + 2 * capF).toFixed(1) + '" height="' + (capF * 2.8).toFixed(1) + '" fill="#000"/>' +
-          '<path d="' + d2 + '" fill="none" stroke="#fff" stroke-width="' +
-          (capF * 1.8).toFixed(1) + '" stroke-linecap="round" stroke-linejoin="round"/>' +
+          (bx0 - CFu).toFixed(1) + '" y="' + (by0 - CFu).toFixed(1) +
+          '" width="' + (bx1 - bx0 + 2 * CFu).toFixed(1) + '" height="' + (by1 - by0 + 2 * CFu).toFixed(1) + '">' +
+          '<rect x="' + (bx0 - CFu).toFixed(1) + '" y="' + (by0 - CFu).toFixed(1) +
+          '" width="' + (bx1 - bx0 + 2 * CFu).toFixed(1) + '" height="' + (by1 - by0 + 2 * CFu).toFixed(1) + '" fill="#000"/>' +
+          '<path d="' + dM.trim() + '" fill="none" stroke="#fff" stroke-width="' +
+          (Math.max(capF, CFu) * 1.4).toFixed(1) + '" stroke-linecap="round"/>' +
           "</mask></defs>";
       }
+      html += '<g' + (masked ? ' mask="url(#jme' + lb.idx + ')"' : "") + ">";
       html += capLines.map(function(l){
-        return '<text class="jmap__en"' + (masked ? ' mask="url(#jme' + lb.idx + ')"' : ' style="opacity:0"') +
+        return '<text class="jmap__en"' + (masked ? "" : ' style="opacity:0"') +
                ' x="' + X(l) + '" y="' + Y(l) + '" font-size="' + capF.toFixed(2) +
                '" text-anchor="middle">' + esc(l.t) + "</text>";
       }).join("");
       html += '<g class="jmap__copy">' + copyLines.map(function(l){
         return '<text x="' + X(l) + '" y="' + Y(l) + '" font-size="' + CFu.toFixed(2) +
-               '" text-anchor="middle" style="opacity:0">' + esc(l.t) + "</text>";
-      }).join("") + "</g>";
+               '" text-anchor="middle"' + (masked ? ' style="opacity:' + COPY_OP + '"' : ' style="opacity:0"') +
+               ">" + esc(l.t) + "</text>";
+      }).join("") + "</g></g>";
       lb.ge.innerHTML = html;
       lb.ge.classList.toggle("jmap__enlab--phone", !!narrow);
       if (masked){
@@ -1976,7 +2045,7 @@
         lb.eL = lb.emp.getTotalLength();
         lb.emp.style.strokeDasharray = lb.eL.toFixed(1) + " " + lb.eL.toFixed(1);
         lb.emp.style.strokeDashoffset = lb.eL.toFixed(1);
-        lb.lines = lb.ge.querySelectorAll(".jmap__copy > text");
+        lb.lines = [];   /* the mask does the arriving; nothing to fade */
       } else {
         lb.emp = null;
         lb.lines = lb.ge.querySelectorAll("text");   /* the caption first */
@@ -2310,9 +2379,13 @@
               /* the English writes on its own mask, starting once the
                  Korean is 60% down and finishing with the seal — a
                  hand that moves on to the caption, not two hands */
+              /* ...and since 2026-08-27 the whole note writes on that
+                 mask, so it starts earlier (half-way through the name)
+                 and takes the rest of the approach */
               if (labels[k].emp)
                 labels[k].emp.style.strokeDashoffset =
-                  (labels[k].eL * (1 - cl((wv - 0.6) / 0.4))).toFixed(1);
+                  (labels[k].eL * (1 - cl((wv - (labels[k].mode === "box" ? 0.45 : 0.6)) /
+                                          (labels[k].mode === "box" ? 0.55 : 0.4)))).toFixed(1);
               /* THE COPY ARRIVES A LINE AT A TIME. VEN asked for *"some
                  sort of animation to fade in like watercolours almost"*
                  and then rejected the wash that came with it, so this

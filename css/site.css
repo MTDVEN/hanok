@@ -15,6 +15,17 @@
 
   --font-display: "Song Myung", "Times New Roman", serif;
   --font-body:    "Gowun Batang", Georgia, serif;
+  /* the hand that writes the ENGLISH on the map (VEN, 2026-08-27: "a
+     handwritten font ... applied to all text in the journey section",
+     then, of Nanum Pen Script: "I dont like this 'handwritten' font,
+     try another one. and revert the font of the korean characters").
+     So the Korean names stay in the display serif, and the caption
+     and the note take one of three Latin hands — Caveat by default,
+     `?hand=kalam`, `?hand=patrick`. Song Myung sits second in each
+     stack so the 기와 inside the note still has a Hangul glyph. */
+  --font-hand:    "Caveat", "Song Myung", cursive;
+  --font-hand-2:  "Kalam", "Song Myung", cursive;
+  --font-hand-3:  "Patrick Hand", "Song Myung", cursive;
 
   --w-copy: 62ch;
   --w-wide: 1080px;
@@ -741,8 +752,17 @@ a{ color: var(--ink); }
    line as they are walked. ?trail=dots restores the dotted line. */
 .jmap__steps ellipse{
   fill: var(--ink-soft);
-  opacity: .42;
+  /* .42 until 2026-08-27. On the cleared paper the prints were the
+     only thing that said where the path went, and at .42 VEN could
+     not see it: "make it obvious where the path is or reduce the size
+     of each clearing." Darker prints, and the dotted line under them
+     (.jmap__road--under) — the clearings stay. */
+  opacity: .66;
 }
+/* the dotted road drawn UNDER the footsteps (the `foot` trail): a faint
+   line so the way ahead reads as a line even where the prints are
+   sparse or the paper is bare */
+.jmap__road--under{ opacity: .2; }
 
 /* The road AHEAD of you: dotted, faint (?trail=dots). The map
    convention, and what makes the sheet read as a route rather than as
@@ -810,10 +830,24 @@ a{ color: var(--ink); }
      attribute it used to set — so the fade never showed. The standing
      strength is COPY_OP in js/journey.js, and it writes inline style. */
 }
-/* the phone's block (js/journey.js setPhone): the caption is a heading
+/* the phone's block (js/journey.js setBlock): the caption is a heading
    on a note here, not the name of the place, so its tracking eases to
    fit the box the tool cleared for it */
 .jmap__enlab--phone .jmap__en{ letter-spacing: .12em; }
+/* THE HAND (VEN, 2026-08-27). The caption and the note in a
+   handwriting face — the Korean name stays in the display serif, at
+   VEN's ask — and the caption set as a line of that hand rather than
+   tracked small caps, which a pen does not do. `.jmap--hand` is on by
+   default (Caveat); `.jmap--hand-2` / `-3` are Kalam and Patrick Hand;
+   `?hand=0` is the serif as before. See --font-hand. */
+.jmap--hand .jmap__enlab text{ font-family: var(--font-hand); }
+.jmap--hand-2 .jmap__enlab text{ font-family: var(--font-hand-2); }
+.jmap--hand-3 .jmap__enlab text{ font-family: var(--font-hand-3); }
+.jmap--hand .jmap__label .jmap__en,
+.jmap--hand .jmap__enlab--phone .jmap__en{
+  text-transform: none;
+  letter-spacing: .02em;
+}
 
 /* ZICO'S COPY, SECOND HOME — a band under the map.
 

@@ -267,6 +267,14 @@ captions.
   short window cannot hold them all (`?frame=0` restores seal-centred).
   `?copy=strip` is the band; `?map=solid` is the sheet before the
   clearings, with the band on phones as before.
+- **The hand (HANDOFF §9ab.10):** the caption and the note are set in
+  Caveat (`?hand=kalam` / `?hand=patrick` for the other two hands,
+  `?hand=0` for the serif); the Korean names stay Song Myung. The note
+  writes itself on one brush-stroke mask (`?fade=1` for the old line
+  fade), lines sit `?leading=1.65` apart, phone cap `?ptext=18`,
+  desktop `?dtextk=.022` of the width up to 30. The trail is footsteps
+  over a faint dotted road (`?trail=steps` / `?trail=dots` for one or
+  the other).
 - `node tools/mapbox.js <sheet> <out> cx,cy,hw,up,dn` draws a label's
   REAL footprint on the sheet. **This is the authority when the grid
   and the eye disagree** — a 25px cell statistic cannot see a thin
