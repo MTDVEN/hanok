@@ -54,6 +54,15 @@ var MARGIN = 24;     // map units of paper between the text and the loop's line;
 var CAP    = 0.82;   // caption size, ems of the copy (small caps, tracked .2em)
 var CAP_SP = 0.2;    // that tracking
 var MEAS_MAX = 36, MEAS_MIN = 18;   // measure, in characters, widest first
+/* THE CAPTION is not in the block since 2026-08-27 (VEN: "move the
+   ENGLISH names for each location back underneath the corresponding
+   image, add a mini 'clearing' behind each name if required"). It
+   sits at the anchor maproute --caption found under the building, at
+   CAP_SIZE map units (CAPU in js/journey.js — the same number), and
+   gets a small loop of its own only where the darkest cell under it
+   (`cap.peak` in shape.json) is past CAP_INK — on the ground wash it
+   needs none, which is what "if required" means. */
+var CAP_SIZE = 9.5, CAP_MARGIN = 20, CAP_INK = 0.03;
 /* per-stop ceilings on the measure (`--measmax 36,36,36,20`). Jeonju's is
    20: its name stands west of the seal and its note east of the
    village, and on a 390px phone at PHONE_ZOOM 2.0 the frame is 500
@@ -137,14 +146,27 @@ function wrap(words, measureEm, emOf){
    the block's width and height in units, and its lines */
 function block(k, S, chars){
   var measure = chars * widths.fallbackEm;                 /* ems */
-  var capLines = wrap(NAMES[k].toUpperCase().split(" "), measure, capLineEm);
   var lines = wrap(COPY[k].split(" "), measure, lineEm);
   var w = 0, j;
-  for (j = 0; j < capLines.length; j++) w = Math.max(w, capLineEm(capLines[j]));
   for (j = 0; j < lines.length; j++) w = Math.max(w, lineEm(lines[j]));
-  /* the same arithmetic as setBlock in js/journey.js */
-  var h = capLines.length * CAP * 1.25 + 0.55 + lines.length * LH - 0.3;
-  return { w: w * S, h: h * S, cap: capLines, lines: lines, S: S, chars: chars };
+  /* the same arithmetic as setBlock in js/journey.js — the copy alone,
+     the caption is under the building now */
+  var h = lines.length * LH - 0.3;
+  return { w: w * S, h: h * S, cap: [], lines: lines, S: S, chars: chars };
+}
+
+/* a rounded rectangle, normalised, r units of corner */
+function roundRect(lx0, ly0, lx1, ly1, r){
+  var poly = [], c;
+  r = Math.min(r, (lx1 - lx0) / 2, (ly1 - ly0) / 2);
+  [[lx1 - r, ly0 + r, -Math.PI / 2, 0], [lx1 - r, ly1 - r, 0, Math.PI / 2],
+   [lx0 + r, ly1 - r, Math.PI / 2, Math.PI], [lx0 + r, ly0 + r, Math.PI, Math.PI * 1.5]].forEach(function(cn){
+    for (c = 0; c <= 4; c++){
+      var a = cn[2] + (cn[3] - cn[2]) * c / 4;
+      poly.push([+((cn[0] + r * Math.cos(a)) / MW).toFixed(4), +((cn[1] + r * Math.sin(a)) / MH).toFixed(4)]);
+    }
+  });
+  return poly;
 }
 
 /* ---- placement ---------------------------------------------------- */
@@ -200,17 +222,22 @@ shape.stops.forEach(function(st, k){
               b2.cap.length + "+" + b2.lines.length + " lines, block " + Math.round(b2.w) + "x" + Math.round(b2.h) +
               " at " + (x0 / MW).toFixed(3) + "," + (y0 / MH).toFixed(3));
   /* the loop: a rounded rectangle MARGIN outside the block */
-  var lx0 = x0 - MARGIN, lx1 = x1 + MARGIN, ly0 = y0 - MARGIN, ly1 = y1 + MARGIN, poly = [], c;
-  var r = Math.min(RADIUS, (lx1 - lx0) / 2, (ly1 - ly0) / 2);
-  [[lx1 - r, ly0 + r, -Math.PI / 2, 0], [lx1 - r, ly1 - r, 0, Math.PI / 2],
-   [lx0 + r, ly1 - r, Math.PI / 2, Math.PI], [lx0 + r, ly0 + r, Math.PI, Math.PI * 1.5]].forEach(function(cn){
-    for (c = 0; c <= 4; c++){
-      var a = cn[2] + (cn[3] - cn[2]) * c / 4;
-      poly.push([+((cn[0] + r * Math.cos(a)) / MW).toFixed(4), +((cn[1] + r * Math.sin(a)) / MH).toFixed(4)]);
-    }
-  });
-  loops.push({ stop: k + 1, poly: poly });
+  loops.push({ stop: k + 1, poly: roundRect(x0 - MARGIN, y0 - MARGIN, x1 + MARGIN, y1 + MARGIN, RADIUS) });
   clear.push({ box: [x0 / MW, y0 / MH, x1 / MW, y1 / MH], fs: b2.S });
+
+  /* the caption's own small clearing, only where the paper under the
+     anchor carries real ink */
+  if (st.cap){
+    var cw = capLineEm(NAMES[k].toUpperCase().split(" ")) / CAP * CAP_SIZE,   /* units, at CAP_SIZE */
+        ccx = st.cap.x * MW, ccy = st.cap.y * MH;
+    var cb = { x0: ccx - cw / 2, x1: ccx + cw / 2, y0: ccy - CAP_SIZE * 0.85, y1: ccy + CAP_SIZE * 0.3 };
+    console.log("          caption at " + st.cap.x.toFixed(3) + "," + st.cap.y.toFixed(3) +
+                ", " + Math.round(cw) + " units wide, ink under it " + st.cap.peak +
+                (st.cap.peak >= CAP_INK ? " -> its own clearing" : " -> on the paper as it is"));
+    if (st.cap.peak >= CAP_INK)
+      loops.push({ stop: k + 1, caption: true,
+                   poly: roundRect(cb.x0 - CAP_MARGIN, cb.y0 - CAP_MARGIN, cb.x1 + CAP_MARGIN, cb.y1 + CAP_MARGIN, CAP_MARGIN) });
+  }
 });
 
 fs.writeFileSync(OUT, JSON.stringify(loops.filter(Boolean), null, 1));

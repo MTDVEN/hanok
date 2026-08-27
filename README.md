@@ -236,15 +236,17 @@ captions.
   pipeline, in order:
   1. `node tools/maproute.js art/journey/map-ink-solid.png --base
      map-ink-master-plain.png --clear tools/clearings-search.json
-     --plan --shape-out tools/shape.json` — the usable rows inside
-     VEN's loops (`clearings-search.json`, his markup traced: the one
-     hand-drawn thing here; the fourth loop, Jeonju, is the one he did
-     not draw).
+     --plan --caption --shape-out tools/shape.json` — the usable rows
+     inside VEN's loops (`clearings-search.json`, his markup traced:
+     the one hand-drawn thing here; the fourth loop, Jeonju, is the
+     one he did not draw), and the English caption's anchor under
+     each building (paste its MAP_STOPS: elements 5+6).
   2. `node tools/mapnote.js tools/shape.json` — lays the four notes
      out (the copy from js/journey.js, the words' widths from
      `songmyung-widths.json`), writes `tools/clearings.json` (a
-     rounded rectangle `MARGIN` outside each block) and prints
-     `MAP_CLEAR` to paste over `MAPS.ink.clear`.
+     rounded rectangle `MARGIN` outside each block, plus a small one
+     behind any caption that would sit on ink) and prints `MAP_CLEAR`
+     to paste over `MAPS.ink.clear`.
   3. `node tools/mapclear.js map-ink-master-nams.png
      map-ink-master-clear.png --clear tools/clearings.json --keep
      map-ink-master-plain.png --debug`, and the SAME loops on the

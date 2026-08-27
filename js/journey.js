@@ -823,10 +823,13 @@
          within one grid cell of the one below everywhere, and the one
          below is the one the seal nudges were measured against, so it
          is kept. `?map=solid` is the sheet before any of this. */
-      stops: [[0.341, 0.120, 0.396, 0.136, 0.688, 0.205],
-              [0.492, 0.360, 0.410, 0.329, 0.660, 0.415],
-              [0.623, 0.601, 0.368, 0.632, 0.688, 0.709],
-              [0.373, 0.857, 0.326, 0.872, 0.396, 0.934]],
+      /* elements 5+6 are the ENGLISH CAPTION's anchor again (maproute
+         --caption, 2026-08-27): searched under the building, as part
+         14 had it. The copy is in `clear` below. */
+      stops: [[0.340, 0.120, 0.396, 0.136, 0.563, 0.190],
+              [0.493, 0.360, 0.410, 0.329, 0.410, 0.446],
+              [0.623, 0.601, 0.368, 0.632, 0.424, 0.678],
+              [0.374, 0.857, 0.326, 0.872, 0.438, 0.934]],
       /* the note's clearing per stop, from maproute --clear (MAP_CLEAR):
          `box` [x0, y0, x1, y1] is the widest clean rectangle, `rows`
          the clean run of paper on each grid row from `top` down, one
@@ -841,10 +844,10 @@
          same block on every device. Paste, never hand-edit; the
          pipeline is README's THE CLEARINGS. */
       clear: [
-        { box: [0.566, 0.215, 0.778, 0.277], fs: 13.5 },
-        { box: [0.580, 0.409, 0.749, 0.459], fs: 11 },
-        { box: [0.635, 0.676, 0.793, 0.735], fs: 13.5 },
-        { box: [0.691, 0.800, 0.773, 0.890], fs: 10 }
+        { box: [0.566, 0.215, 0.778, 0.265], fs: 13.5 },
+        { box: [0.580, 0.409, 0.749, 0.449], fs: 11 },
+        { box: [0.635, 0.676, 0.793, 0.716], fs: 13.5 },
+        { box: [0.691, 0.800, 0.773, 0.876], fs: 10 }
       ],
 
       /* SEAL NUDGE — [dx, dy] per stop, normalised like everything
@@ -1191,6 +1194,11 @@
   /* 0.016 → 0.022 on 2026-08-27, VEN on a 960px-wide window: "I want the
      text to be a bit larger" — 21px there, 28 at 1280, the cap at 1600+ */
   var DTEXT = qs("dtext", 0), DTEXT_K = qs("dtextk", 0.022), DTEXT_MAX = qs("dtextmax", 32);
+  /* THE CAPTION'S SIZE, in map units, fixed like the note's (VEN,
+     2026-08-27: the English names back under their buildings). It is
+     CAP_SIZE in tools/mapnote.js — the same number, or the caption's
+     small clearing is cut for a different width than is drawn. */
+  var CAPU = qs("capu", 9.5);
   /* since the blocks were fixed in sheet units (tools/mapnote.js) only
      DTEXT_MAX is read: the ceiling in px a wide window may draw the
      note at, past which it sits centred in its box a little smaller */
@@ -1698,7 +1706,16 @@
              to the caption alone (COPY_ROWS in tools/maproute.js), so
              what is measured is what is drawn. */
           var copy = sp.copy || [];
-          if (copy.length){
+          /* with a clearing per stop (MAPS.ink.clear) the copy is its own
+             group, built by setBlock; the caption keeps this one and its
+             writing stroke. Without (solid, pirate) it hangs under the
+             caption as it always did. */
+          var gn = null;
+          if (copy.length && HAS_BOXES){
+            gn = document.createElementNS(NS, "g");
+            gn.setAttribute("class", "jmap__label jmap__enlab jmap__block");
+            gn.style.display = "none";
+          } else if (copy.length){
             var CF = F * 0.80, CLH = CF * 1.42, cg = "";
             copy.forEach(function(line, li){
               cg += '<text x="0" y="' + (F * 1.55 + li * CLH).toFixed(1) +
@@ -1721,6 +1738,7 @@
             ge.appendChild(cwrap);
           }
           labHost.appendChild(ge);
+          if (gn) labHost.appendChild(gn);
         }
 
         var mp = g2.querySelector("mask path");
@@ -1747,6 +1765,9 @@
              caption's authored size, the desktop markup to restore, and
              the box the tool cleared for the phone (MAPS.ink.clear) */
           sp: sp, F: EN ? F : 0, geHTML: ge ? ge.innerHTML : null, mode: "desk", idx: i2,
+          /* the note's own group and writing mask, when the sheet has a
+             clearing for it (see gn above) */
+          gn: EN ? gn : null, nmp: null, nL: 0, capBox: null,
           pb: (sheet.clear && sheet.clear[i2]) ? sheet.clear[i2] : null, blk: null,
           ex: s.length >= 6 ? s[4] * MW : null,
           ey: s.length >= 6 ? s[5] * MH : null,
@@ -1919,9 +1940,11 @@
       var S = c.fs || 17, cf = S * unit;
       if (cap && cf > cap){ cf = cap; S = cf / unit; }
       var capPx = cf * PCAP, bw = (bx1 - bx0) * unit;
-      var capLines = reflow(name, bw, capPx, capSp), lines = reflow(text, bw, cf, 0.01);
+      /* the copy alone: the caption is under the building (its own
+         group, `ge`, placed in measure()) since 2026-08-27 */
+      var capLines = [], lines = reflow(text, bw, cf, 0.01);
       var capLH = capPx * 1.25, LHpx = cf * COPY_LH;
-      var h = capLines.length * capLH + cf * 0.55 + lines.length * LHpx - cf * 0.3;
+      var h = (capLines.length ? capLines.length * capLH + cf * 0.55 : 0) + lines.length * LHpx - cf * 0.3;
       if (h > (by1 - by0) * unit + 1)
         console.warn("journey: the note for " + sp.name + " runs " + Math.round(h - (by1 - by0) * unit) +
                      "px past its box — re-run tools/mapnote.js");
@@ -1932,7 +1955,7 @@
                    w: textW(capLines[j], capPx, capSp) / unit, cap: true });
         y += capLH / unit;
       }
-      y += cf * 0.55 / unit;
+      if (capLines.length) y += cf * 0.55 / unit;
       for (j = 0; j < lines.length; j++){
         out.push({ t: lines[j], y: y + ((LHpx - cf) / 2 + cf * 0.78) / unit, cx: cx,
                    w: textW(lines[j], cf, 0.01) / unit, cap: false });
@@ -1957,7 +1980,7 @@
           mx0 = Math.min(mx0, x0); mx1 = Math.max(mx1, x1);
           my0 = Math.min(my0, yc - sz); my1 = Math.max(my1, yc + sz);
         });
-        html += '<defs><mask id="jme' + lb.idx + '" maskUnits="userSpaceOnUse" x="' +
+        html += '<defs><mask id="jmn' + lb.idx + '" maskUnits="userSpaceOnUse" x="' +
           (mx0 - CFu).toFixed(1) + '" y="' + (my0 - CFu).toFixed(1) +
           '" width="' + (mx1 - mx0 + 2 * CFu).toFixed(1) + '" height="' + (my1 - my0 + 2 * CFu).toFixed(1) + '">' +
           '<rect x="' + (mx0 - CFu).toFixed(1) + '" y="' + (my0 - CFu).toFixed(1) +
@@ -1966,7 +1989,7 @@
           (Math.max(capF, CFu) * 1.4).toFixed(1) + '" stroke-linecap="round"/>' +
           "</mask></defs>";
       }
-      html += '<g' + (masked ? ' mask="url(#jme' + lb.idx + ')"' : "") + ">";
+      html += '<g' + (masked ? ' mask="url(#jmn' + lb.idx + ')"' : "") + ">";
       html += caps.map(function(l){
         return '<text class="jmap__en"' + (masked ? "" : ' style="opacity:0"') +
                ' x="' + X(l) + '" y="' + Y(l) + '" font-size="' + capF.toFixed(2) +
@@ -1977,23 +2000,25 @@
                '" text-anchor="middle"' + (masked ? ' style="opacity:' + COPY_OP + '"' : ' style="opacity:0"') +
                ">" + esc(l.t) + "</text>";
       }).join("") + "</g></g>";
-      lb.ge.innerHTML = html;
-      lb.ge.classList.toggle("jmap__enlab--phone", !!narrow);
+      /* into the note's own group; the caption's (ge) is untouched */
+      var host = lb.gn;
+      host.innerHTML = html;
+      host.classList.toggle("jmap__enlab--phone", !!narrow);
       if (masked){
-        lb.emp = lb.ge.querySelector("mask path");
-        lb.eL = lb.emp.getTotalLength();
-        lb.emp.style.strokeDasharray = lb.eL.toFixed(1) + " " + lb.eL.toFixed(1);
-        lb.emp.style.strokeDashoffset = lb.eL.toFixed(1);
+        lb.nmp = host.querySelector("mask path");
+        lb.nL = lb.nmp.getTotalLength();
+        lb.nmp.style.strokeDasharray = lb.nL.toFixed(1) + " " + lb.nL.toFixed(1);
+        lb.nmp.style.strokeDashoffset = lb.nL.toFixed(1);
         lb.lines = [];   /* the mask does the arriving; nothing to fade */
       } else {
-        lb.emp = null;
-        lb.lines = lb.ge.querySelectorAll("text");   /* the caption first */
+        lb.nmp = null;
+        lb.lines = host.querySelectorAll("text");
       }
-      lb.cg = lb.ge.querySelector(".jmap__copy");
+      lb.cg = host.querySelector(".jmap__copy");
       lb.step = Math.min(0.13, 0.37 / Math.max(1, lb.lines.length - 1));
       lb.cw = -1; lb.lw = -1;
       lb.mode = "box";
-      lb.ge.setAttribute("transform", "scale(" + sq.toFixed(4) + ")");
+      host.setAttribute("transform", "scale(" + sq.toFixed(4) + ")");
       var ex0 = Infinity, ex1 = -Infinity;
       fit.lines.forEach(function(l){
         ex0 = Math.min(ex0, l.cx - l.w / 2); ex1 = Math.max(ex1, l.cx + l.w / 2);
@@ -2097,15 +2122,25 @@
           ") scale(" + lq.toFixed(3) + ")");
         lb.blk = null;
         if (lb.ge){
-          if (!strip && lb.pb){
-            /* the note fitted to the box the tool cleared for it — the
-               cap is the phone's PTEXT, or on a wider screen a size
-               that grows with the window and stops at DTEXT_MAX */
-            /* the block's size is the planned one (c.fs, sheet units);
-               the only cap is a px ceiling for wide windows */
+          if (!strip && lb.pb && lb.gn){
+            /* THE CAPTION UNDER THE BUILDING, at its fixed sheet size
+               (CAPU), on the anchor maproute --caption searched for it
+               (elements 5+6) — VEN, 2026-08-27: "move the ENGLISH names
+               for each location back underneath the corresponding
+               image". Its writing stroke is the one built with it. */
+            var etx = lb.ex != null ? lb.ex : tx,
+                ety = lb.ey != null ? lb.ey : ty + lq * lb.efy,
+                cq = CAPU / lb.F;
+            lb.ge.setAttribute("transform",
+              "translate(" + etx.toFixed(1) + " " + ety.toFixed(1) + ") scale(" + cq.toFixed(3) + ")");
+            var cwU = textW(lb.sp.name.toUpperCase(), CAPU * unit, 0.2) / unit;
+            lb.capBox = { x0: etx - cwU / 2, x1: etx + cwU / 2, y0: ety - CAPU * 0.85, y1: ety + CAPU * 0.3 };
+            /* the note, in its clearing: the planned size (c.fs, sheet
+               units); the only cap is a px ceiling for wide windows */
             var cap = narrow ? 0 : (DTEXT || DTEXT_MAX);
             lb.blk = setBlock(lb, lb.pb, unit, cap, narrow);   /* lb.pb is the note: box + fs */
           } else {
+            lb.capBox = null;
             setDesk(lb);
             /* under the building when the sheet carries an anchor,
                under the column otherwise */
@@ -2131,6 +2166,11 @@
           lo = Math.min(lo, blk.x0 - NOTE_M); hi = Math.max(hi, blk.x1 + NOTE_M);
           loY = Math.min(loY, blk.y0 - NOTE_M); hiY = Math.max(hiY, blk.y1 + NOTE_M);
         }
+        var cb = lb.capBox;
+        if (cb){
+          lo = Math.min(lo, cb.x0 - 20); hi = Math.max(hi, cb.x1 + 20);
+          loY = Math.min(loY, cb.y0 - 20); hiY = Math.max(hiY, cb.y1 + 20);
+        }
         var fxU = (lo + hi) / 2, fyU = (loY + hiY) / 2;
         /* ACROSS: the margined midpoint, moved only as far as keeps
            the bare extents of seal, name and note all on screen with
@@ -2140,8 +2180,8 @@
            difference between them rather than favour the seal —
            clamping on the seal alone put the name off the left edge. */
         var nhw = lq * LSIZE * 0.5;   /* the name column's real half-width */
-        var lo0 = Math.min(mx - 15, tx - nhw, blk ? blk.x0 : Infinity),
-            hi0 = Math.max(mx + 15, tx + nhw, blk ? blk.x1 : -Infinity),
+        var lo0 = Math.min(mx - 15, tx - nhw, blk ? blk.x0 : Infinity, cb ? cb.x0 : Infinity),
+            hi0 = Math.max(mx + 15, tx + nhw, blk ? blk.x1 : -Infinity, cb ? cb.x1 : -Infinity),
             minC = hi0 - visW / 2 + 12, maxC = lo0 + visW / 2 - 12;
         /* (the 6 units of bias toward the seal's side, when they cannot
            all fit, is the name's side bearing: Jeonju's 전 measured 2px
@@ -2158,8 +2198,8 @@
            the difference here cut 창덕궁's first stroke off the top of
            a short window. */
         var nhh = lq * ((lb.sp.ko.length - 1) / 2 * LSIZE * 1.14 + LSIZE * 0.55);
-        var lo0Y = Math.min(my - LAND_H, ty - nhh, blk ? blk.y0 : Infinity),
-            hi0Y = Math.max(my + LAND_H, ty + nhh, blk ? blk.y1 : -Infinity),
+        var lo0Y = Math.min(my - LAND_H, ty - nhh, blk ? blk.y0 : Infinity, cb ? cb.y0 : Infinity),
+            hi0Y = Math.max(my + LAND_H, ty + nhh, blk ? blk.y1 : -Infinity, cb ? cb.y1 : -Infinity),
             minCy = hi0Y - visH / 2 + 12, maxCy = lo0Y + visH / 2 - 12;
         fyU = minCy <= maxCy ? Math.max(minCy, Math.min(maxCy, fyU)) : maxCy;
         frameOff[k] = { x: (fxU - mx) * FRAME_PULL, y: (fyU - my) * FRAME_PULL };
@@ -2317,11 +2357,15 @@
                 labels[k].g.style.display = "none";
               if (labels[k].ge && labels[k].ge.style.display !== "none")
                 labels[k].ge.style.display = "none";
+              if (labels[k].gn && labels[k].gn.style.display !== "none")
+                labels[k].gn.style.display = "none";
             } else {
               if (labels[k].g.style.display === "none")
                 labels[k].g.style.display = "";
               if (labels[k].ge && labels[k].ge.style.display === "none")
                 labels[k].ge.style.display = "";
+              if (labels[k].gn && labels[k].gn.style.display === "none")
+                labels[k].gn.style.display = "";
               labels[k].mp.style.strokeDashoffset =
                 (labels[k].L * (1 - wv)).toFixed(1);
               /* the English writes on its own mask, starting once the
@@ -2332,8 +2376,12 @@
                  and takes the rest of the approach */
               if (labels[k].emp)
                 labels[k].emp.style.strokeDashoffset =
-                  (labels[k].eL * (1 - cl((wv - (labels[k].mode === "box" ? 0.45 : 0.6)) /
-                                          (labels[k].mode === "box" ? 0.55 : 0.4)))).toFixed(1);
+                  (labels[k].eL * (1 - cl((wv - 0.6) / 0.4))).toFixed(1);
+              /* the note writes on its own mask, from half-way through
+                 the name to the seal */
+              if (labels[k].nmp)
+                labels[k].nmp.style.strokeDashoffset =
+                  (labels[k].nL * (1 - cl((wv - 0.45) / 0.55))).toFixed(1);
               /* THE COPY ARRIVES A LINE AT A TIME. VEN asked for *"some
                  sort of animation to fade in like watercolours almost"*
                  and then rejected the wash that came with it, so this

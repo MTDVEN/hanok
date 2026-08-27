@@ -226,6 +226,18 @@ var WHY = argv.indexOf("--why") >= 0;
    count. --shape-out <file> writes the per-stop shapes as JSON for
    that tool to read. */
 var PLAN = argv.indexOf("--plan") >= 0;
+/* --caption: the block search places the ENGLISH CAPTION ALONE — one
+   line, under the building, in the band below the landmark as part
+   14 had it — instead of the caption-plus-copy block (2026-08-27,
+   VEN: "move the ENGLISH names for each location back underneath the
+   corresponding image"). The copy lives in its clearing now
+   (tools/mapnote.js), so the anchor this emits in MAP_STOPS is the
+   caption's. The footprint is CAP_W wide and one row up and down; the
+   loop does not confine it (it is under the building, not in the
+   clearing); and the darkest cell under the chosen spot is written to
+   --shape-out as `cap.peak`, which is how mapnote decides whether the
+   caption needs a small clearing of its own. */
+var CAPTION = argv.indexOf("--caption") >= 0;
 var SHAPE_OUT = (function(){
   var i = argv.indexOf("--shape-out");
   return i >= 0 ? argv[i + 1] : null;
@@ -620,7 +632,7 @@ if (BASE){
    where it currently is."* At the old weight a slightly quieter patch
    five rows further down beat the one under the building; now only
    real ink is worth walking away from the landmark for. */
-var CAP_W = 6, CAP_UP = 1, CAP_DN = 4;
+var CAP_W = 6, CAP_UP = 1, CAP_DN = CAPTION ? 1 : 4;   /* see --caption */
 var CENTRE_W = 0.004;   /* pull toward the landmark's centre column */
 var CAP_GAP = 2, CAP_BAND = 11, CAP_NEAR = 0.012;
 
@@ -860,7 +872,7 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
        mild pull toward centred-and-close, an arrival-frame bound, and
        a keep-out around the Korean name so the two texts can never
        collide. */
-    var ecx = null, ecy = null;
+    var ecx = null, ecy = null, ecpk = 0;
     if (hasBlob){
       var bcx = Math.round((bx0 + bx1) / 2);
 
@@ -894,6 +906,7 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
          landmark's box on both axes, since a clearing can lie beside
          a building as well as below it. */
       var cmx0 = COLS, cmx1 = -1, cmy0 = ROWS, cmy1 = -1;
+      if (CAPTION) cm = null;   /* the caption is under the building, not in the loop */
       if (cm){
         var ci, cxx, cyy;
         for (ci = 0; ci < COLS * ROWS; ci++){
@@ -905,7 +918,7 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
         if (cmx1 < 0) cm = null;   /* an empty loop is no loop */
       }
       function scan(){
-        var bcy = null, bcx2 = null, cbest = Infinity, cy2, cx2, dy2, dx2;
+        var bcy = null, bcx2 = null, cbest = Infinity, bpk = 0, cy2, cx2, dy2, dx2;
         var rowLo = cm ? Math.max(3, cmy0 + CAP_UP) : by1 + CAP_GAP,
             rowHi = cm ? Math.min(ROWS - 3, cmy1 - CAP_DN) : Math.min(ROWS - 3, by1 + CAP_BAND),
             colLo = cm ? Math.max(5, cmx0 + CAP_W) : Math.max(5, bcx - 12),
@@ -992,7 +1005,7 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
                A cost rather than a cut, like the frame bound: on a
                sheet where the corridor IS the only open paper, a hard
                exclusion can leave a stop with nowhere legal at all. */
-            var s2 = 0, n3 = 0, pk = 0, rdInk = 0;
+            var s2 = 0, n3 = 0, pk = 0, rdInk = 0, pkInk = 0;
             for (dy2 = -CAP_UP; dy2 <= CAP_DN; dy2++){
               var yy2 = cy2 + dy2;
               if (yy2 < 0 || yy2 >= ROWS) continue;
@@ -1000,6 +1013,7 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
                 var xx2 = cx2 + dx2;
                 if (xx2 < 0 || xx2 >= COLS) continue;
                 var iv = dark[yy2 * COLS + xx2];
+                if (iv > pkInk) pkInk = iv;   /* real ink alone, for --shape-out */
                 /* THE ROAD COUNTS AS INK. It is not on the sheet —
                    js/journey.js draws it over the top from this very
                    seam — so the ink field cannot see it, and the block
@@ -1043,10 +1057,10 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
             if (WHY) why.push({ x: cx2, y: cy2, mean: MEAN_W * (s2 / n3), peak: pk,
                                 pull: Math.abs(cx2 - bcx) * CENTRE_W,
                                 near: nearC * CAP_NEAR + late, road: rdInk, total: m2 });
-            if (m2 < cbest){ cbest = m2; bcx2 = cx2; bcy = cy2; }
+            if (m2 < cbest){ cbest = m2; bcx2 = cx2; bcy = cy2; bpk = pkInk; }
           }
         }
-        return bcy == null ? null : { x: bcx2, y: bcy };
+        return bcy == null ? null : { x: bcx2, y: bcy, pk: bpk };
       }
       var spot2 = scan();
       /* A loop too narrow for the desktop block (Jeonju's is eight
@@ -1061,7 +1075,7 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
         cm = null;
         spot2 = scan();
       }
-      if (spot2){ ecx = spot2.x; ecy = spot2.y; }
+      if (spot2){ ecx = spot2.x; ecy = spot2.y; ecpk = spot2.pk; }
       if (WHY){
         why.sort(function(a, b){ return a.total - b.total; });
         console.log("  --why  stop at row " + gy0 + "  landmark cols " + bx0 + "-" + bx1 +
@@ -1251,6 +1265,7 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
       lx: (bx + 0.5) / COLS, ly: (by + 0.5) / ROWS,
       ex: ecx != null ? (ecx + 0.5) / COLS : null,
       ey: ecy != null ? (ecy + 0.5) / ROWS : null,
+      epk: ecpk,
       pb: pb ? [pb[0] / COLS, pb[1] / ROWS, pb[2] / COLS, pb[3] / ROWS] : null,
       shape: pbRows ? {
         top: pbRows.top / ROWS, dy: 1 / ROWS,
@@ -1289,7 +1304,7 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
                            clearLoose[si3 + 1] || null, si3);
       pt2.lx = spot.lx; pt2.ly = spot.ly;
       pt2.ex = spot.ex; pt2.ey = spot.ey;
-      pt2.pb = spot.pb; pt2.shape = spot.shape;
+      pt2.pb = spot.pb; pt2.shape = spot.shape; pt2.epk = spot.epk;
       if (BLOCK_X[si3] != null && pt2.ex != null){
         console.log("  review  stop " + (si3 + 1) + " block x " +
                     pt2.ex.toFixed(3) + " -> " + BLOCK_X[si3].toFixed(3) +
@@ -1385,7 +1400,8 @@ if (SHAPE_OUT){
     cols: COLS, rows: ROWS,
     road: road.map(function(r){ return (r + 0.5) / COLS; }),
     stops: stops.map(function(p){
-      return { x: p.x, y: p.y, lx: p.lx, ly: p.ly, box: p.pb, shape: p.shape };
+      return { x: p.x, y: p.y, lx: p.lx, ly: p.ly, box: p.pb, shape: p.shape,
+               cap: p.ex != null ? { x: p.ex, y: p.ey, peak: +(p.epk || 0).toFixed(3) } : null };
     })
   }, null, 1));
   console.log("  shapes   " + SHAPE_OUT);

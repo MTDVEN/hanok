@@ -5318,6 +5318,34 @@ larger ones."*
 - `PHONE_ZOOM` 2.0 → 2.1 (Jeonju's name and note span 475 units now).
   Phone: about 11 / 9 / 11 / 8.2 px — small, and the desktop's ask.
 
+### 13. The English names back under their buildings
+
+VEN: *"move the ENGLISH names for each location back underneath the
+corresponding image, add a mini 'clearing' behind each name if
+required."*
+
+- `maproute --caption`: the block search places the caption ALONE
+  (footprint CAP_W by one row up and down, the band under the
+  landmark, not confined to the loop) and writes its anchor as
+  elements 5+6 of MAP_STOPS — what they were for in part 14 — and
+  the darkest REAL ink under it (the road-verge penalty excluded) to
+  `--shape-out` as `cap.peak`. Anchors: 0.563,0.190 / 0.410,0.446 /
+  0.424,0.678 / 0.438,0.934.
+- mapnote cuts a small loop behind a caption only where `cap.peak`
+  is past `CAP_INK` 0.03 — Gyeongbokgung's (0.10, the ridge's toe);
+  the other three sit on the ground wash as they are, which is what
+  "if required" means. The note blocks are the copy alone now
+  (shorter: the loops are 6.5% of the sheet).
+- On the page the caption is its own group again (`ge`, the wavy
+  writing stroke it was built with) at a fixed sheet size `CAPU` 9.5
+  (= `CAP_SIZE` in mapnote), and the note is a new group `gn`
+  (`.jmap__block`) that setBlock fills, with its own mask `nmp`.
+  **Not `.jmap__note`** — that is the band's class in css/site.css
+  and its `display: none` took the whole note with it, silently.
+  The framing counts the caption's box.
+- A phone reads the caption at ~8px. It is a label under a building
+  beside a 28px Korean name; the note has no heading there now.
+
 ### Files
 
 - `tools/mapclear.js`, `tools/clearings.json` — new.
