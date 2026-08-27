@@ -78,7 +78,11 @@ var png  = require(path.join(__dirname, "png.js"));
 
 /* ---- knobs ------------------------------------------------------ */
 
-var FEATHER    = 170;   // px (at master size) the loop's edge is ramped over
+var FEATHER    = 70;    // px (at master size) the loop's edge is ramped over
+                        // (170 for VEN's hand-drawn loops; since the loops
+                        // are cut MARGIN (24 units = 74px here) outside the
+                        // text by tools/mapnote.js, the ramp must sit inside
+                        // that margin or the text lands on it)
 var EDGE_NOISE = 0.55;  // how far the edge wanders, as a share of FEATHER
 var NOISE_CELL = 170;   // px, the wavelength of that wander
 var QUIET_SD   = 7.5;   // local stdev at or under which a pixel is paper

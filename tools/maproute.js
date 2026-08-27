@@ -220,6 +220,16 @@ var DEBUG = argv.indexOf("--debug") >= 0;
    "move the block left" and the tool would not — guessing at weights
    is exactly what HANDOFF warns against, so look at the numbers. */
 var WHY = argv.indexOf("--why") >= 0;
+/* --plan: the box/shape search treats every cell inside the loop as
+   paper, ink or not — for planning a clearing that has not been cut
+   yet (tools/mapnote.js). The road, the landmark and the name still
+   count. --shape-out <file> writes the per-stop shapes as JSON for
+   that tool to read. */
+var PLAN = argv.indexOf("--plan") >= 0;
+var SHAPE_OUT = (function(){
+  var i = argv.indexOf("--shape-out");
+  return i >= 0 ? argv[i + 1] : null;
+})();
 var NSTOP = (function(){
   var i = argv.indexOf("--stops");
   return i >= 0 ? parseInt(argv[i + 1], 10) || 4 : 4;
@@ -1136,7 +1146,7 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
           var gx = ux0 + ux, gy = uy0 + uy, gi = gy * COLS + gx;
           if (cml && !cml[gi]) continue;
           if (inBlob[gi]) continue;
-          if (dark[gi] >= PHONE_DARK || soft[gi] >= PHONE_SOFT) continue;
+          if (!PLAN && (dark[gi] >= PHONE_DARK || soft[gi] >= PHONE_SOFT)) continue;
           if (Math.abs(gx - road[gy]) <= ROAD_HALF + PHONE_VERGE) continue;
           if (Math.abs(gx - bx) <= NAME_HW + 0.5 && Math.abs(gy - by) <= NAME_HH + 0.5) continue;
           use[uy * uw + ux] = 1;
@@ -1369,6 +1379,16 @@ if (stops.some(function(p){ return p.pb; })){
     return s;
   }).join(",\n"));
   console.log("  ];");
+}
+if (SHAPE_OUT){
+  fs.writeFileSync(SHAPE_OUT, JSON.stringify({
+    cols: COLS, rows: ROWS,
+    road: road.map(function(r){ return (r + 0.5) / COLS; }),
+    stops: stops.map(function(p){
+      return { x: p.x, y: p.y, lx: p.lx, ly: p.ly, box: p.pb, shape: p.shape };
+    })
+  }, null, 1));
+  console.log("  shapes   " + SHAPE_OUT);
 }
 console.log("");
 

@@ -230,51 +230,55 @@ captions.
   in a line at a time on arrival. A watercolour wash was tried under
   it and rejected (HANDOFF §9z). `?copy=strip` moves the copy to
   a note under the map instead.
-- **THE CLEARINGS (2026-08-27, HANDOFF §9ab).** Inside VEN's red
-  loops the terrain is faded to bare parchment so the copy sits on
-  paper, not mountains. The shipped sheet is cut from the master by
-  `node tools/mapclear.js map-ink-master-nams.png map-ink-master-clear.png
-  --clear tools/clearings.json --keep map-ink-master-plain.png --debug`
-  (and the SAME loops on the plain base:
-  `node tools/mapclear.js map-ink-master-plain.png map-ink-master-plain-clear.png
-  --clear tools/clearings.json`), then `mapprep` at 1800, then
-  `node tools/maproute.js art/journey/map-ink.png --base
-  map-ink-master-plain-clear.png --terrain art/journey/map-ink-solid.png
-  --clear tools/clearings.json --debug --why`. `--terrain` carves the
-  road on the pre-clearing sheet (bare paper is what the seam hunts
-  for, and the paper was cleared for the TEXT); `--clear` confines
-  each block to its loop and emits `MAP_CLEAR`, the phone's box per
-  stop. Paste `MAP_STOPS` and `MAP_CLEAR`; the path is kept (it is
-  within one cell of the emitted one and the seal nudges were measured
-  against it). `tools/clearings.json` is the one hand-drawn thing in
-  the map's wiring — VEN's loops, traced — and the fourth loop (Jeonju)
-  is the one VEN did not draw; delete its line and re-run to drop it.
-- **The note is fitted to its clearing's SHAPE on every device** (VEN:
-  "resize the text so that it fits nicely in the new gaps", then
-  "scale it up a bit ... start a new line wherever necessary"):
-  maproute emits, per stop, the clean run of paper on every grid row
-  (`MAP_CLEAR[k].rows`), and `setBlock` wraps each line to the rows it
-  sits on at the largest size that fits the whole note — phones
-  `?ptext=15` down to `?ptextmin=8.5` (15 / 12.5 / 15 / 12.5 px at the
-  four stops) at settle zoom `?pzoom=1.9`; wider screens `?dtextk=.016`
-  of the window's width up to `?dtextmax=26`, or `?dtext=20` to pin
-  it, with the caption's handwriting kept. Nothing lands on ink: a row
-  with no clean run is skipped. The box (`MAP_CLEAR[k].box`) is chosen
-  by the type size THIS stop's copy can reach in it, not by area
-  (maproute lifts the copy's length from js/journey.js; `--copy
-  182,147,97,174` overrides). The camera frames seal, name, landmark
-  and note together at every stop, the seal's side winning when a
-  short window cannot hold them all (`?frame=0` restores seal-centred).
-  `?copy=strip` is the band; `?map=solid` is the sheet before the
-  clearings, with the band on phones as before.
-- **The hand (HANDOFF §9ab.10):** the caption and the note are set in
-  Caveat (`?hand=kalam` / `?hand=patrick` for the other two hands,
-  `?hand=0` for the serif); the Korean names stay Song Myung. The note
-  writes itself on one brush-stroke mask (`?fade=1` for the old line
-  fade), lines sit `?leading=1.65` apart, phone cap `?ptext=18`,
-  desktop `?dtextk=.022` of the width up to 30. The trail is footsteps
-  over a faint dotted road (`?trail=steps` / `?trail=dots` for one or
-  the other).
+- **THE CLEARINGS (2026-08-27, HANDOFF §9ab).** Each note is a
+  uniform block of the display serif, and its clearing is cut to
+  that block plus one margin; outside it the terrain stands. The
+  pipeline, in order:
+  1. `node tools/maproute.js art/journey/map-ink-solid.png --base
+     map-ink-master-plain.png --clear tools/clearings-search.json
+     --plan --shape-out tools/shape.json` — the usable rows inside
+     VEN's loops (`clearings-search.json`, his markup traced: the one
+     hand-drawn thing here; the fourth loop, Jeonju, is the one he did
+     not draw).
+  2. `node tools/mapnote.js tools/shape.json` — lays the four notes
+     out (the copy from js/journey.js, the words' widths from
+     `songmyung-widths.json`), writes `tools/clearings.json` (a
+     rounded rectangle `MARGIN` outside each block) and prints
+     `MAP_CLEAR` to paste over `MAPS.ink.clear`.
+  3. `node tools/mapclear.js map-ink-master-nams.png
+     map-ink-master-clear.png --clear tools/clearings.json --keep
+     map-ink-master-plain.png --debug`, and the SAME loops on the
+     plain base: `node tools/mapclear.js map-ink-master-plain.png
+     map-ink-master-plain-clear.png --clear tools/clearings.json`.
+  4. `node tools/mapprep.js map-ink-master-clear.png
+     art/journey/map-ink.png 1800`.
+  5. `node tools/maproute.js art/journey/map-ink.png --base
+     map-ink-master-plain-clear.png --terrain art/journey/map-ink-solid.png
+     --clear tools/clearings.json --debug` — the stops must come back
+     at the values in js/journey.js (the path is kept; the seal nudges
+     were measured against it). `--terrain` carves the road on the
+     pre-clearing sheet, since bare paper is what the seam hunts for.
+- **The note is the same block on every device** (VEN: "a uniform
+  block of text ... a uniform gap between the edge of the clearing and
+  the edge of the block"): `MAP_CLEAR[k]` is `{ box, fs }`, the text
+  block and its size in sheet units, from tools/mapnote.js; `setBlock`
+  wraps the copy to the box's width at that size and centres it. What
+  changes with the screen is only how large the sheet is drawn —
+  phones at settle zoom `?pzoom=2.0` (about 12.5 / 10 / 13 / 9.4 px),
+  a 960px window ~25px, wider windows capped at `?dtextmax=32` (the
+  block then sits centred a little smaller). The camera frames seal,
+  name, landmark and note together at every stop, the seal's side
+  winning when a short window cannot hold them all (`?frame=0`
+  restores seal-centred). `?copy=strip` is the band; `?map=solid` is
+  the sheet before the clearings, with the band on phones as before.
+- **The hand (HANDOFF §9ab.10–11):** the serif is the default again
+  (VEN: "keep the original font"); `?hand=caveat` / `kalam` /
+  `patrick` set the caption and the note in a Latin hand, the Korean
+  names staying Song Myung. The note writes itself on one brush-stroke
+  mask (`?fade=1` for the old line fade); lines sit `?leading=1.5`
+  apart (the value tools/mapnote.js plans with — change both). The
+  trail is footsteps over a faint dotted road (`?trail=steps` /
+  `?trail=dots` for one or the other).
 - `node tools/mapbox.js <sheet> <out> cx,cy,hw,up,dn` draws a label's
   REAL footprint on the sheet. **This is the authority when the grid
   and the eye disagree** — a 25px cell statistic cannot see a thin

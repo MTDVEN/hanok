@@ -5240,9 +5240,65 @@ where the path is or reduce the size of each clearing."*
   (`.jmap__road--under`, .2) — `?trail=steps` is the prints alone
   (the previous default), `?trail=dots` the line alone.
 
+### 11. The pipeline inverted: the note first, the clearing cut to it
+
+VEN, with a desktop screenshot of the shaped note under the ridge:
+*"keep the original font, just make it fit in the clearings properly
+... make it so that there is a uniform gap between the edge of the
+clearing and the edge of the block of text, if the clearing is too
+big (ie too much blank space) reduce the size of the clearing and
+restore the original background in those locations. I want a uniform
+block of text, i dont want parts of the text sticking out."*
+
+That is a cleaner rule than any of the fitting above, and it inverts
+the order of things. **`tools/mapnote.js` (new)** lays each note out
+FIRST — the copy wrapped to one measure in the display serif, the
+caption above, at a size fixed in SHEET units so it is the same block
+on every device — and cuts the clearing to that block plus one
+constant `MARGIN` (24 units), as a rounded rectangle. Everything
+outside is terrain again (the loops cover 10% of the sheet, from 19%).
+
+- The note is placed inside the loop VEN drew — those are
+  `tools/clearings-search.json` now, the SEARCH areas — as high in it
+  and as near the road as it fits, off the road, the landmark and the
+  name. `maproute --clear clearings-search.json --plan --shape-out
+  tools/shape.json` supplies the usable rows (`--plan`: ink is
+  ignored, the loop has not been cut yet). Sizes come out 16 / 13 /
+  17 / 12 units: the corridors east of the road are narrow (~200
+  units at stop 1 less two margins), so the measures are 20–26
+  characters and the blocks tall.
+- The wrap here IS the page's wrap: the words' widths in Song Myung
+  are in `tools/songmyung-widths.json`, measured with canvas
+  measureText in the browser (a word not there is 0.44em a
+  character). LH 1.5 in the tool and `COPY_LH` in journey.js must
+  agree, or the block runs past its clearing.
+- `MAP_CLEAR` is now `{ box, fs }` per stop — the text block and its
+  size — and `setBlock` simply wraps to the box's width at `fs` and
+  centres the block in it. On a wide window `DTEXT_MAX` (32px) caps
+  the size and the block sits centred a little smaller. No shape
+  rows, no start-row search, no device-specific fitting any more.
+- mapclear's `FEATHER` 170 → 70: the ramp has to sit inside the
+  24-unit margin or the text lands on it.
+- `PHONE_ZOOM` 1.9 → 2.0 (2.1 was tried: Jeonju's name and note no
+  longer fit one frame), and Jeonju's measure is capped at 20
+  characters (`MEAS_CAP`) for the same span. Phone: about 12.5 / 10 /
+  13 / 9.4 px; VEN's 960px window: 25 / 21 / 27 / 19; 1280: 32 /
+  27.5 / 32 / 25.
+- **The serif is the default again** (`HAND` "0"); Caveat, Kalam and
+  Patrick Hand stay behind `?hand=`. The note still writes itself.
+- The framing publishes its inputs on `.jmap[data-frame]` for QA.
+
+The trade this makes, and VEN should know it: the block is one size
+in sheet units, so a phone reads it small (the two loop-limited stops
+at ~10px) and a short desktop window reads a tall column whose last
+lines arrive on scroll. The clearings could not be both tight on a
+desktop and roomy for a phone; his ask was the desktop's.
+
 ### Files
 
 - `tools/mapclear.js`, `tools/clearings.json` — new.
+- `tools/mapnote.js`, `tools/clearings-search.json`,
+  `tools/songmyung-widths.json`, `tools/shape.json` — new (part 11).
 - `map-ink-master-clear.png` — **the shipped master**;
   `map-ink-master-plain-clear.png` — **the `--base` now**. Both cut
   from `-nams` / `-plain` by the same json; regenerable. Gitignored

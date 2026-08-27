@@ -833,19 +833,18 @@
          row `dy` tall — setBlock wraps every line to the row it sits
          on, so the note follows the clearing's shape. Paste, never
          hand-edit. */
+      /* THE NOTES, from tools/mapnote.js (2026-08-27, VEN: "a uniform
+         block of text ... a uniform gap between the edge of the
+         clearing and the edge of the block"): `box` is the text block
+         [x0, y0, x1, y1], `fs` its copy size in map units, and the
+         clearing in the art is cut one margin outside that box — the
+         same block on every device. Paste, never hand-edit; the
+         pipeline is README's THE CLEARINGS. */
       clear: [
-        { box: [0.583, 0.178, 0.792, 0.333],
-          top: 0.116, dy: 0.00775,
-          rows: [[0.708, 0.722], [0.694, 0.778], [0.681, 0.792], [0.667, 0.778], [0.653, 0.792], [0.639, 0.792], [0.611, 0.806], [0.597, 0.806], [0.583, 0.806], [0.569, 0.806], [0.556, 0.792], [0.486, 0.806], [0.500, 0.792], [0.500, 0.792], [0.514, 0.806], [0.514, 0.792], [0.528, 0.806], [0.528, 0.806], [0.528, 0.806], [0.528, 0.806], [0.528, 0.806], [0.528, 0.806], [0.528, 0.806], [0.528, 0.792], [0.528, 0.806], [0.528, 0.806], [0.528, 0.806], [0.528, 0.806], [0.583, 0.639]] },
-        { box: [0.556, 0.395, 0.764, 0.481],
-          top: 0.372, dy: 0.00775,
-          rows: [[0.639, 0.708], [0.597, 0.736], [0.583, 0.750], [0.556, 0.764], [0.542, 0.778], [0.528, 0.778], [0.528, 0.778], [0.528, 0.778], [0.528, 0.778], [0.542, 0.778], [0.542, 0.778], [0.542, 0.778], [0.556, 0.764], [0.556, 0.764], [0.569, 0.722], [0.583, 0.722]] },
-        { box: [0.639, 0.605, 0.806, 0.744],
-          top: 0.581, dy: 0.00775,
-          rows: [[0.653, 0.681], [0.653, 0.764], [0.653, 0.792], [0.639, 0.819], [0.639, 0.819], [0.625, 0.819], [0.625, 0.819], [0.625, 0.819], [0.625, 0.819], [0.625, 0.819], [0.611, 0.819], [0.611, 0.819], [0.611, 0.806], [0.597, 0.819], [0.569, 0.819], [0.569, 0.819], [0.569, 0.819], [0.569, 0.819], [0.556, 0.819], [0.556, 0.819], [0.556, 0.806], [0.556, 0.792], [0.583, 0.764], [0.653, 0.708]] },
-        { box: [0.667, 0.783, 0.806, 0.907],
-          top: 0.775, dy: 0.00775,
-          rows: [[0.694, 0.764], [0.667, 0.806], [0.667, 0.806], [0.667, 0.819], [0.667, 0.833], [0.667, 0.833], [0.667, 0.833], [0.667, 0.833], [0.667, 0.833], [0.667, 0.833], [0.667, 0.833], [0.667, 0.833], [0.667, 0.833], [0.667, 0.833], [0.667, 0.819], [0.667, 0.819], [0.667, 0.819], [0.681, 0.833], [0.681, 0.833], [0.694, 0.833], [0.694, 0.833], [0.694, 0.792], [0.708, 0.764], [0.722, 0.750]] }
+        { box: [0.607, 0.192, 0.774, 0.319], fs: 16 },
+        { box: [0.621, 0.393, 0.739, 0.497], fs: 13 },
+        { box: [0.649, 0.637, 0.795, 0.745], fs: 17 },
+        { box: [0.691, 0.808, 0.790, 0.924], fs: 12 }
       ],
 
       /* SEAL NUDGE — [dx, dy] per stop, normalised like everything
@@ -1092,8 +1091,10 @@
      (setBlock); `?fade=1` puts the line-by-line fade back in its place. */
   var HAND = (function(){
     var m = /[?&]hand=([a-z0-9]+)/i.exec(location.search);
-    var h = m ? m[1].toLowerCase() : "caveat";
-    return h === "kalam" || h === "patrick" || h === "0" ? h : "caveat";
+    /* the SERIF is the default again — VEN, on the third pass: "keep
+       the original font"; the three hands stay one switch away */
+    var h = m ? m[1].toLowerCase() : "0";
+    return h === "kalam" || h === "patrick" || h === "caveat" ? h : "0";
   })();
   var FADE = qs("fade", 0);
   /* English caption under the Korean — ON since part 12 (VEN: "add
@@ -1173,7 +1174,9 @@
   /* the pen's glyphs are narrower and lighter than the serif's, so the
      same legibility wants a larger size: the caps step up with the hand */
   var PTEXT = qs("ptext", HAND === "0" ? 15 : 18), PTEXT_MIN = qs("ptextmin", HAND === "0" ? 8.5 : 10);
-  var PHONE_ZOOM = qs("pzoom", 1.9);
+  var PHONE_ZOOM = qs("pzoom", 2.0);   /* 1.9 → 2.0 once the blocks were fixed in
+                                          sheet units; 2.1 was tried and Jeonju's
+                                          name and note no longer fit one frame */
   /* ...AND ON EVERY WIDER SCREEN TOO (VEN, 2026-08-27: "resize the
      text so that it fits nicely in the new gaps/clearings"). The
      desktop block used to be the label-scale block — four authored
@@ -1183,7 +1186,10 @@
      width (22px at 1600), never past DTEXT_MAX. `?dtext=20` pins it. */
   /* 0.016 → 0.022 on 2026-08-27, VEN on a 960px-wide window: "I want the
      text to be a bit larger" — 21px there, 28 at 1280, the cap at 1600+ */
-  var DTEXT = qs("dtext", 0), DTEXT_K = qs("dtextk", 0.022), DTEXT_MAX = qs("dtextmax", HAND === "0" ? 26 : 30);
+  var DTEXT = qs("dtext", 0), DTEXT_K = qs("dtextk", 0.022), DTEXT_MAX = qs("dtextmax", 32);
+  /* since the blocks were fixed in sheet units (tools/mapnote.js) only
+     DTEXT_MAX is read: the ceiling in px a wide window may draw the
+     note at, past which it sits centred in its box a little smaller */
   /* THE CAMERA FRAMES THE SEAL AND THE NOTE TOGETHER. With the blocks
      in the clearings they sit further from their seals than they used
      to — stop 1's is a third of the sheet east of the road — and a
@@ -1850,7 +1856,10 @@
        gaps between each line of text to be a bit larger (in order to
        simulate handwritten content)" */
     var PCAP = HAND === "0" ? 0.82 : 1.05, PCAP_SP = HAND === "0" ? 0.12 : 0.02, PPAD = 4,
-        COPY_LH = qs("leading", HAND === "0" ? 1.4 : 1.65);
+        COPY_LH = qs("leading", HAND === "0" ? 1.5 : 1.65);
+    /* 1.5 for the serif since the notes were made uniform blocks: it is
+       the LH tools/mapnote.js plans the block's height with — change
+       one, change the other, or the block runs past its clearing */
     /* 1.65, not the 1.75 first tried: on a phone the two asks pull
        against each other — every tenth of leading is a line the
        shallow clearings cannot hold, and 1.75 cost stops 1 and 2 a
@@ -1875,165 +1884,91 @@
       lb.step = 0.13; lb.cw = -1; lb.lw = -1;
       lb.mode = "desk";
     }
-    /* THE NOTE, FITTED TO ITS CLEARING — every device, since VEN's
-       "resize the text so that it fits nicely in the new gaps". The
-       caption and the copy are re-flowed to the box's width at the
-       largest size, from `cap` px down to PTEXT_MIN, at which the
-       whole note fits the box's height; centred, hung from the box's
-       top edge so it sits closest to the landmark.
+    /* THE NOTE, A UNIFORM BLOCK IN A CLEARING CUT TO IT (VEN,
+       2026-08-27, third pass: "keep the original font, just make it
+       fit in the clearings properly ... a uniform gap between the edge
+       of the clearing and the edge of the block of text ... I want a
+       uniform block of text, i dont want parts of the text sticking
+       out"). The block is planned by tools/mapnote.js at a size fixed
+       in SHEET units (`c.fs`) and a measure (`c.box`), and the
+       clearing is cut one margin outside that box — so here the copy
+       is simply wrapped to the box's width in the same face and drawn
+       at that size, centred in the box. The same block on every
+       device; what changes with the screen is only how large the
+       sheet is drawn. On a wide window the size is capped in px
+       (DTEXT_MAX) and the block sits centred in its box a little
+       smaller, the margin growing evenly round it.
 
-       On a desktop the caption keeps its handwriting (part 12): the
-       wavy mask stroke is rebuilt at the fitted size whenever the
-       caption is one line. On a phone (or a caption that had to wrap)
-       it fades in as the first line of the note instead — a mask
-       re-rasterises its target per frame, which a phone can do
-       without. Returns the block's extents in map units. */
+       The whole note writes itself on one mask, a stroke per line as
+       its own subpath (dashing continues across subpaths, and a
+       subpath per line never sweeps a diagonal between lines) — one
+       dashoffset a frame, the Korean name's cost. `?fade=1` is the
+       line-by-line fade instead. Returns the block's extents in map
+       units for the framing. */
     function setBlock(lb, c, unit, cap, narrow){
       var sp = lb.sp, box = c.box;
-      /* in the hand the caption is written as the place is named —
-         "Gyeongbokgung Palace" — not in small caps */
+      var bx0 = box[0] * MW, by0 = box[1] * MH, bx1 = box[2] * MW, by1 = box[3] * MH;
       var text = (sp.copy || []).join(" "), name = HAND === "0" ? sp.name.toUpperCase() : sp.name;
-      var capSp = HAND !== "0" ? PCAP_SP : (narrow ? PCAP_SP : 0.2);   /* .jmap__en's own tracking, or the eased one */
-
-      /* THE CLEARING'S SHAPE, ROW BY ROW (VEN, 2026-08-27: "scale up
-         the text a bit so that it fits a bit better in each
-         indentation/clearing ... start a new line wherever necessary
-         because we dont want it to overflow"). A clearing is not a
-         rectangle, and a box wraps every line to its narrowest part.
-         maproute emits the clean run of paper on each grid row
-         (`rows`), so each line here is wrapped to the rows it
-         actually sits on — the intersection of their runs — and
-         centred in that run. The note follows the mist's edge: wider
-         where the paper is wider, shifting with it, and never onto
-         ink, because a band whose rows carry no run is skipped. */
-      var top, dyU, rows;
-      if (c.rows){
-        top = c.top * MH; dyU = c.dy * MH;
-        rows = c.rows.map(function(r){ return r ? [r[0] * MW, r[1] * MW] : null; });
-      } else {
-        top = box[1] * MH; dyU = (box[3] - box[1]) * MH;
-        rows = [[box[0] * MW, box[2] * MW]];
+      var capSp = HAND !== "0" ? PCAP_SP : 0.2;
+      /* the size: the planned one, unless that is more px than the
+         window should carry */
+      var S = c.fs || 17, cf = S * unit;
+      if (cap && cf > cap){ cf = cap; S = cf / unit; }
+      var capPx = cf * PCAP, bw = (bx1 - bx0) * unit;
+      var capLines = reflow(name, bw, capPx, capSp), lines = reflow(text, bw, cf, 0.01);
+      var capLH = capPx * 1.25, LHpx = cf * COPY_LH;
+      var h = capLines.length * capLH + cf * 0.55 + lines.length * LHpx - cf * 0.3;
+      if (h > (by1 - by0) * unit + 1)
+        console.warn("journey: the note for " + sp.name + " runs " + Math.round(h - (by1 - by0) * unit) +
+                     "px past its box — re-run tools/mapnote.js");
+      /* centred in the box, both ways */
+      var cx = (bx0 + bx1) / 2, top = (by0 + by1) / 2 - h / unit / 2, y = top, out = [], j;
+      for (j = 0; j < capLines.length; j++){
+        out.push({ t: capLines[j], y: y + ((capLH - capPx) / 2 + capPx * 0.78) / unit, cx: cx,
+                   w: textW(capLines[j], capPx, capSp) / unit, cap: true });
+        y += capLH / unit;
       }
-      var padU = PPAD / unit;
-      function span(yU0, yU1, extra){
-        var r0 = Math.floor((yU0 - top) / dyU), r1 = Math.floor((yU1 - top - 1e-6) / dyU), i, x0 = -Infinity, x1 = Infinity;
-        if (r0 < 0) return null;
-        for (i = r0; i <= r1; i++){
-          var r = i < rows.length ? rows[i] : (extra ? rows[rows.length - 1] : null);
-          if (!r) return null;
-          x0 = Math.max(x0, r[0]); x1 = Math.min(x1, r[1]);
-        }
-        return x1 - x0 > 2 * padU ? [x0 + padU, x1 - padU] : null;
+      y += cf * 0.55 / unit;
+      for (j = 0; j < lines.length; j++){
+        out.push({ t: lines[j], y: y + ((LHpx - cf) / 2 + cf * 0.78) / unit, cx: cx,
+                   w: textW(lines[j], cf, 0.01) / unit, cap: false });
+        y += LHpx / unit;
       }
-      /* lay the whole note out at cf px; null when it does not fit.
-         `force` lets it run past the last row (on the last row's
-         width) so a note that fits nowhere is still drawn, and warned. */
-      function layout(cf, force, start){
-        var capPx = cf * PCAP, out = [], y = top + (start || 0) * dyU + padU;
-        var bottom = force ? Infinity : top + rows.length * dyU - padU;
-        function flow(words, px, sp, lhPx, isCap){
-          var lh = lhPx / unit, i = 0, skipped = 0;
-          /* THE CAPTION STARTS WHERE IT FITS WHOLE. The top rows of a
-             clearing are its narrowest (stop 1's begin one cell wide
-             under the ridge's diagonal), and taking the first row that
-             holds a single word set "JEONJU / HANOK / VILLAGE" on
-             three lines, and lost the caption its handwriting. So the
-             caption first looks, over the clearing's upper half, for
-             a row that holds all of it; only when none does (a phone's
-             narrow box) does it wrap from the top like the copy. */
-          if (isCap){
-            var whole = words.join(" "), yy = y, half = top + rows.length * dyU * 0.5;
-            while (yy + lh <= Math.min(bottom, half)){
-              var sw = span(yy, yy + lh, force);
-              if (sw && textW(whole, px, sp) <= (sw[1] - sw[0]) * unit){ y = yy; break; }
-              yy += dyU;
-            }
-          }
-          while (i < words.length){
-            if (y + lh > bottom) return false;
-            var s = span(y, y + lh, force);
-            var line = words[i];
-            if (!s || textW(line, px, sp) > (s[1] - s[0]) * unit){
-              /* no paper here, or not enough for the next word: try
-                 the next row down */
-              y += dyU; if (++skipped > 400) return false; continue;
-            }
-            var availPx = (s[1] - s[0]) * unit, j = i + 1;
-            while (j < words.length){
-              var t = line + " " + words[j];
-              if (textW(t, px, sp) > availPx) break;
-              line = t; j++;
-            }
-            out.push({ t: line, y: y + ((lhPx - px) / 2 + px * 0.78) / unit,
-                       cx: (s[0] + s[1]) / 2, w: textW(line, px, sp) / unit, cap: isCap });
-            y += lh; i = j;
-          }
-          return true;
-        }
-        if (!flow(name.split(/\s+/), capPx, capSp, capPx * 1.25, true)) return null;
-        y += cf * 0.3 / unit;
-        if (!flow(text.split(/\s+/).filter(Boolean), cf, 0.01, cf * COPY_LH, false)) return null;
-        return { cf: cf, lines: out, bottom: y };
-      }
-      /* THE START ROW IS SEARCHED TOO. Hung from the clearing's top the
-         note at stop 1 began at the narrow tip of the wedge under the
-         ridge and came out small; the wide paper was ten rows further
-         down. So for each size, from the cap downward, every start row
-         is tried in turn, and the first size that fits anywhere wins,
-         at its highest start — the largest type the clearing holds,
-         as close to the landmark as that size allows. */
-      var fit = null, cf, st, nStarts = Math.max(1, rows.length - 3);
-      for (cf = Math.max(PTEXT_MIN, cap); cf >= PTEXT_MIN - 1e-6 && !fit; cf -= 0.5)
-        for (st = 0; st < nStarts && !fit; st++) fit = layout(cf, false, st);
-      if (!fit){
-        fit = layout(PTEXT_MIN, true, 0);
-        console.warn("journey: the note for " + sp.name + " does not fit its clearing at " + PTEXT_MIN + "px");
-      }
+      var fit = { cf: cf, lines: out, bottom: y - (LHpx - cf) / unit };
 
       /* build: sizes in label units, the group scaled by sq so the
-         copy lands at cf px; every line carries its own centre */
+         copy lands at cf px */
       var sq = fit.cf / (CFu * unit), capF = CFu * PCAP;
-      var capLines = fit.lines.filter(function(l){ return l.cap; }),
-          copyLines = fit.lines.filter(function(l){ return !l.cap; });
+      var caps = fit.lines.filter(function(l){ return l.cap; }),
+          copys = fit.lines.filter(function(l){ return !l.cap; });
       var masked = !FADE, html = "";
       function X(l){ return (l.cx / sq).toFixed(2); }
       function Y(l){ return (l.y / sq).toFixed(2); }
       if (masked){
-        /* THE NOTE WRITES ITSELF (VEN, 2026-08-27: the writing
-           animation on all of the journey's text). One mask for the
-           whole block: a stroke along every line in reading order —
-           the caption's lines first, then the note's — each its own
-           subpath, so the reveal runs left to right down the page and
-           never sweeps a diagonal between lines. Dashing continues
-           across subpaths, so one dashoffset writes it all: the same
-           cost per frame the Korean name has always had, not a mask
-           per line (which is what made the earlier line fade the
-           cheaper choice). The stroke is wide enough for ascenders and
-           descenders at the larger of the two sizes. */
-        var bx0 = Infinity, bx1 = -Infinity, by0 = Infinity, by1 = -Infinity, dM = "";
+        var mx0 = Infinity, mx1 = -Infinity, my0 = Infinity, my1 = -Infinity, dM = "";
         fit.lines.forEach(function(l){
           var sz = l.cap ? capF : CFu, x0 = l.cx / sq - l.w / sq / 2 - sz * 0.3,
               x1 = l.cx / sq + l.w / sq / 2 + sz * 0.3, yc = l.y / sq - sz * 0.28;
           dM += "M" + x0.toFixed(1) + " " + yc.toFixed(1) + " L" + x1.toFixed(1) + " " + yc.toFixed(1) + " ";
-          bx0 = Math.min(bx0, x0); bx1 = Math.max(bx1, x1);
-          by0 = Math.min(by0, yc - sz); by1 = Math.max(by1, yc + sz);
+          mx0 = Math.min(mx0, x0); mx1 = Math.max(mx1, x1);
+          my0 = Math.min(my0, yc - sz); my1 = Math.max(my1, yc + sz);
         });
         html += '<defs><mask id="jme' + lb.idx + '" maskUnits="userSpaceOnUse" x="' +
-          (bx0 - CFu).toFixed(1) + '" y="' + (by0 - CFu).toFixed(1) +
-          '" width="' + (bx1 - bx0 + 2 * CFu).toFixed(1) + '" height="' + (by1 - by0 + 2 * CFu).toFixed(1) + '">' +
-          '<rect x="' + (bx0 - CFu).toFixed(1) + '" y="' + (by0 - CFu).toFixed(1) +
-          '" width="' + (bx1 - bx0 + 2 * CFu).toFixed(1) + '" height="' + (by1 - by0 + 2 * CFu).toFixed(1) + '" fill="#000"/>' +
+          (mx0 - CFu).toFixed(1) + '" y="' + (my0 - CFu).toFixed(1) +
+          '" width="' + (mx1 - mx0 + 2 * CFu).toFixed(1) + '" height="' + (my1 - my0 + 2 * CFu).toFixed(1) + '">' +
+          '<rect x="' + (mx0 - CFu).toFixed(1) + '" y="' + (my0 - CFu).toFixed(1) +
+          '" width="' + (mx1 - mx0 + 2 * CFu).toFixed(1) + '" height="' + (my1 - my0 + 2 * CFu).toFixed(1) + '" fill="#000"/>' +
           '<path d="' + dM.trim() + '" fill="none" stroke="#fff" stroke-width="' +
           (Math.max(capF, CFu) * 1.4).toFixed(1) + '" stroke-linecap="round"/>' +
           "</mask></defs>";
       }
       html += '<g' + (masked ? ' mask="url(#jme' + lb.idx + ')"' : "") + ">";
-      html += capLines.map(function(l){
+      html += caps.map(function(l){
         return '<text class="jmap__en"' + (masked ? "" : ' style="opacity:0"') +
                ' x="' + X(l) + '" y="' + Y(l) + '" font-size="' + capF.toFixed(2) +
                '" text-anchor="middle">' + esc(l.t) + "</text>";
       }).join("");
-      html += '<g class="jmap__copy">' + copyLines.map(function(l){
+      html += '<g class="jmap__copy">' + copys.map(function(l){
         return '<text x="' + X(l) + '" y="' + Y(l) + '" font-size="' + CFu.toFixed(2) +
                '" text-anchor="middle"' + (masked ? ' style="opacity:' + COPY_OP + '"' : ' style="opacity:0"') +
                ">" + esc(l.t) + "</text>";
@@ -2162,8 +2097,10 @@
             /* the note fitted to the box the tool cleared for it — the
                cap is the phone's PTEXT, or on a wider screen a size
                that grows with the window and stops at DTEXT_MAX */
-            var cap = narrow ? PTEXT : (DTEXT || Math.max(13, Math.min(DTEXT_MAX, W * DTEXT_K)));
-            lb.blk = setBlock(lb, lb.pb, unit, cap, narrow);   /* lb.pb is the clearing: box + rows */
+            /* the block's size is the planned one (c.fs, sheet units);
+               the only cap is a px ceiling for wide windows */
+            var cap = narrow ? 0 : (DTEXT || DTEXT_MAX);
+            lb.blk = setBlock(lb, lb.pb, unit, cap, narrow);   /* lb.pb is the note: box + fs */
           } else {
             setDesk(lb);
             /* under the building when the sheet carries an anchor,
@@ -2222,7 +2159,14 @@
             minCy = hi0Y - visH / 2 + 12, maxCy = lo0Y + visH / 2 - 12;
         fyU = minCy <= maxCy ? Math.max(minCy, Math.min(maxCy, fyU)) : maxCy;
         frameOff[k] = { x: (fxU - mx) * FRAME_PULL, y: (fyU - my) * FRAME_PULL };
+        /* for QA: the framing's inputs, readable off the DOM */
+        frameOff[k].why = [Math.round(lo0Y), Math.round(hi0Y), Math.round(minCy), Math.round(maxCy),
+                           Math.round(my), Math.round(ty), Math.round(nhh), blk ? Math.round(blk.y0) : null,
+                           blk ? Math.round(blk.y1) : null, Math.round(visH)];
       });
+      wrap.setAttribute("data-frame", JSON.stringify(frameOff.map(function(o){
+        return [Math.round(o.x), Math.round(o.y)].concat(o.why || []);
+      })));
     }
 
     /* ---- draw ------------------------------------------------------ */
