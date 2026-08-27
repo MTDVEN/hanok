@@ -658,12 +658,11 @@ a{ color: var(--ink); }
      Shorten this and the travel stops reading as travel; lengthen it
      and the section outstays its welcome.
 
-     580vh since 2026-08-27: the last 20vh of the pinned scroll walks on
-     past Jeonju to the sheet's foot (TAIL 0.042 of 480vh in
-     js/journey.js), the legs keeping their 460vh. It was 640vh with a
-     76vh walk first; VEN: "you extended it a bit too much, maybe need
-     a quarter of what you added." */
-  height: 580vh;
+     590vh since 2026-08-27: the last 30vh of the pinned scroll pans the
+     camera on past Jeonju to the sheet's foot (TAIL 0.06 of 490vh in
+     js/journey.js; the road itself stays inked to the seal), the legs
+     keeping their 460vh. */
+  height: 590vh;
 }
 /* NO opaque background on the sticky — load-bearing absence (part 9).
    The entry dissolve slides the semi-transparent map up OVER the

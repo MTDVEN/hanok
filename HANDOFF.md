@@ -5356,21 +5356,24 @@ up and to the left a bit (ie closer to the bottom of the image)"*.
 - **The tail.** The road ended exactly where the pinned scroll did,
   so the last stop was reached at the instant the section began to
   unpin and its caption faded with the trailing edge (the exit
-  dissolve, part 11 of session 12). A hold on Jeonju for the last
-  tenth was the first answer, and VEN still could not see the name:
-  *"extend the LENGTH of the section so that it actually has space to
-  render underneath the image COMFORTABLY."* The geometry is why: on
-  his ~400px-tall window the village, its caption and its note
-  together are as tall as the frame, so the caption lands in the last
-  pixels, under the market-cap bar. So the tail WALKS ON instead —
-  `TAIL` 0.042 (20vh of 480 — 0.14 first, then VEN: "you extended it a bit too much, maybe need a quarter of what you added"), and past p = 1-TAIL `timelineU` returns u > N-1,
-  `lenAt` carries the camera TAIL_WALK (0.25 — all the way first, and the village left the top of the screen; "no its still too long") of the rest of the road toward the sheet's
-  foot (the zoom held at the settle zoom, the framing offset held at
-  the stop's), the village rising up the screen and the caption
-  coming clear under it before the section lets go. On a short window
-  the village's roofs leave the top of the screen by the end; on a
-  tall one everything stays. `.journey--map` 560 → 580vh so the legs
-  kept their pacing (460vh, the walk 20vh on top). `?tail=0` is the old ending.
+  dissolve, part 11 of session 12). Four rounds with VEN settled it:
+  a hold on Jeonju (not enough — on his ~400px-tall window the
+  village, caption and note together are as tall as the frame, and
+  the caption landed under the market-cap bar); a walk on down the
+  road to the sheet's foot ("you extended it a bit too much"; a
+  quarter of it, "no its still too long"); and then the screenshot
+  that said what he meant: the END STATE of the full walk was right —
+  the village risen up the screen, the name clear beneath it — but
+  the road inking on past the village was not ("dont worry about
+  extending the footpath, that is irrelevant. Just the background").
+  So: `TAIL` 0.06 (30vh of 490), and in it `timelineU` returns
+  u > N-1 and `lenAt` carries the CAMERA down the rest of the road
+  (`TAIL_WALK` 1, the sheet's foot; the zoom and the framing
+  offset held at the stop's), while drawMap holds everything the
+  road drives — the inking, the walker, the prints, the names and
+  seals — at the last stop (`walked = min(camLen, STOP_LEN[N-1])`).
+  `.journey--map` 560 → 590vh so the legs kept their 460vh.
+  `?tail=0` is the old ending, `?walk=` how far the camera goes.
 - **`CAP_XY` in maproute**: the caption anchor's reviewed override,
   BLOCK_X's contract — stop 1, 0.563,0.190 → 0.535,0.178, the ink
   under it measured there (0.138, so its small clearing moved with

@@ -968,12 +968,11 @@
   var DWELL = qs("dwell", 0);
   /* share of the pinned scroll spent standing on the LAST stop before
      the section unpins — see timelineU */
-  var TAIL = qs("tail", 0.042);   /* 0.14 first; VEN: "you extended it a bit too
-                                      much, maybe need a quarter of what you
-                                      added" — 20vh of 480, see css/site.css */
-  /* ...and how far along the rest of the road that tail walks (1 = to
-     the sheet's foot). See lenAt. */
-  var TAIL_WALK = qs("walk", 0.25);
+  var TAIL = qs("tail", 0.06);    /* 30vh of 490, see css/site.css */
+  /* ...and how far along the rest of the road the CAMERA walks in it
+     (1 = to the sheet's foot). See lenAt, and drawMap for why the road
+     itself stays where it was. */
+  var TAIL_WALK = qs("walk", 1);
   /* What replaced the dwell, so an arrival still reads as one:
      EASE bends each leg's pacing toward smoothstep without reaching
      it — speed drops to (1-EASE) of cruise as you pass a place, and
@@ -2309,12 +2308,19 @@
 
       var z = CAM === "follow" ? zoomOf(u)
             : CAM === "fixed" ? zFit : zPan;
-      var walked = lenAt(u), px, py;
+      /* THE CAMERA WALKS ON PAST THE LAST STOP; THE ROAD DOES NOT. VEN,
+         2026-08-27, on the tail: "dont worry about extending the
+         footpath, that is irrelevant. Just the background so that the
+         name has enough space to render." So the camera's length runs
+         to the sheet's foot in the tail, while everything the road
+         drives — the inking, the walker, the prints, the names and
+         seals — is held at the last stop. */
+      var camLen = lenAt(u), walked = Math.min(camLen, STOP_LEN[N - 1]), px, py;
 
       if (CAM === "fixed"){
         px = 0.5 * camW; py = 0.5 * camH;
       } else {
-        var pt = camAt(walked, u);
+        var pt = camAt(camLen, u);
         px = pt.x / MW * camW; py = pt.y / MH * camH;
       }
 
