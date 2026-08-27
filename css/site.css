@@ -805,8 +805,15 @@ a{ color: var(--ink); }
   fill-opacity: 1;
   letter-spacing: .01em;
   text-transform: none;
-  opacity: .78;
+  /* NO `opacity` HERE. The line-by-line fade in js/journey.js sets each
+     line's opacity, and a standing value in a class rule beat the
+     attribute it used to set — so the fade never showed. The standing
+     strength is COPY_OP in js/journey.js, and it writes inline style. */
 }
+/* the phone's block (js/journey.js setPhone): the caption is a heading
+   on a note here, not the name of the place, so its tracking eases to
+   fit the box the tool cleared for it */
+.jmap__enlab--phone .jmap__en{ letter-spacing: .12em; }
 
 /* ZICO'S COPY, SECOND HOME — a band under the map.
 
@@ -836,32 +843,18 @@ a{ color: var(--ink); }
   background: var(--paper);
   border-top: 1px solid rgba(138, 124, 97, .34);
 }
-/* `.jmap--onsheet` is `?copy=sheet` asked for BY HAND, which overrules
-   the breakpoint so the sheet placement can be seen on a phone rather
-   than described — see the note at COPY_MODE in js/journey.js. */
-@media (max-width: 860px){
-  .jmap:not(.jmap--onsheet) .jmap__note{ display: grid; }
-  .jmap:not(.jmap--onsheet) .jmap__label .jmap__copy{ display: none; }
-  /* AND THE ENGLISH CAPTION COMES OFF THE SHEET WITH IT.
-
-     Its anchor is a patch of blank paper that maproute searched at
-     the LARGEST label scale a desktop reaches (lq 1.465, see the
-     block above CAP_W in tools/maproute.js). A phone is not on that
-     scale: `want` floors at 34px, which puts lq at 2.24 on a 390px
-     screen — half again as wide as the paper that was cleared for it.
-     So the caption ran across Gyeongbokgung's own roof and off the
-     right edge of the screen at the same time, which is the overlap
-     in VEN's screenshot that no anchor can fix.
-
-     It is not needed here either: the band below prints the same name
-     as its heading, at a size that can be read, where the sheet's
-     caption renders at about 9px. The Korean name stays — it is the
-     thing that writes itself, and it is the whole point of the
-     labels (VEN, part 2). */
-  .jmap:not(.jmap--onsheet) .jmap__label.jmap__enlab{ display: none; }
-}
+/* `.jmap--strip` is set by measure() in js/journey.js — no breakpoint
+   here any more. Since 2026-08-27 a phone gets the SHEET when the
+   sheet has clearings to put the block in (MAPS.ink.clear: the block
+   is re-flowed into the box the tool measured for it), and the band
+   only when it does not (`?map=solid`, the pirate sheet) or when
+   `?copy=strip` asks for it. With the band on, the copy and the
+   English caption come off the sheet: the band prints the same name
+   as its heading at a size that can be read. The Korean name stays —
+   it is the thing that writes itself, the point of the labels. */
 .jmap--strip .jmap__note{ display: grid; }
 .jmap--strip .jmap__label .jmap__copy{ display: none; }
+.jmap--strip .jmap__label.jmap__enlab{ display: none; }
 /* All four notes share ONE grid cell, so they crossfade in place and
    the band's height is the tallest of them — fixed for the whole
    journey, so the map's frame never resizes as you scroll between

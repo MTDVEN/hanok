@@ -16,6 +16,19 @@ Namsangol's bridge/swap steps. (Jeonju's stop was blank until session
 14, when VEN forwarded Upbit's own framing and it took the tile
 metaphor — **§9aa**.)
 
+**SESSION 15 (2026-08-27), READ FIRST IF YOU TOUCH THE MAP ART OR THE
+COPY.** The terrain inside VEN's three red loops is faded to bare
+parchment (`tools/mapclear.js` + `tools/clearings.json`), the text
+blocks live in those clearings on every device, and phones have the
+copy back on the sheet, re-flowed into a measured box, with the
+camera framing seal, name and note together. A fourth loop beside
+Jeonju is the one thing VEN did not draw. **§9ab** is the whole
+record; README's THE CLEARINGS is the four-command pipeline. Two new
+traps there: `--terrain` (carve the road on the pre-clearing sheet or
+it wanders into the paper cleared for the text) and the screenshot
+timeout in the harness (first capture after a change fails, second
+works).
+
 **SESSION 14 (2026-08-25), READ FIRST IF YOU TOUCH THE MAP'S LAYOUT.**
 VEN looked at the journey on a phone and the copy was standing on the
 mountains. Three things came out of it and all three are structural:
@@ -45,8 +58,9 @@ x 0.63 sent the Namsangol road to x 0.27 and the seal with it, so the
 patch is clipped at `--limit ...,0.598,...`, which is the widest it
 goes. The clearing is now full; bigger is not available.
 
-Last updated: 2026-08-25 (session 14 — the journey's copy on a phone,
-§9aa. Before that: session 12, fourteen parts, all LIVE —
+Last updated: 2026-08-27 (session 15 — the clearings, §9ab. Before
+that: session 14 — the journey's copy on a phone, §9aa; session 12,
+fourteen parts, all LIVE —
 **THE JOURNEY IS NOW A MAP YOU WALK, deployed at
 https://tilesongiwa.com.** Private repo `github.com/MTDVEN/hanok`,
 branch `main`, push to main deploys.)
@@ -4904,6 +4918,235 @@ person to ask this question should look rather than read.
 Unchanged from §9z except Jeonju, which is now written: **the
 ticker**, and **Namsangol's bridge and swap steps**. Nothing invented
 there, for the same reason as before.
+
+---
+
+## 9ab. Session 15 (2026-08-27) — the mountains make way for the words
+
+VEN, with the same three red loops from his 2026-08-25 phone
+screenshot (the ridge east of Gyeongbokgung, the terraced fields, the
+range south-east of Namsangol): the copy was *"ok"* according to Zico,
+*"but this would most likely require us to edit the background in
+order to make a little 'space' where the background IMAGE fades out to
+make space for the text and only leave the background colour (that
+being the old paper texture) ... it MUST be done in the parts of the
+screenshot marked in red."*
+
+It is done, and it is done in the art, not with a wash: inside each
+loop the ink and the watercolour dissolve into bare parchment — the
+way a 산수화 lets a ridge vanish into mist — and the text sits on the
+paper that is left. Phones got the sheet back in the bargain, because
+for the first time there is paper on it that can hold a paragraph.
+
+### 1. `tools/mapclear.js` — fade the terrain to paper, deterministically
+
+Not OpenArt. §9x's rule stands: image2image re-renders the whole page
+and moves every measured thing on it, and "erase these mountains"
+would have cost credits and a re-route for a result that could not be
+tuned. This tool is ~450 lines of zlib-only Node like the others, and
+it touches nothing outside the loops (the diff against its input is
+zero there — checked, and it is the check to keep running).
+
+How the paper under a mountain is made, since there is no paper layer
+to reveal: **tone** (a normalised blur of the pixels that are quiet,
+bright, paper-COLOURED parchment, behind which a harmonic fill
+interpolates across the wide places) plus **grain** (the residual of
+the sheet's own quiet paper against its local mean, tiled over the
+clearing in overlapping raised-cosine windows at random offsets and
+flips). Three things had to be learned to get the tone right, each
+the reason for a knob:
+
+- **The washes are not paper.** A plain colour-distance test let the
+  pale violet and green washes through and tinted the first cleared
+  cores pink. Chroma separates them: the parchment sits in a tight
+  band with G a shade under the mean of R and B and R−B between ~30
+  and 50 (`CHROMA_*`, `WARM_*`, measured on the sheet).
+- **A mountain's shaded flank is not paper either.** It is smooth,
+  bright and warm enough to pass every test above, and pinning the
+  fill to it left a beige cloud in the middle of each clearing. Paper
+  is what has no stroke anywhere near it: the mask is eroded
+  `INK_CLEAR` (28px) from every ink pixel first.
+- **A wide blur reaches the wrong places.** 220px ×3 pulled the
+  coast's darker margin into the middle of the sheet. The harmonic
+  fill (`FILL_S`/`FILL_IT`) takes the paper on every side of a ridge
+  and nothing further.
+
+Checked numerically as well as by eye: the mean colour of the cleared
+cores against a ring of original paper around them is 240/220/201 vs
+238/217/200.
+
+**`--keep <plain.png>` protects the landmarks**, found the way maproute
+finds the stops — a 32px cell that differs from the plain sheet by
+`KEEP_DIFF` **and was quiet paper in the plain sheet** (`KEEP_QUIET`;
+mappatch's rule, §9x). The second test is essential: without it the
+re-stroked mountains counted as landmarks too and came back through
+the fade in blobs. It is what lets Jeonju's loop hug its village.
+
+The loops are `tools/clearings.json` — VEN's markup traced into
+normalised polygons — **the one hand-drawn thing in the map's wiring**
+apart from `BLOCK_X` (now empty, see 3). Two of his loops clipped a
+vignette (the walled house's east third, the pond pavilion) and were
+pulled off them; the second loop was extended over the WHOLE terrace,
+because a half-faded terrace read as a smudge where a half-faded
+mountain reads as mist. The edge is `FEATHER` 170px on the 3072px
+master with a wandering boundary (`EDGE_NOISE`); the ridge's crest
+east of the palace stays and its flank dissolves downward, which is
+the look.
+
+### 2. Jeonju got a fourth loop, and VEN did not draw it
+
+On a phone, Jeonju's note had nowhere clean to go: south of the
+village is eight rows of paper between the village and the sheet's
+foot, the road cuts through it, and the only clean rectangle the
+search could find was under the compass rose at the sheet's very
+edge. So the range between the village and the coast is faded too
+(loop 4), and Jeonju's phone box sits there. **Flagged to VEN as the
+one thing he did not mark**; it is one line of clearings.json and a
+re-run of the four commands in README to drop it. The cost is visible
+on the sheet: loops 3 and 4 meet, so the east side is one long mist
+bank from Namsangol to Jeonju.
+
+### 3. maproute learned the clearings
+
+- `--terrain <png>` carves the ROAD on the pre-clearing sheet. Bare
+  paper is exactly what the seam hunts for, and cleared paper is
+  reserved for text; carved on the cleared sheet the road would have
+  wandered into it. The emitted path is within one cell of the
+  shipped one everywhere (two cells at the sheet's foot, below
+  Jeonju) — the shipped one is kept, since the seal nudges were
+  measured against it.
+- `--clear <json>` confines each stop's block search to its loop
+  (inset `CLEAR_INSET` 2.5 cells, which is where the feather is fully
+  clear), measures nearness to the landmark on both axes, and falls
+  back to the band under the landmark when the loop cannot hold the
+  desktop block — Jeonju's cannot (eight columns inside its inset, the
+  block wants thirteen), so its desktop block is unchanged at
+  0.396,0.934.
+- **The arrival-frame bound became a span rule.** "Block within ±21
+  columns of the seal" pinned stop 1's block onto the footpath: its
+  clearing lies east of the road at 0.50, and a block centred under
+  0.55 cannot clear it. The rule is now "seal and block together
+  span at most the frame" (`SEAL_HW`), because the camera frames them
+  together now (5).
+- **A phone box per stop** (`MAP_CLEAR`): the largest clean
+  rectangle in the loop — under `PHONE_DARK` AND `PHONE_SOFT` (a
+  second field, the share of a cell under luma 196, which sees the
+  ghost of a ridge at the feather where the dark count cannot), off
+  the road by `ROAD_HALF + PHONE_VERGE`, off the name, off the
+  landmark, paragraph-shaped (`PHONE_ASPECT_*`), near the landmark
+  (`PHONE_NEAR`). Inset only `PHONE_INSET` 1.0 — the 2.5 cost five
+  cells of a twenty-cell clearing. `--why` prints the search as a
+  cell map of what stopped it.
+- `BLOCK_X` is empty: the ridge stop 1's override stepped off is
+  gone.
+- **`PHONE_INSET` is declared next to `polyMask`, not with the other
+  PHONE_ knobs.** Read before its `var` was assigned it was undefined,
+  the inset went NaN, the mask came back empty without a word and the
+  search fell back to a window capped at road+24 columns. DARK_T's
+  trap, third time.
+
+Results (art/journey/map-ink.png, grid 72×129): blocks 1-3 moved into
+their loops — 0.514,0.174 → **0.688,0.205**; 0.438,0.446 →
+**0.660,0.415**; 0.438,0.678 → **0.688,0.709** — all with mean and
+peak ink 0.000. Stops and name anchors unchanged to ±0.001.
+
+### 4. Phones: the copy is back on the sheet, re-flowed into its box
+
+`.jmap__note` is no longer the phone's home; it is `?copy=strip` and
+the home of sheets that have no boxes (`?map=solid`, pirate).
+`measure()` decides `.jmap--strip` from the width and the sheet, and
+there is no breakpoint in the CSS any more.
+
+The phone block is **not the desktop block drawn smaller** (that was
+7px, §9y). `setPhone` re-flows caption and copy to the box's width
+(text measured on a canvas in the display face; `document.fonts.ready`
+re-measures) at the largest size from `PTEXT` 11 down to `PTEXT_MIN`
+8.5 at which the whole note fits the box's height, centred, hung
+from the box's top edge so it sits nearest the landmark. The caption
+is a heading on a note here — 0.82 of the copy, tracking eased to
+.12em, wrapped when it must ("NAMSANGOL HANOK / VILLAGE") — and it
+has no writing mask: it fades in as the first line. `setDesk`
+restores the desktop markup on resize.
+
+**`PHONE_ZOOM` 1.9, not ZOOM_IN's 1.65 and not 2.0.** The box is a
+fixed patch of sheet and the words a fixed size of screen, so the
+settle zoom sets how many lines fit: at 1.65 stop 2's nine-row box is
+81px tall and holds nothing readable. 2.0 was measured and rejected
+for one reason — at Jeonju the name stands west of the seal and the
+note east of it, 393px across on a 390px phone, and the name lost its
+first strokes off the left edge however the frame was placed. At 1.9
+the notes come out 11 / 9.5 / 11 / 9.5 px with 17px to spare at the
+widest stop.
+
+### 5. The camera frames seal, name and note together
+
+With the blocks in the clearings they stand further from their seals
+(stop 1's a third of the sheet east of the road), and a seal-centred
+camera cut the note at the moment it is meant to be read. `camAt`
+now pulls, on the same approach weight it always used, onto the road
+point shifted by `frameOff[k]`: the midpoint of seal, name and note
+(each with a margin, `SEAL_M`/`NOTE_M`), moved only as far as keeps
+their bare extents on screen, and — when even those are wider than
+the frame — splitting the difference rather than favouring the seal.
+Two versions were wrong first: a clamp on the seal alone
+(`FRAME_EDGE_X`, now gone) put Jeonju's name off the left edge, and
+the midpoint without a note margin put Jeonju's last letters one
+pixel past the right. Down, the seal keeps to the middle 40%, so the
+landmark stays in the picture on a short desktop window where the
+note is below the fold at arrival anyway (§9w part 14's caveat, still
+standing). `?frame=0` is seal-centred.
+
+### 6. The line-by-line fade never showed, and now does
+
+`drawMap` staggered the copy lines by setting an `opacity` ATTRIBUTE,
+and `css/site.css` gave the same elements `opacity: .78` by class. A
+class rule beats a presentation attribute, so every line stood at .78
+from the moment the group was displayed; "nobody has seen the
+line-by-line fade in motion" (§9z) was true because there was nothing
+to see. It writes inline style now (`COPY_OP`/`CAP_OP` multiplied in,
+the CSS value removed), and the stagger `step` tightens for the
+phone's nine lines so the last lands before the seal. Measured
+mid-approach: 0.72 / 0.55 / 0.36 / 0.18 / 0.04 / 0 across six lines.
+
+### 7. What was seen, and how
+
+The phone harness (`tools/qa-frame.html?w=390&h=844&s=1`, `?glide=0`)
+gave real screenshots of stops 1-3 — seal and name beside the
+building, the note on bare paper in the clearing, the ridge
+dissolving above it — with a new trap: **the first screenshot after
+any change to the camera or the outer scroll times out at 30s
+("renderer may be frozen"); the second attempt, standalone, works.**
+Batching a change and a capture fails every time. The desktop harness
+at 1280×800 did not paint the sheet at all (§7's layer dropout at a
+2112×3784px layer), so desktop placement was verified by the DOM
+audit — every seal, name and block inside the frame at all four
+stops, stop 3's block bottoming at y 707 — and by the route render.
+Jeonju on a phone is verified by the DOM audit and the render only.
+
+### Files
+
+- `tools/mapclear.js`, `tools/clearings.json` — new.
+- `map-ink-master-clear.png` — **the shipped master**;
+  `map-ink-master-plain-clear.png` — **the `--base` now**. Both cut
+  from `-nams` / `-plain` by the same json; regenerable. Gitignored
+  like every master; still no backup.
+- `art/journey/map-ink.png` — re-prepped (2.9MB);
+  `art/journey/map-ink-solid.png` — the previous shipped sheet, kept
+  for `?map=solid` and as `--terrain`.
+- The four commands, in order, are in README under THE CLEARINGS.
+
+### Open
+
+- **VEN has not seen it.** Everything above was judged on the harness
+  and the render; the phone screenshots are the strongest evidence
+  and Jeonju's has none. `?map=solid` is the sheet before, on the same
+  URL, for the comparison he will want.
+- Loop 4 (Jeonju) is his to keep or drop.
+- `?pzoom=`, `?ptext=`, `?frame=` are the knobs if the phone reads
+  too close, too small, or the seal too far off centre.
+- The English caption under the phone's block has no writing mask;
+  if the hand-written caption is missed on phones, `setPhone` is where
+  it would go back, at the cost of a mask re-rasterisation per line.
 
 ---
 

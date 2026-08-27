@@ -229,7 +229,33 @@ captions.
 - **Zico's copy is written on the sheet under each caption**, fading
   in a line at a time on arrival. A watercolour wash was tried under
   it and rejected (HANDOFF §9z). `?copy=strip` moves the copy to
-  a note under the map instead (which is what phones get regardless).
+  a note under the map instead.
+- **THE CLEARINGS (2026-08-27, HANDOFF §9ab).** Inside VEN's red
+  loops the terrain is faded to bare parchment so the copy sits on
+  paper, not mountains. The shipped sheet is cut from the master by
+  `node tools/mapclear.js map-ink-master-nams.png map-ink-master-clear.png
+  --clear tools/clearings.json --keep map-ink-master-plain.png --debug`
+  (and the SAME loops on the plain base:
+  `node tools/mapclear.js map-ink-master-plain.png map-ink-master-plain-clear.png
+  --clear tools/clearings.json`), then `mapprep` at 1800, then
+  `node tools/maproute.js art/journey/map-ink.png --base
+  map-ink-master-plain-clear.png --terrain art/journey/map-ink-solid.png
+  --clear tools/clearings.json --debug --why`. `--terrain` carves the
+  road on the pre-clearing sheet (bare paper is what the seam hunts
+  for, and the paper was cleared for the TEXT); `--clear` confines
+  each block to its loop and emits `MAP_CLEAR`, the phone's box per
+  stop. Paste `MAP_STOPS` and `MAP_CLEAR`; the path is kept (it is
+  within one cell of the emitted one and the seal nudges were measured
+  against it). `tools/clearings.json` is the one hand-drawn thing in
+  the map's wiring — VEN's loops, traced — and the fourth loop (Jeonju)
+  is the one VEN did not draw; delete its line and re-run to drop it.
+- **Phones get the sheet now**, not the band: the block is re-flowed
+  into its `MAP_CLEAR` box at the largest size that fits (`?ptext=11`
+  down to `?ptextmin=8.5`), at a closer settle zoom (`?pzoom=`). The
+  camera frames seal, name and note together at every stop
+  (`?frame=0` restores seal-centred). `?copy=strip` is the band;
+  `?map=solid` is the sheet before the clearings, with the band on
+  phones as before.
 - `node tools/mapbox.js <sheet> <out> cx,cy,hw,up,dn` draws a label's
   REAL footprint on the sheet. **This is the authority when the grid
   and the eye disagree** — a 25px cell statistic cannot see a thin
@@ -238,9 +264,12 @@ captions.
   one reviewed override that came out of it.
 - `node tools/maproute.js ... --why` dumps the caption-block search —
   best candidates with every score term, the band's ink profile by
-  column, and a cell map of the clearing. Use it before touching any
-  weight: it is how "the clearing under Namsangol is seven columns
-  wide and the text needs twelve" was established rather than guessed.
+  column, and a cell map of the clearing — and, with `--clear`, the
+  phone box search as a map of what stopped it (`m` outside the loop,
+  `r` road, `b` landmark, `n` name, `#` ink, `s` a ghost of ink). Use
+  it before touching any weight: it is how "the clearing under
+  Namsangol is seven columns wide and the text needs twelve" was
+  established rather than guessed.
 - **Re-editing ONE vignette: patch it in, never swap the sheet.**
   OpenArt re-renders the whole page even when the drawing survives, and
   a re-stroked sheet moves stops nobody touched (it moved Jeonju's).

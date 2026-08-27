@@ -100,6 +100,7 @@ var DARK_T = 132;
    knobs further down are assigned, and a `var` read before its
    assignment is undefined — `l < undefined` is false for every pixel,
    so the field came back empty and every candidate scored zero. */
+var SOFT_T0 = 196;   /* same rule: the phone box's softer field (SOFT_T below) */
 
 var INT_W  = 0.85;
 var INT_R0 = 3, INT_R1 = 8;
@@ -230,6 +231,32 @@ var BASE = (function(){
   var i = argv.indexOf("--base");
   return i >= 0 ? argv[i + 1] : null;
 })();
+/* --terrain <png>: carve the ROAD on this sheet instead of <src>.
+
+   Since 2026-08-27 the shipped sheet carries three CLEARINGS — VEN's
+   red loops, where tools/mapclear.js has faded the terrain to bare
+   paper so the copy can sit on it. Bare paper is precisely what the
+   seam hunts for, so run on the cleared sheet the road would wander
+   into the very space that was cleared for the text, and take the
+   stops with it. The road VEN signed off was carved on the sheet
+   before the clearings; pass that sheet here and it is carved on it
+   still. Everything else — the stops by difference, the name and
+   block searches — reads <src>, which is what is actually drawn. */
+var TERRAIN = (function(){
+  var i = argv.indexOf("--terrain");
+  return i >= 0 ? argv[i + 1] : null;
+})();
+/* --clear <json>: the clearings, the same file tools/mapclear.js cut
+   them from. With it, a stop that has a loop confines its text block
+   to that loop, and a second search finds the widest clean box inside
+   it for the phone's larger block — see CLEAR_INSET and phoneBox. */
+var CLEAR = (function(){
+  var i = argv.indexOf("--clear");
+  if (i < 0) return null;
+  var lst = JSON.parse(fs.readFileSync(argv[i + 1], "utf8")), by = {};
+  lst.forEach(function(l){ by[l.stop] = l.poly; });
+  return by;
+})();
 
 if (!src){
   console.error("usage: node tools/maproute.js <map.png> [--base <plain.png>] [--stops 4] [--debug]");
@@ -248,6 +275,7 @@ var ROWS = Math.max(2, Math.round(COLS * img.h / img.w));
 function gridsOf(im){
   var L = new Float64Array(COLS * ROWS),
       K = new Float64Array(COLS * ROWS),
+      F = new Float64Array(COLS * ROWS),
       D = new Float64Array(COLS * ROWS), gx, gy;
   for (gy = 0; gy < ROWS; gy++){
     var y0 = Math.floor(gy * im.h / ROWS),
@@ -255,26 +283,28 @@ function gridsOf(im){
     for (gx = 0; gx < COLS; gx++){
       var x0 = Math.floor(gx * im.w / COLS),
           x1 = Math.max(x0 + 1, Math.floor((gx + 1) * im.w / COLS));
-      var s = 0, s2 = 0, n = 0, dk = 0, yy, xx;
+      var s = 0, s2 = 0, n = 0, dk = 0, sf = 0, yy, xx;
       for (yy = y0; yy < y1; yy++){
         for (xx = x0; xx < x1; xx++){
           var p = (yy * im.w + xx) * 3;
           var l = 0.2126 * im.data[p] + 0.7152 * im.data[p + 1] + 0.0722 * im.data[p + 2];
           s += l; s2 += l * l; n++;
           if (l < DARK_T) dk++;
+          if (l < SOFT_T0) sf++;
         }
       }
       var m = s / n;
       K[gy * COLS + gx] = dk / n;
+      F[gy * COLS + gx] = sf / n;
       L[gy * COLS + gx] = m;
       D[gy * COLS + gx] = Math.sqrt(Math.max(0, s2 / n - m * m));
     }
   }
-  return { lum: L, dev: D, dark: K };
+  return { lum: L, dev: D, dark: K, soft: F };
 }
 
 var G = gridsOf(img);
-var lum = G.lum, dev = G.dev, dark = G.dark;
+var lum = G.lum, dev = G.dev, dark = G.dark, soft = G.soft;
 
 function norm(arr){
   var lo = Infinity, hi = -Infinity, i;
@@ -285,6 +315,55 @@ function norm(arr){
 }
 
 var nl = norm(lum), nd = norm(dev);
+
+/* the road's own view of the sheet: the pre-clearing terrain when
+   --terrain is given (see the note at its definition), else <src> */
+var tl = nl, td = nd;
+if (TERRAIN){
+  var TG = gridsOf(decode(fs.readFileSync(TERRAIN)));
+  tl = norm(TG.lum); td = norm(TG.dev);
+}
+
+/* the clearings as cell masks, per stop index: inside the loop, and
+   inside it by CLEAR_INSET cells — mapclear feathers the loop's edge
+   over ~170px of a 3072px master, so the paper is only fully clear
+   about three cells in from the line. A block on the ramp would sit
+   on a ghost of the mountain. */
+var CLEAR_INSET = 2.5;
+/* the phone box's smaller inset — declared HERE, before polyMask runs,
+   not down with the other PHONE_ knobs: read before its assignment it
+   is undefined, the inset goes NaN, and the mask comes back empty
+   without a word (DARK_T's trap, again) */
+var PHONE_INSET = 1.0;
+function polyMask(poly, inset){
+  var m = new Uint8Array(COLS * ROWS), gx, gy;
+  function inside(px, py){
+    var hit = false, j, k;
+    for (j = 0, k = poly.length - 1; j < poly.length; k = j++){
+      var a = poly[j], b = poly[k];
+      if ((a[1] > py) !== (b[1] > py) &&
+          px < (b[0] - a[0]) * (py - a[1]) / (b[1] - a[1]) + a[0]) hit = !hit;
+    }
+    return hit;
+  }
+  /* distance-to-edge inset: a cell counts only if the four points
+     `inset` cells out from its centre are all inside too */
+  for (gy = 0; gy < ROWS; gy++)
+    for (gx = 0; gx < COLS; gx++){
+      var cx = (gx + 0.5) / COLS, cy = (gy + 0.5) / ROWS, dx = inset / COLS, dy = inset / ROWS;
+      if (inside(cx, cy) && inside(cx - dx, cy) && inside(cx + dx, cy) &&
+          inside(cx, cy - dy) && inside(cx, cy + dy) &&
+          inside(cx - dx * 0.7, cy - dy * 0.7) && inside(cx + dx * 0.7, cy - dy * 0.7) &&
+          inside(cx - dx * 0.7, cy + dy * 0.7) && inside(cx + dx * 0.7, cy + dy * 0.7))
+        m[gy * COLS + gx] = 1;
+    }
+  return m;
+}
+var clearMask = {}, clearLoose = {};
+if (CLEAR) Object.keys(CLEAR).forEach(function(k){
+  clearMask[k]  = polyMask(CLEAR[k], CLEAR_INSET);
+  clearLoose[k] = polyMask(CLEAR[k], PHONE_INSET);   /* see PHONE_INSET */
+});
 
 /* With --base: the landmark field, before the seam runs.
 
@@ -339,7 +418,7 @@ var open = new Float64Array(COLS * ROWS);
       var i = gy * COLS + gx;
       /* distance into the margin, 0 in the safe middle, 1 at the edge */
       var fx = (gx + 0.5) / COLS;
-      open[i] = nl[i] - INK_W * nd[i]
+      open[i] = tl[i] - INK_W * td[i]
         - EDGE_W * Math.pow(Math.max(0, (MARGIN - fx) / MARGIN,
                                         (fx - (1 - MARGIN)) / MARGIN), 2)
         /* The road must never cross a landmark. A vignette's soft
@@ -556,7 +635,13 @@ var CAP_GAP = 2, CAP_BAND = 11, CAP_NEAR = 0.012;
 
    ON AN ART RE-ROLL: clear these to null, re-run, and re-check by
    render. They are corrections to THIS sheet, not to the method. */
-var BLOCK_X = [0.514, null, null, null];
+/* CLEARED 2026-08-27, on the art change it was written for: the ridge
+   east of Gyeongbokgung is faded to paper inside VEN's first loop
+   (tools/clearings.json), so the ridge line the override stepped off
+   is no longer there. Re-checked by render on the cleared sheet. The
+   0.514 is kept in the note above as the record of why this list
+   exists; the list itself is empty. */
+var BLOCK_X = [null, null, null, null];
 
 var MEAN_W = 4.5;
 
@@ -572,6 +657,9 @@ var FRAME_DN = 10;
 /* half the arrival frame's width in columns: 0.606 of the sheet at
    ZOOM_IN 1.65, over a 72-column grid. */
 var FRAME_X = 21;
+/* half the seal's width plus a margin, in cells — the other end of
+   the span the frame has to hold (see the span rule at the scan) */
+var SEAL_HW = 3;
 /* per row the block hangs below the short-window frame. Small on
    purpose: it must yield to clean paper, never outrank it. */
 var FRAME_W = 0.03;
@@ -590,6 +678,26 @@ var PEAK_W = 0.8;
    the ink filter's overshoot. Used only to keep the text block off it
    — see the note at the check. */
 var NAME_HW = 1.4, NAME_HH = 4.4;
+
+/* The phone box search (see phoneBox in labelSpot). PHONE_DARK is the
+   dark fraction a cell may carry and still be paper the block can use
+   — a little above the "." of the --why maps, so the mist at a
+   clearing's edge is admitted and a stroke is not. PHONE_VERGE is
+   added to ROAD_HALF. The aspect bounds keep the box paragraph-shaped
+   (a 2x20 strip is useless to a six-line note); PHONE_NEAR is how
+   much area a box gives up per cell of distance from the landmark. */
+var PHONE_DARK = 0.035, PHONE_VERGE = 0.5;
+var PHONE_ASPECT_LO = 0.6, PHONE_ASPECT_HI = 3.5, PHONE_NEAR = 0.04;
+/* The phone box is not held CLEAR_INSET cells inside the loop the way
+   the desktop block is — that inset costs five cells of a clearing
+   that is only twenty wide. Instead it may go anywhere inside the
+   loop (PHONE_INSET) that is actually clean, and "clean" is judged
+   on a second, softer field as well as `dark`: the share of a cell
+   under SOFT_T, which sees the faint ghost of a ridge at the feather
+   where the dark count cannot (a stroke at 20% over paper is luma
+   ~190 — well above DARK_T, well below SOFT_T0, which is declared up
+   by DARK_T for the same hoisting reason). */
+var PHONE_SOFT = 0.10;   /* PHONE_INSET itself is declared up by polyMask */
 
 /* WHY THE NAME SEARCH IS STILL ON `nd` AND NOT ON `dark` — 2026-08-25.
 
@@ -622,7 +730,9 @@ var NAME_HW = 1.4, NAME_HH = 4.4;
    the harness for it is scratchpad-sized (grow the real glyph box
    about the anchor, count pixels under DARK_T). */
 
-  function labelSpot(gy0, rx0){
+  /* cm: this stop's clearing mask (see --clear), or null; cml: the
+     same loop with the smaller PHONE_INSET, for the phone box */
+  function labelSpot(gy0, rx0, cm, cml){
     /* The landmark itself, as a FLOOD-FILLED component, not a
        thresholded bounding box. image2image regenerates the whole
        sheet, so the vig field carries a residue of drift everywhere;
@@ -739,9 +849,31 @@ var NAME_HW = 1.4, NAME_HH = 4.4;
          building" — the camera keeps moving and the block comes up a
          beat later, which is the caveat part 14 already recorded. */
       var why = [];
+      /* WITH A CLEARING the block goes IN the clearing — that is what
+         it was cleared for — so the search runs over the loop's own
+         extent rather than the band under the landmark, and every
+         cell of the footprint must be inside the (inset) loop. The
+         nearness term then measures the block's distance to the
+         landmark's box on both axes, since a clearing can lie beside
+         a building as well as below it. */
+      var cmx0 = COLS, cmx1 = -1, cmy0 = ROWS, cmy1 = -1;
+      if (cm){
+        var ci, cxx, cyy;
+        for (ci = 0; ci < COLS * ROWS; ci++){
+          if (!cm[ci]) continue;
+          cxx = ci % COLS; cyy = (ci - cxx) / COLS;
+          if (cxx < cmx0) cmx0 = cxx; if (cxx > cmx1) cmx1 = cxx;
+          if (cyy < cmy0) cmy0 = cyy; if (cyy > cmy1) cmy1 = cyy;
+        }
+        if (cmx1 < 0) cm = null;   /* an empty loop is no loop */
+      }
       function scan(){
         var bcy = null, bcx2 = null, cbest = Infinity, cy2, cx2, dy2, dx2;
-        for (cy2 = by1 + CAP_GAP; cy2 <= Math.min(ROWS - 3, by1 + CAP_BAND); cy2++){
+        var rowLo = cm ? Math.max(3, cmy0 + CAP_UP) : by1 + CAP_GAP,
+            rowHi = cm ? Math.min(ROWS - 3, cmy1 - CAP_DN) : Math.min(ROWS - 3, by1 + CAP_BAND),
+            colLo = cm ? Math.max(5, cmx0 + CAP_W) : Math.max(5, bcx - 12),
+            colHi = cm ? Math.min(COLS - 6, cmx1 - CAP_W) : Math.min(COLS - 6, bcx + 12);
+        for (cy2 = rowLo; cy2 <= rowHi; cy2++){
           /* THE ARRIVAL FRAME IS A COST, NOT A WALL. As a hard cut it
              was the reason VEN's block would not move: it forbade
              every row below gy0+FRAME_DN, and at Namsangol the
@@ -753,15 +885,40 @@ var NAME_HW = 1.4, NAME_HH = 4.4;
              frame on anything taller than the 1600x689 reference;
              clean paper is worth that and overlap is not. */
           var late = FRAME_W * Math.max(0, (cy2 + CAP_DN) - (gy0 + FRAME_DN));
-          for (cx2 = Math.max(5, bcx - 12); cx2 <= Math.min(COLS - 6, bcx + 12); cx2++){
+          for (cx2 = colLo; cx2 <= colHi; cx2++){
+            if (cm){
+              /* the whole footprint inside the inset loop, or skip */
+              var okc = true, qy, qx;
+              for (qy = -CAP_UP; qy <= CAP_DN && okc; qy++)
+                for (qx = -CAP_W; qx <= CAP_W; qx++)
+                  if (!cm[(cy2 + qy) * COLS + cx2 + qx]){ okc = false; break; }
+              if (!okc) continue;
+              /* and not over the landmark, which a loop may skirt */
+              var okb = true;
+              for (qy = -CAP_UP; qy <= CAP_DN && okb; qy++)
+                for (qx = -CAP_W; qx <= CAP_W; qx++)
+                  if (inBlob[(cy2 + qy) * COLS + cx2 + qx]){ okb = false; break; }
+              if (!okb) continue;
+            }
             /* The BLOCK must be inside the arrival frame, not just its
                centre — the same mistake as the vertical bound, caught
                the same way. At the settle zoom a window sees 1/ZOOM_IN
                = 0.606 of the sheet's width, so ±21.8 columns around the
                marker; bounding the anchor alone let stop 1's block hang
                its last two columns off the right edge of the screen at
-               the moment it is meant to be read. */
-            if (Math.abs(cx2 - rx0) + CAP_W > FRAME_X) continue;
+               the moment it is meant to be read.
+
+               SINCE 2026-08-27 THE CAMERA FRAMES THE SEAL AND THE NOTE
+               TOGETHER (see the framing block in js/journey.js), so
+               the rule is no longer "block within ±FRAME_X of the
+               marker" but "seal and block span at most the frame's
+               width". The old rule pinned stop 1's block onto the
+               footpath: its clearing lies east of the road, the road
+               is at 0.50, and a block centred under 0.55 cannot clear
+               it. SEAL_HW is the seal plus a margin, in cells. */
+            var spanLo = Math.min(cx2 - CAP_W, rx0 - SEAL_HW),
+                spanHi = Math.max(cx2 + CAP_W, rx0 + SEAL_HW);
+            if (spanHi - spanLo > 2 * FRAME_X) continue;
             /* KEEP OFF THE KOREAN NAME, by the two boxes' MEASURED
                extents rather than by a flat 7x6.
 
@@ -837,17 +994,36 @@ var NAME_HW = 1.4, NAME_HH = 4.4;
                it became a paragraph.
                So the PEAK cell counts too, and heavily: any box with
                real ink anywhere in it now loses to one with none. */
+            /* nearness: rows below the landmark's foot, or with a
+               clearing the block box's gap to the landmark's box on
+               whichever axis it lies (a loop can be beside as well) */
+            var nearC = cm
+              ? Math.max(0, (cy2 - CAP_UP) - by1, by0 - (cy2 + CAP_DN)) +
+                Math.max(0, (cx2 - CAP_W) - bx1, bx0 - (cx2 + CAP_W)) * 0.6
+              : (cy2 - by1);
             var m2 = MEAN_W * (s2 / n3) + PEAK_W * pk + late
-                   + Math.abs(cx2 - bcx) * CENTRE_W + (cy2 - by1) * CAP_NEAR;
+                   + Math.abs(cx2 - bcx) * CENTRE_W + nearC * CAP_NEAR;
             if (WHY) why.push({ x: cx2, y: cy2, mean: MEAN_W * (s2 / n3), peak: pk,
                                 pull: Math.abs(cx2 - bcx) * CENTRE_W,
-                                near: (cy2 - by1) * CAP_NEAR + late, road: rdInk, total: m2 });
+                                near: nearC * CAP_NEAR + late, road: rdInk, total: m2 });
             if (m2 < cbest){ cbest = m2; bcx2 = cx2; bcy = cy2; }
           }
         }
         return bcy == null ? null : { x: bcx2, y: bcy };
       }
       var spot2 = scan();
+      /* A loop too narrow for the desktop block (Jeonju's is eight
+         columns inside its inset; the block wants thirteen) must not
+         leave the stop with NO anchor — that falls all the way back to
+         under-the-column, which part 13 rejected. Search the band
+         under the landmark instead, as if there were no loop; the
+         phone box below still uses the loop. */
+      if (!spot2 && cm){
+        console.log("  note    stop at row " + gy0 + ": its loop cannot hold the desktop block; " +
+                    "searching under the landmark instead");
+        cm = null;
+        spot2 = scan();
+      }
       if (spot2){ ecx = spot2.x; ecy = spot2.y; }
       if (WHY){
         why.sort(function(a, b){ return a.total - b.total; });
@@ -899,10 +1075,101 @@ var NAME_HW = 1.4, NAME_HH = 4.4;
         });
       }
     }
+    /* THE PHONE'S BOX. On a phone the block is not the desktop's block
+       drawn smaller: it is re-flowed to narrower lines at a size that
+       can be read, so it is a different, larger shape, and js/journey.js
+       FITS it into a box rather than hanging it off an anchor. This
+       finds that box — the largest clean rectangle (cells under
+       PHONE_DARK, off the road by a verge, off the Korean name, off
+       the landmark, and inside the clearing when there is one),
+       shaped like a paragraph rather than a strip, and near the
+       landmark when it can be. Emitted as MAP_CLEAR; a stop with no
+       clearing still gets one, searched round the stop, so Jeonju's
+       phone block has somewhere measured to go. */
+    var pb = null;
+    (function(){
+      /* the loose loop's extent, when there is one */
+      var lx0 = COLS, lx1 = -1, ly0 = ROWS, ly1 = -1, li;
+      if (cml){
+        for (li = 0; li < COLS * ROWS; li++){
+          if (!cml[li]) continue;
+          var lxx = li % COLS, lyy = (li - lxx) / COLS;
+          if (lxx < lx0) lx0 = lxx; if (lxx > lx1) lx1 = lxx;
+          if (lyy < ly0) ly0 = lyy; if (lyy > ly1) ly1 = lyy;
+        }
+        if (lx1 < 0) cml = null;
+      }
+      var ux0 = cml ? lx0 : Math.max(0, rx0 - 24), ux1 = cml ? lx1 : Math.min(COLS - 1, rx0 + 24),
+          uy0 = cml ? ly0 : Math.max(0, gy0 - 6),  uy1 = cml ? ly1 : Math.min(ROWS - 1, gy0 + 24);
+      var uw = ux1 - ux0 + 1, uh = uy1 - uy0 + 1, ux, uy;
+      if (uw < 3 || uh < 3) return;
+      var use = new Uint8Array(uw * uh);
+      for (uy = 0; uy < uh; uy++)
+        for (ux = 0; ux < uw; ux++){
+          var gx = ux0 + ux, gy = uy0 + uy, gi = gy * COLS + gx;
+          if (cml && !cml[gi]) continue;
+          if (inBlob[gi]) continue;
+          if (dark[gi] >= PHONE_DARK || soft[gi] >= PHONE_SOFT) continue;
+          if (Math.abs(gx - road[gy]) <= ROAD_HALF + PHONE_VERGE) continue;
+          if (Math.abs(gx - bx) <= NAME_HW + 0.5 && Math.abs(gy - by) <= NAME_HH + 0.5) continue;
+          use[uy * uw + ux] = 1;
+        }
+      var S = new Int32Array((uw + 1) * (uh + 1));
+      for (uy = 0; uy < uh; uy++)
+        for (ux = 0; ux < uw; ux++)
+          S[(uy + 1) * (uw + 1) + ux + 1] = S[uy * (uw + 1) + ux + 1] + S[(uy + 1) * (uw + 1) + ux]
+                                           - S[uy * (uw + 1) + ux] + use[uy * uw + ux];
+      function sum(x0, y0, x1, y1){
+        return S[(y1 + 1) * (uw + 1) + x1 + 1] - S[y0 * (uw + 1) + x1 + 1]
+             - S[(y1 + 1) * (uw + 1) + x0] + S[y0 * (uw + 1) + x0];
+      }
+      var best = 0, bb = null, x0, y0, x1, y1;
+      for (y0 = 0; y0 < uh; y0++)
+        for (y1 = y0 + 2; y1 < uh; y1++)
+          for (x0 = 0; x0 < uw; x0++)
+            for (x1 = x0 + 2; x1 < uw; x1++){
+              var w = x1 - x0 + 1, h = y1 - y0 + 1;
+              if (w < h * PHONE_ASPECT_LO || w > h * PHONE_ASPECT_HI) continue;
+              if (sum(x0, y0, x1, y1) !== w * h) continue;
+              var gx0 = ux0 + x0, gx1 = ux0 + x1, gy0b = uy0 + y0, gy1b = uy0 + y1;
+              var dd = hasBlob
+                ? Math.max(0, bx0 - gx1, gx0 - bx1) + Math.max(0, by0 - gy1b, gy0b - by1) : 0;
+              var sc = w * h * Math.max(0.2, 1 - PHONE_NEAR * dd);
+              if (sc > best){ best = sc; bb = [gx0, gy0b, gx1 + 1, gy1b + 1]; }
+            }
+      if (bb) pb = bb;
+      if (WHY){
+        console.log("  --why  phone box " + (bb ? "cols " + bb[0] + "-" + bb[2] + " rows " + bb[1] + "-" + bb[3] +
+                    " (" + (bb[2] - bb[0]) + "x" + (bb[3] - bb[1]) + " cells)" : "NONE"));
+        /* what stopped it: one character per cell over the search
+           window. '.' usable, 'm' outside the inset loop, 'b' the
+           landmark, 'r' the road and its verge, 'n' the name, '#'
+           ink; the chosen box is drawn in '=' */
+        console.log("         phone search window cols " + ux0 + "-" + ux1 + ", rows " + uy0 + "-" + uy1 + ":");
+        for (uy = 0; uy < uh; uy++){
+          var ln = "";
+          for (ux = 0; ux < uw; ux++){
+            var gx2 = ux0 + ux, gy2 = uy0 + uy, gi2 = gy2 * COLS + gx2, ch;
+            if (bb && gx2 >= bb[0] && gx2 < bb[2] && gy2 >= bb[1] && gy2 < bb[3]) ch = "=";
+            else if (cml && !cml[gi2]) ch = "m";
+            else if (inBlob[gi2]) ch = "b";
+            else if (Math.abs(gx2 - road[gy2]) <= ROAD_HALF + PHONE_VERGE) ch = "r";
+            else if (Math.abs(gx2 - bx) <= NAME_HW + 0.5 && Math.abs(gy2 - by) <= NAME_HH + 0.5) ch = "n";
+            else if (dark[gi2] >= PHONE_DARK) ch = "#";
+            else if (soft[gi2] >= PHONE_SOFT) ch = "s";
+            else ch = ".";
+            ln += ch;
+          }
+          console.log("           " + (gy2 < 100 ? " " : "") + (uy0 + uy) + " " + ln);
+        }
+      }
+    })();
+
     return {
       lx: (bx + 0.5) / COLS, ly: (by + 0.5) / ROWS,
       ex: ecx != null ? (ecx + 0.5) / COLS : null,
-      ey: ecy != null ? (ecy + 0.5) / ROWS : null
+      ey: ecy != null ? (ecy + 0.5) / ROWS : null,
+      pb: pb ? [pb[0] / COLS, pb[1] / ROWS, pb[2] / COLS, pb[3] / ROWS] : null
     };
   }
 
@@ -932,9 +1199,11 @@ var NAME_HW = 1.4, NAME_HH = 4.4;
     picked.sort(function(a, b){ return a - b; });
     picked.forEach(function(gy3, si3){
       var pt2 = atRow(gy3);
-      var spot = labelSpot(gy3, Math.round(road[gy3]));
+      var spot = labelSpot(gy3, Math.round(road[gy3]), clearMask[si3 + 1] || null,
+                           clearLoose[si3 + 1] || null);
       pt2.lx = spot.lx; pt2.ly = spot.ly;
       pt2.ex = spot.ex; pt2.ey = spot.ey;
+      pt2.pb = spot.pb;
       if (BLOCK_X[si3] != null && pt2.ex != null){
         console.log("  review  stop " + (si3 + 1) + " block x " +
                     pt2.ex.toFixed(3) + " -> " + BLOCK_X[si3].toFixed(3) +
@@ -1005,6 +1274,15 @@ console.log(stops.map(function(p){
          (p.ex != null ? ", " + f3(p.ex) + ", " + f3(p.ey) : "") + "]";
 }).join(",\n"));
 console.log("  ];");
+if (stops.some(function(p){ return p.pb; })){
+  console.log("  /* the phone's block box per stop, [x0, y0, x1, y1] — see");
+  console.log("     MAP_CLEAR in js/journey.js and phoneBox in tools/maproute.js */");
+  console.log("  var MAP_CLEAR = [");
+  console.log(stops.map(function(p){
+    return p.pb ? "    [" + p.pb.map(f3).join(", ") + "]" : "    null";
+  }).join(",\n"));
+  console.log("  ];");
+}
 console.log("");
 
 /* ---- debug render ------------------------------------------------ */
@@ -1054,6 +1332,15 @@ if (DEBUG){
        has to mean the text is clear, so the box is life-size. */
     if (p.ex != null)
       box(p.ex, p.ey, CAP_W / COLS, CAP_DN / ROWS, CAP_UP / ROWS);
+    /* the phone box, as an OUTLINE so the paper inside it can be read */
+    if (p.pb){
+      var qx0 = Math.round(p.pb[0] * img.w), qy0 = Math.round(p.pb[1] * img.h),
+          qx1 = Math.round(p.pb[2] * img.w), qy1 = Math.round(p.pb[3] * img.h), t, u2;
+      for (t = 0; t < 4; t++){
+        for (u2 = qx0; u2 <= qx1; u2++){ dot(u2, qy0 + t, 0, [142, 74, 56]); dot(u2, qy1 - t, 0, [142, 74, 56]); }
+        for (u2 = qy0; u2 <= qy1; u2++){ dot(qx0 + t, u2, 0, [142, 74, 56]); dot(qx1 - t, u2, 0, [142, 74, 56]); }
+      }
+    }
   });
   var dst = src.replace(/\.png$/i, "-route.png");
   fs.writeFileSync(dst, encodeRGB(img.w, img.h, out));

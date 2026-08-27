@@ -802,10 +802,37 @@
          Namsangol's wall is why the search now hugs the landmark
          (CAP_NEAR) instead of taking the quietest patch it could find
          five rows further down. */
-      stops: [[0.340, 0.120, 0.396, 0.136, 0.514, 0.174],
-              [0.492, 0.360, 0.410, 0.329, 0.438, 0.446],
-              [0.624, 0.601, 0.368, 0.632, 0.438, 0.678],
-              [0.372, 0.857, 0.326, 0.872, 0.396, 0.934]],
+      /* 2026-08-27, THE CLEARINGS. VEN, with three red loops on his
+         phone screenshot: the copy would be better if *"the background
+         IMAGE fades out to make space for the text and only leave the
+         background colour (that being the old paper texture)"*. So the
+         shipped sheet now has the terrain faded to bare parchment
+         inside his loops — `tools/mapclear.js`, from
+         `tools/clearings.json` — and the text blocks live IN them:
+         stops 1-3's block anchors moved into their loops (searched
+         there by maproute --clear), and each stop carries a `clear`
+         box below, the widest clean paper in its loop, which is where
+         the PHONE draws its larger, re-flowed block. A fourth loop
+         was cut beside Jeonju, which VEN did not mark: on a phone its
+         note had nowhere clean to go at all. Say the word and it is
+         one line of clearings.json.
+
+         The road is carved on the PRE-clearing sheet (maproute
+         --terrain art/journey/map-ink-solid.png) so it did not wander
+         into the paper cleared for the text; the emitted path is
+         within one grid cell of the one below everywhere, and the one
+         below is the one the seal nudges were measured against, so it
+         is kept. `?map=solid` is the sheet before any of this. */
+      stops: [[0.341, 0.120, 0.396, 0.136, 0.688, 0.205],
+              [0.492, 0.360, 0.410, 0.329, 0.660, 0.415],
+              [0.623, 0.601, 0.368, 0.632, 0.688, 0.709],
+              [0.373, 0.857, 0.326, 0.872, 0.396, 0.934]],
+      /* [x0, y0, x1, y1] per stop — the phone block's box, from
+         maproute --clear (MAP_CLEAR). See the phone block in measure(). */
+      clear: [[0.597, 0.178, 0.792, 0.333],
+              [0.556, 0.403, 0.764, 0.473],
+              [0.639, 0.605, 0.806, 0.721],
+              [0.667, 0.798, 0.819, 0.907]],
 
       /* SEAL NUDGE — [dx, dy] per stop, normalised like everything
          else, added to the MARKER only (js/journey.js §markers). It
@@ -849,6 +876,25 @@
                   [ 0,      0],    // Changdeokgung — 1.7 out, VEN: fine
                   [-0.0091, 0],    // Namsangol     — left, onto the line
                   [ 0,      0]]    // Jeonju        — 6.5 out, VEN: fine
+    },
+    /* THE SHEET BEFORE THE CLEARINGS — `?map=solid`. The same terrain
+       with every mountain standing, and the anchors that were searched
+       for it. No `clear` boxes, so on a phone the copy goes to the band
+       under the map (session 14's layout) exactly as it did. Kept as
+       the way back, per VEN's standing rule. */
+    solid: {
+      img: "art/journey/map-ink-solid.png", w: 1800, h: 3225,
+      path: [
+        [0.221, 0.004], [0.289, 0.081], [0.413, 0.159], [0.503, 0.236],
+        [0.505, 0.306], [0.489, 0.384], [0.530, 0.461], [0.610, 0.539],
+        [0.610, 0.616], [0.551, 0.694], [0.518, 0.764], [0.401, 0.841],
+        [0.305, 0.919], [0.293, 0.996]
+      ],
+      stops: [[0.340, 0.120, 0.396, 0.136, 0.514, 0.174],
+              [0.492, 0.360, 0.410, 0.329, 0.438, 0.446],
+              [0.624, 0.601, 0.368, 0.632, 0.438, 0.678],
+              [0.372, 0.857, 0.326, 0.872, 0.396, 0.934]],
+      sealNudge: [[ 0.0097, 0], [0, 0], [-0.0091, 0], [0, 0]]
     },
     pirate: {
       img: "art/journey/map-pirate.png", w: 1500, h: 2688,
@@ -1072,6 +1118,43 @@
      on .jmap__sheet in css/site.css. 0 shows the sheet untouched. */
   var MAP_TONE = qs("maptone", 0.16);
 
+  /* ---- the phone's block (2026-08-27) -----------------------------
+     Under 861px Zico's copy is BACK ON THE SHEET, inside the clearings
+     (see MAPS.ink.clear), instead of in the band below the map. It is
+     not the desktop block drawn smaller — that scaled off the label
+     scale and came out at 7px (§9y) — it is re-flowed into the box
+     the tool measured for it, at the largest size that fits:
+       PTEXT      the size it tries first, px on screen at the settle
+                  zoom; it steps down from here until the note fits
+       PTEXT_MIN  ...and no smaller than this. Below it the box is too
+                  small for the words and the fit is reported.
+       PHONE_ZOOM the settle zoom on phones. Higher than the desktop's
+                  ZOOM_IN because the box is a fixed patch of SHEET
+                  and the words are a fixed size of SCREEN: at 1.65 a
+                  nine-row box is 81px tall, at 1.9 it is 93, and that
+                  is the difference between five lines fitting and
+                  not. Not 2.0, which was measured too: at Jeonju the
+                  name stands west of the seal and the note east of
+                  it, 393px across on a 390px phone at 2.0, so the name
+                  lost its first strokes off the left edge however the
+                  frame was placed. At 1.9 the widest stop has 17px to
+                  spare and the notes are 11 / 9.5 / 11 / 9.5 px.
+     `?copy=strip` restores the band. */
+  var PTEXT = qs("ptext", 11), PTEXT_MIN = qs("ptextmin", 8.5);
+  var PHONE_ZOOM = qs("pzoom", 1.9);
+  /* THE CAMERA FRAMES THE SEAL AND THE NOTE TOGETHER. With the blocks
+     in the clearings they sit further from their seals than they used
+     to — stop 1's is a third of the sheet east of the road — and a
+     camera that centres on the seal cuts the note off at the moment
+     it is meant to be read. So on arrival the camera centres on the
+     midpoint of seal, name and note instead, as far as FRAME_PULL
+     (1 = the midpoint, 0 = the old seal-centred framing), moved only
+     as far as keeps all three on screen across, and never so far down
+     that the seal leaves the middle 40% — the landmark has to stay in
+     the picture too. `?frame=0` is the way back. */
+  var FRAME_PULL = qs("frame", 1);
+  var FRAME_EDGE_Y = 0.30, SEAL_M = 40, NOTE_M = 40;
+
 
   function buildMap(){
     var sheet = MAPS[MAP_SHEET] || MAPS.ink;
@@ -1221,21 +1304,20 @@
        instead: it counts the road as ink, bounds the block's edges to
        the arrival frame, and weighs mean ink above closeness. Where it
        still has to touch terrain, it touches the least it can. */
+    /* SINCE 2026-08-27 phones get the sheet too, when the sheet has
+       clearings to put the block in (MAPS.ink.clear): the block is
+       re-flowed and fitted into its box — see the phone block in
+       measure(). A sheet WITHOUT boxes (solid, pirate) still sends
+       phones to the band, which is what `.jmap--strip` now means:
+       measure() sets it from the width and the sheet, `?copy=strip`
+       forces it on, `?copy=sheet` forces it off (on a sheet without
+       boxes that is the old 7px block — unreadable, which is the
+       point of being able to look at it). */
     var COPY_MODE = (function(){
       var m = /[?&]copy=(sheet|strip)/i.exec(location.search);
-      return m ? m[1].toLowerCase() : "sheet";
+      return m ? m[1].toLowerCase() : "";
     })();
-    if (COPY_MODE === "strip") wrap.classList.add("jmap--strip");
-    /* `?copy=sheet` GIVEN EXPLICITLY beats the phone breakpoint as well,
-       so the sheet placement can be LOOKED AT on a phone instead of
-       argued about. It is not survivable there — the block goes a
-       quarter of the sheet wide while its own text falls to about 7px,
-       and the arithmetic is in the note above — but a knob that
-       silently does nothing on the one device where the question is
-       live is worse than one that shows you the answer. Absent the
-       parameter the breakpoint rules, as it must. */
-    if (COPY_MODE === "sheet" && /[?&]copy=/.test(location.search))
-      wrap.classList.add("jmap--onsheet");
+    var HAS_BOXES = !!(sheet.clear && sheet.clear.some(function(b){ return !!b; }));
 
     /* The note under the map, one paragraph per stop, built once. It is
        built in BOTH modes and CSS decides which is on: phones get it
@@ -1298,18 +1380,30 @@
       }
       return out;
     })();
+    /* per stop, how far the arrival framing is moved off the seal so
+       the note is in the picture too — set by measure(), see
+       FRAME_PULL. Map units. */
+    var frameOff = [];
     function camAt(len, u){
-      if (CAMS <= 0) return pointAt(len);
+      /* pull onto the true road point on approach: 1 within 0.10 of a
+         stop, released fully by 0.30 into the leg — and, since the
+         blocks moved into the clearings, onto the road point SHIFTED
+         toward the note (frameOff), on the same weight, so the seal
+         and the note arrive in frame together and the shift melts
+         away as the camera moves on */
+      var k = Math.round(u), off = frameOff[k] || { x: 0, y: 0 };
+      var dist = Math.abs(u - k);
+      var w = 1 - smooth(cl((dist - 0.10) / 0.20));
+      if (CAMS <= 0){
+        var tp = pointAt(len);
+        return { x: tp.x + off.x * w, y: tp.y + off.y * w };
+      }
       var t = cl(len / TOTAL) * SAMP, i0 = Math.floor(t), f = t - i0;
       var a = camSamples[i0], b = camSamples[Math.min(SAMP, i0 + 1)];
       var sm = { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
-      /* pull onto the true road point on approach: 1 within 0.10 of a
-         stop, released fully by 0.30 into the leg */
-      var dist = Math.abs(u - Math.round(u));
-      var w = 1 - smooth(cl((dist - 0.10) / 0.20));
       if (w <= 0) return sm;
       var tr = pointAt(len);
-      return { x: sm.x + (tr.x - sm.x) * w, y: sm.y + (tr.y - sm.y) * w };
+      return { x: sm.x + (tr.x + off.x - sm.x) * w, y: sm.y + (tr.y + off.y - sm.y) * w };
     }
     /* where each stop sits along the road, in length units */
     var STOP_LEN = sheet.stops.map(function(s){
@@ -1584,6 +1678,15 @@
           cg: ge ? ge.querySelector(".jmap__copy") : null,
           lines: ge ? ge.querySelectorAll(".jmap__copy > text") : null,
           cw: -1,
+          /* the copy lines' fade stagger — 0.13 for the desktop's four
+             lines, tightened for the phone's re-flowed eight or nine so
+             the last line still lands before the seal (measure()) */
+          step: 0.13,
+          /* for the phone block and the framing: the stop's copy, the
+             caption's authored size, the desktop markup to restore, and
+             the box the tool cleared for the phone (MAPS.ink.clear) */
+          sp: sp, F: EN ? F : 0, geHTML: ge ? ge.innerHTML : null, mode: "desk",
+          pb: (sheet.clear && sheet.clear[i2]) ? sheet.clear[i2] : null, blk: null,
           ex: s.length >= 6 ? s[4] * MW : null,
           ey: s.length >= 6 ? s[5] * MH : null,
           /* under-the-column fallback offset, in label-local units */
@@ -1643,7 +1746,136 @@
     var W = 0, H = 0, camW = 0, camH = 0, zIn = ZOOM_IN, zOut = ZOOM_OUT,
         zPan = ZOOM_PAN, zFit = 1, fx = FOCUS_X, fy = FOCUS_Y;
 
+    /* ---- the phone block: measure, re-flow, fit, rebuild ------------
+       Text is measured on a canvas in the display face at 100px and
+       scaled — SVG text at size s is w(100)·s/100 — with letter-spacing
+       added per gap, so the re-flow knows the real width of a line
+       before it is drawn. The face arrives after first paint; the
+       fonts.ready hook below re-measures. */
+    var DISPLAY_FONT = (getComputedStyle(document.documentElement)
+                          .getPropertyValue("--font-display") || "").trim() ||
+                       '"Song Myung", serif';
+    var mctx = null;
+    function textW(str, px, spacingEm){
+      if (mctx === null){
+        try { mctx = document.createElement("canvas").getContext("2d"); } catch (e){ mctx = false; }
+      }
+      var w;
+      if (mctx){ mctx.font = "100px " + DISPLAY_FONT; w = mctx.measureText(str).width * px / 100; }
+      else w = str.length * px * 0.5;
+      if (spacingEm) w += Math.max(0, str.length - 1) * spacingEm * px;
+      return w;
+    }
+    /* greedy fill to maxW px at the given size */
+    function reflow(text, maxW, px, spacingEm){
+      var words = text.split(/\s+/).filter(Boolean), lines = [], cur = "", i3;
+      for (i3 = 0; i3 < words.length; i3++){
+        var t = cur ? cur + " " + words[i3] : words[i3];
+        if (cur && textW(t, px, spacingEm) > maxW){ lines.push(cur); cur = words[i3]; }
+        else cur = t;
+      }
+      if (cur) lines.push(cur);
+      return lines;
+    }
+    /* the copy's size in label units as the desktop builds it (CF in
+       the label block: F·0.8, F = S·0.26); the phone's caption is set
+       a little UNDER its copy — on a phone the caption is a heading on
+       a note, not the name of the place (the Korean name beside the
+       building is that) — with its tracking eased so it fits the box */
+    var CFu = LSIZE * 0.26 * 0.80;
+    var PCAP = 0.82, PCAP_SP = 0.12, PPAD = 6;
+    /* standing strengths of the copy and the caption; the fade in
+       drawMap multiplies them (they used to be in css/site.css, where
+       the class rule beat the fade's attribute — see the note there) */
+    var COPY_OP = 0.78, CAP_OP = 0.80;
+
+    /* the desktop markup back: the caption on its writing mask, the
+       authored lines under it */
+    function setDesk(lb){
+      if (lb.mode === "desk") return;
+      lb.ge.innerHTML = lb.geHTML;
+      lb.ge.classList.remove("jmap__enlab--phone");
+      lb.emp = lb.ge.querySelector("mask path");
+      lb.eL = lb.emp.getTotalLength();
+      lb.emp.style.strokeDasharray = lb.eL.toFixed(1) + " " + lb.eL.toFixed(1);
+      lb.emp.style.strokeDashoffset = lb.eL.toFixed(1);
+      lb.cg = lb.ge.querySelector(".jmap__copy");
+      lb.lines = lb.ge.querySelectorAll(".jmap__copy > text");
+      lb.step = 0.13; lb.cw = -1; lb.lw = -1;
+      lb.mode = "desk";
+    }
+    /* the phone's: the caption and the copy re-flowed to the box's
+       width at the largest size (PTEXT down to PTEXT_MIN) at which the
+       whole note fits its height, centred in the box and hung from its
+       top edge so it sits closest to the landmark. No writing mask —
+       the caption fades in as the first line of the note, and a mask
+       re-rasterises its target per frame, which a phone can do
+       without. Returns the block's extents in map units. */
+    function setPhone(lb, box, unit){
+      var sp = lb.sp, x0 = box[0] * MW, y0 = box[1] * MH, x1 = box[2] * MW, y1 = box[3] * MH;
+      var bw = (x1 - x0) * unit - 2 * PPAD, bh = (y1 - y0) * unit - 2 * PPAD;   /* px */
+      var text = (sp.copy || []).join(" "), name = sp.name.toUpperCase();
+      var cf = PTEXT, fit = null;
+      for (; cf >= PTEXT_MIN - 1e-6; cf -= 0.5){
+        var capPx = cf * PCAP;
+        var capLines = reflow(name, bw, capPx, PCAP_SP), lines = reflow(text, bw, cf, 0.01);
+        var h = capLines.length * capPx * 1.25 + cf * 0.55 + lines.length * cf * 1.42 - cf * 0.3;
+        fit = { cf: cf, cap: capLines, lines: lines, h: h };
+        if (h <= bh) break;
+      }
+      if (fit.h > bh)
+        console.warn("journey: the note for " + sp.name + " does not fit its box at " +
+                     PTEXT_MIN + "px (" + Math.round(fit.h) + " of " + Math.round(bh) + "px)");
+      var sq = fit.cf / (CFu * unit), capF = CFu * PCAP, capLH = capF * 1.25, CLH = CFu * 1.42;
+      var yCopy0 = (fit.cap.length - 1) * capLH + CFu * 0.55 + CFu;
+      lb.ge.innerHTML =
+        '<text class="jmap__en" x="0" y="0" font-size="' + capF.toFixed(2) +
+        '" text-anchor="middle" style="opacity:0">' +
+        fit.cap.map(function(l, li){
+          return '<tspan x="0"' + (li ? ' dy="' + capLH.toFixed(2) + '"' : "") + ">" + esc(l) + "</tspan>";
+        }).join("") +
+        '</text><g class="jmap__copy">' +
+        fit.lines.map(function(l, li){
+          return '<text x="0" y="' + (yCopy0 + li * CLH).toFixed(2) + '" font-size="' +
+                 CFu.toFixed(2) + '" text-anchor="middle" style="opacity:0">' + esc(l) + "</text>";
+        }).join("") + "</g>";
+      lb.ge.classList.add("jmap__enlab--phone");
+      lb.emp = null;
+      lb.cg = lb.ge.querySelector(".jmap__copy");
+      lb.lines = lb.ge.querySelectorAll("text");   /* the caption first */
+      lb.step = Math.min(0.13, 0.37 / Math.max(1, lb.lines.length - 1));
+      lb.cw = -1; lb.lw = -1;
+      lb.mode = "phone";
+      var cx = (x0 + x1) / 2, top = y0 + PPAD / unit, ty = top + capF * 0.78 * sq;
+      lb.ge.setAttribute("transform",
+        "translate(" + cx.toFixed(1) + " " + ty.toFixed(1) + ") scale(" + sq.toFixed(3) + ")");
+      var wmax = 0, li2;
+      for (li2 = 0; li2 < fit.cap.length; li2++)
+        wmax = Math.max(wmax, textW(fit.cap[li2], fit.cf * PCAP, PCAP_SP));
+      for (li2 = 0; li2 < fit.lines.length; li2++)
+        wmax = Math.max(wmax, textW(fit.lines[li2], fit.cf, 0.01));
+      var wU = wmax / unit;
+      return { x0: cx - wU / 2, x1: cx + wU / 2, y0: top,
+               y1: ty + (yCopy0 + (fit.lines.length - 1) * CLH + CFu * 0.3) * sq };
+    }
+    /* the desktop block's extents in map units, from the same measure */
+    function deskExtent(lb, etx, ety, lq, unit){
+      var sp = lb.sp, F = lb.F, CF = F * 0.8, CLH = CF * 1.42, n = (sp.copy || []).length, li2;
+      var wmax = textW(sp.name.toUpperCase(), F * lq * unit, 0.2);
+      for (li2 = 0; li2 < n; li2++) wmax = Math.max(wmax, textW(sp.copy[li2], CF * lq * unit, 0.01));
+      var wU = wmax / unit;
+      return { x0: etx - wU / 2, x1: etx + wU / 2, y0: ety - F * lq,
+               y1: ety + (n ? (F * 1.55 + (n - 1) * CLH + CF * 0.3) : F * 0.3) * lq };
+    }
+
     function measure(){
+      /* WHICH HOME THE COPY HAS is decided first, because the band's
+         height feeds everything below: the sheet on a phone when the
+         sheet has boxes for it, the band otherwise — see COPY_MODE. */
+      var narrow0 = (wrap.clientWidth || window.innerWidth) <= 860;
+      var strip = COPY_MODE === "strip" || (COPY_MODE !== "sheet" && narrow0 && !HAS_BOXES);
+      wrap.classList.toggle("jmap--strip", strip);
+
       /* THE BAND'S HEIGHT IS PUBLISHED FIRST, and the order is
          load-bearing. .jmap__view's bottom inset IS --jnote-h, so the
          view cannot be measured until the band has been. The band is
@@ -1689,16 +1921,17 @@
          than any window. On a PHONE it does not: 390/0.558 = 699px of
          sheet under an 844px viewport, and the gap would show as bare
          paper top and bottom. So every scale is floored at `cover`. */
+      var narrow = W <= 860;
       var cover = Math.max(1, H / camH);
       zOut = Math.max(ZOOM_OUT, cover);
-      zIn  = Math.max(ZOOM_IN,  zOut * 1.35);
+      /* phones settle closer — see PHONE_ZOOM */
+      zIn  = Math.max(narrow ? PHONE_ZOOM : ZOOM_IN, zOut * 1.35);
       zPan = Math.max(ZOOM_PAN, cover);
       zFit = Math.max(H / camH, 0.05);   /* ?cam=fixed: whole sheet */
 
       /* Phones: the vista (or ?info=1's card) is along the bottom, so
          the place you have arrived at goes above it; with neither
          there is nothing to clear and the marker stays centred. */
-      var narrow = W <= 860;
       fx = narrow ? 0.50 : FOCUS_X;
       fy = (narrow && (INFO || VISTA)) ? 0.33 : FOCUS_Y;
 
@@ -1713,21 +1946,64 @@
       var unit = W * zIn / 1000;
       var want = Math.max(34, Math.min(0.10 * H, 0.058 * W));
       var lq = Math.min(LQ_MAX, want / (unit * LSIZE));
-      labels.forEach(function(lb){
+      var visW = 1000 / zIn, visH = 1000 * H / (W * zIn);   /* the frame, in map units */
+      labels.forEach(function(lb, k){
         var tx = lb.ax != null ? lb.ax : lb.sx + lb.side * (23 + lq * lb.hw),
             ty = lb.ay != null ? lb.ay : lb.sy;
         lb.g.setAttribute("transform",
           "translate(" + tx.toFixed(1) + " " + ty.toFixed(1) +
           ") scale(" + lq.toFixed(3) + ")");
+        lb.blk = null;
         if (lb.ge){
-          /* under the building when the sheet carries an anchor,
-             under the column otherwise */
-          var etx = lb.ex != null ? lb.ex : tx,
-              ety = lb.ey != null ? lb.ey : ty + lq * lb.efy;
-          lb.ge.setAttribute("transform",
-            "translate(" + etx.toFixed(1) + " " + ety.toFixed(1) +
-            ") scale(" + lq.toFixed(3) + ")");
+          if (narrow && !strip && lb.pb){
+            /* the phone block, in the box the tool cleared for it */
+            lb.blk = setPhone(lb, lb.pb, unit);
+          } else {
+            setDesk(lb);
+            /* under the building when the sheet carries an anchor,
+               under the column otherwise */
+            var etx = lb.ex != null ? lb.ex : tx,
+                ety = lb.ey != null ? lb.ey : ty + lq * lb.efy;
+            lb.ge.setAttribute("transform",
+              "translate(" + etx.toFixed(1) + " " + ety.toFixed(1) +
+              ") scale(" + lq.toFixed(3) + ")");
+            if (!strip) lb.blk = deskExtent(lb, etx, ety, lq, unit);
+          }
         }
+        /* THE ARRIVAL FRAMING — see FRAME_PULL. The camera's target at
+           this stop is the midpoint of the seal, the name column and
+           the block, clamped so the seal keeps to the middle of the
+           screen; camAt applies it on the approach weight. */
+        var mx = lb.sx, my = lb.sy, blk = lb.blk;
+        var lo = Math.min(mx - SEAL_M, tx - 30), hi = Math.max(mx + SEAL_M, tx + 30),
+            loY = Math.min(my - SEAL_M, ty - 30), hiY = Math.max(my + SEAL_M, ty + 30);
+        if (blk){
+          /* the note keeps a margin of its own from the screen's edge
+             — at Jeonju on a phone the midpoint alone put its last
+             letters one pixel past the frame */
+          lo = Math.min(lo, blk.x0 - NOTE_M); hi = Math.max(hi, blk.x1 + NOTE_M);
+          loY = Math.min(loY, blk.y0 - NOTE_M); hiY = Math.max(hiY, blk.y1 + NOTE_M);
+        }
+        var fxU = (lo + hi) / 2, fyU = (loY + hiY) / 2;
+        /* ACROSS: the margined midpoint, moved only as far as keeps
+           the bare extents of seal, name and note all on screen with
+           a few units to spare. When even the bare extents are wider
+           than the frame (Jeonju on a phone: the name west of the
+           seal, the note east of it, 499 of 500 units), split the
+           difference between them rather than favour the seal —
+           clamping on the seal alone put the name off the left edge. */
+        var nhw = lq * LSIZE * 0.5;   /* the name column's real half-width */
+        var lo0 = Math.min(mx - 15, tx - nhw, blk ? blk.x0 : Infinity),
+            hi0 = Math.max(mx + 15, tx + nhw, blk ? blk.x1 : -Infinity),
+            minC = hi0 - visW / 2 + 12, maxC = lo0 + visW / 2 - 12;
+        fxU = minC <= maxC ? Math.max(minC, Math.min(maxC, fxU)) : (lo0 + hi0) / 2;
+        /* DOWN: the seal keeps to the middle 40% — the landmark has to
+           stay in the picture on a short desktop window, where the
+           note is below the frame at arrival anyway (the caveat §9w
+           part 14 records) */
+        var limY = visH * (0.5 - FRAME_EDGE_Y);
+        fyU = Math.max(my - limY, Math.min(my + limY, fyU));
+        frameOff[k] = { x: (fxU - mx) * FRAME_PULL, y: (fyU - my) * FRAME_PULL };
       });
     }
 
@@ -1903,11 +2179,21 @@
               var cop = cl((wv - 0.62) / 0.38);
               if (labels[k].cg && cop !== labels[k].cw){
                 labels[k].cw = cop;
-                var ln = labels[k].lines, li2;
+                var ln = labels[k].lines, li2, stp = labels[k].step;
                 for (li2 = 0; li2 < ln.length; li2++){
-                  var lp = cl((cop - 0.18 - li2 * 0.13) / 0.45);
-                  ln[li2].setAttribute("opacity",
-                    (lp * lp * (3 - 2 * lp)).toFixed(3));
+                  var lp = cl((cop - 0.18 - li2 * stp) / 0.45);
+                  /* INLINE STYLE, not the `opacity` attribute it used to
+                     be. css/site.css gave these elements a standing
+                     opacity by class, and a class rule beats a
+                     presentation attribute, so the attribute never
+                     showed: every line stood at .78 from the moment the
+                     group was displayed and the fade was never seen —
+                     which §9z's "nobody has seen the line-by-line fade
+                     in motion" was an honest account of. The standing
+                     strengths are COPY_OP and CAP_OP now, multiplied in. */
+                  ln[li2].style.opacity =
+                    ((ln[li2].classList.contains("jmap__en") ? CAP_OP : COPY_OP) *
+                     lp * lp * (3 - 2 * lp)).toFixed(3);
                 }
               }
             }
@@ -2073,6 +2359,11 @@
     document.addEventListener("visibilitychange", function(){
       if (!document.hidden && !W){ measure(); curU = -1; tw = null; onScroll(); }
     });
+    /* the display face arrives after first paint: the phone block was
+       re-flowed against the fallback's widths, so measure again once
+       it is here (same as road mode's caption remeasure) */
+    if (document.fonts && document.fonts.ready)
+      document.fonts.ready.then(function(){ measure(); curU = -1; tw = null; onScroll(); });
     measure();
     onScroll();
   }
