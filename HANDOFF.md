@@ -6303,31 +6303,63 @@ continuation of B's column.
   every stop EXACTLY what js/journey.js carries.
 - mapnote prints no `!`; all 157 words measured in the real face.
 
+### 5. The closer moved under its paragraph (VEN, same day)
+
+*"can you put 'this is where the road starts' under the paragraph that
+reads 'upbit...'"* — so the third block stacks under the second, in
+Zico's second loop, and his third loop beside the road is retired.
+
+That needed one more case in mapnote's `place()`: part i goes to loop
+i, and once the loops run out the LAST loop takes every part left,
+stacked `GAP` apart. One loop: all stacked. A loop per part: one each.
+Two loops for three parts: the first alone, the other two under each
+other. Loop B was grown 42 units down to hold both at size (the two
+blocks need ~155 units of rows; it had 139).
+
+**11 units**, not 10.5: the road-side loop had been the tightest
+constraint on the shared size, and with it gone the top loop is the
+limit. The closer sits 27 units under the "Upbit" paragraph, flush
+with its left edge (both blocks hug the road side of their loop), on
+one line:
+
+```
+  var MAP_CLEAR[0] = [
+    { box: [0.635, 0.068, 0.751, 0.151], fs: 11, mw: 116.9 },   // A, 10 lines
+    { box: [0.566, 0.215, 0.760, 0.255], fs: 11, mw: 191.3 },   // B, 5 lines
+    { box: [0.566, 0.270, 0.713, 0.277], fs: 11, mw: 191.3 }    // under B, 1 line
+  ]
+```
+
+The two clearings in loop B overlap (GAP < 2·MARGIN) and mapclear cuts
+them as one; the paper beside the road that C had cleared is terrain
+again. maproute returns 0.341/0.120, 0.493/0.360, 0.623/0.601,
+0.372/0.857 — within three thousandths of js/journey.js everywhere,
+`stops` not re-pasted.
+
+**Checked on the phone (393x852):** 15 lines against 16 planned (A one under, the safe direction); the closer at y=400, 32px under "liquidity." and flush with the paragraph's left edge (x=210 against 205-220); the rightmost text 21px inside the edge; the whole note between y=108 and 400 of 852.
+
 ### Files (session 17, part 4)
 
 - `tools/clearings-search.json` — stop 1's loop replaced by Zico's
-  three (`part`, `who`)
+  three (`part`, `who`); then the third retired and the second grown
+  42 units down (§5)
 - `tools/maproute.js` — a list of loops per stop, `shapes[]` in
   shape-out, the bracket-walking copy reader
-- `tools/mapnote.js` — block i in loop i; per-part measure; the
-  measure floor for short parts
+- `tools/mapnote.js` — block i in loop i, the last loop taking the
+  rest stacked; per-part measure; the measure floor for short parts
 - `js/journey.js` — `MAPS.ink.clear[0]` re-pasted; the notes rewritten
 - `tools/shape.json`, `tools/clearings.json`, both masters,
   `art/journey/map-ink.png` — regenerated
 
 ### Open
 
-- **Loops A and C are Zico's, grown.** If he wants them exactly as
-  drawn, `loops2.js`'s two numbers go back to `598, 515` and `103` and
-  the note ships at 8.5 — his call, and it should be put to him with
-  the size stated.
-- **Desktop, measured after the paste:** the note's union runs from
-  A's top to C's bottom now, so it is taller than the column was and
-  the overhang past the camera frame went 20px the wrong way — **152 /
-  194 / 422 px** at 1280x820 / 1440x900 / 1280x551 against §9ae's 131
-  / 170 / 400. Same behaviour as always (the top wins; the closing line
-  comes up as the camera moves on), and the same three levers: VEN's
-  loop, SIZE_CAP, the settle zoom.
+- **Loop A is Zico's, grown** 26 units toward the palace and a row up;
+  as drawn it held his first paragraph at 9. Loop B is his, grown 42
+  units down at VEN's word to take the closer. Loop C is retired (§5).
+- **Desktop:** with the closer under B rather than lower-left the
+  note's union is shorter again — **it FITS at 1280x820** (8px inside the bottom), runs 31px over at 1440x900 and 277 at 1280x551, against 152 / 194 / 422 with the closer beside the road and 131 / 170 / 400 for the single column. Same behaviour as
+  always (the top wins; the last lines come up as the camera moves on),
+  and the same three levers: VEN's loop, SIZE_CAP, the settle zoom.
 - Stop 2 is still 9 units, under a stop 1 at 10.5.
 
 ---

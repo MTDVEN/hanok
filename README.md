@@ -292,8 +292,11 @@ words standing on mountains.
      rounded rectangle `MARGIN` outside each block, plus a small one
      behind any caption that would sit on ink) and prints `MAP_CLEAR`
      to paste over `MAPS.ink.clear`. A split note (nested `copy`)
-     gets a block per part — in its own loop where the stop has one
-     per part, stacked down one loop otherwise — at one shared size.
+     gets a block per part: part i in loop i, and the LAST loop takes
+     every part left, stacked `GAP` apart — so one loop stacks them
+     all, a loop per part gives one each, and two loops for three
+     parts put the closer under the second block (§9af.5). One
+     shared size.
      **A loop marks where, not how much**: if a stop comes out under
      10 units, grow the loop where nothing stands before lowering the
      size (§9af.2 is the worked case).

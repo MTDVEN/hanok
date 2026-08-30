@@ -364,21 +364,22 @@ function placeOne(R, sx, text, S, measMax, yMin){
   return null;
 }
 function place(Rs, sx, parts, S, measMax){
-  var out = [], i, g;
-  if (Rs.length > 1){                       /* a loop per part */
-    for (i = 0; i < parts.length; i++){
-      g = placeOne(Rs[i], sx, parts[i], S, measMax, Rs[i].top + MARGIN);
-      if (!g) return null;
-      out.push(g);
-    }
-    return out;
-  }
-  var R = Rs[0], yMin = R.top + MARGIN;     /* stacked down one loop */
+  /* part i goes to loop i, and once the loops run out the LAST loop
+     takes every part left, stacked GAP apart. One loop: all stacked.
+     A loop per part: one each. Two loops for three parts: the first
+     alone, the other two under each other — VEN, 2026-08-30: *"put
+     'this is where the road starts' under the paragraph that reads
+     'upbit...'"*, which is the closer stacked under the second block
+     in Zico's second loop, and the third loop retired. */
+  var out = [], i, g, li, prev = -1, yMin = 0;
   for (i = 0; i < parts.length; i++){
-    g = placeOne(R, sx, parts[i], S, measMax, yMin);
+    li = Math.min(i, Rs.length - 1);
+    if (li !== prev) yMin = Rs[li].top + MARGIN;
+    g = placeOne(Rs[li], sx, parts[i], S, measMax, yMin);
     if (!g) return null;
     out.push(g);
     yMin = g.y0 + g.b.h + GAP;
+    prev = li;
   }
   return out;
 }
@@ -389,12 +390,12 @@ shape.stops.forEach(function(st, k){
   var parts = COPY[k], sx = st.x * MW, best = null, S;
   /* one loop per part when the shape file has them and they pair up;
      otherwise the stop's single loop for all of them */
-  var Rs = (st.shapes && st.shapes.length === parts.length && st.shapes.every(Boolean))
+  var Rs = (st.shapes && st.shapes.length > 1 && st.shapes.every(Boolean))
     ? st.shapes.map(function(sh){ return runsOf({ shape: sh }); })
     : [runsOf(st)];
-  if (parts.length > 1 && Rs.length === 1 && st.shapes)
-    console.error("  stop " + (k + 1) + ": " + parts.length + " blocks but " + st.shapes.length +
-                  " loops in the shape file — stacking them in the first");
+  if (Rs.length > parts.length)
+    console.error("  stop " + (k + 1) + ": " + Rs.length + " loops for " + parts.length +
+                  " block(s) — the extra loop(s) get nothing");
   /* the largest size that places every part; each at the widest
      measure its own loop allows, at the highest start */
   var measMax = Math.min(MEAS_MAX, MEAS_CAP[k] || MEAS_MAX);

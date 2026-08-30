@@ -213,10 +213,11 @@
       blurb: "The palace of shining happiness. Six centuries of court and quiet, burned and raised again, still facing the mountain it was built to answer.",
       /* THREE BLOCKS, split at Zico's own paragraph breaks
          (2026-08-30, "can you split it into 3 so its spaced out a
-         little"), each in a place he drew: the chain and its specs
-         beside the palace, the liquidity under it where the note
-         stood, and the line that hands you to the road sitting beside
-         the road, lower-left. He sent four paragraphs and asked for
+         little"): the chain and its specs beside the palace, the
+         liquidity under it where the note stood, and the line that
+         hands you to the road under that paragraph (VEN's placement;
+         Zico's third loop, beside the road, is retired). He sent four
+         paragraphs and asked for
          three, so the opening sentence stays with the specs it
          introduces. Nesting is what makes it three notes — copyBlocks
          above; the loops are in tools/clearings-search.json and
@@ -954,37 +955,40 @@
          a line of where it was. Stop 3 has no cap and re-planned wider
          and shorter, which uses its loop better than the estimate did.
          */
-      /* 2026-08-30: STOP 1 IS THREE NOTES, IN THE THREE PLACES ZICO
+      /* 2026-08-30: STOP 1 IS THREE NOTES IN TWO OF THE PLACES ZICO
          DREW. On a phone screenshot of the stop he looped three spots
          down the sheet — beside the palace in the range to its right,
          where the note stood, and lower-left across the road — with
          "The text is slightly cropped in some parts, can you split it
          into 3 so its spaced out a little". A stop's entry may be a
          LIST of boxes, one per block of a split `copy` (copyBlocks,
-         setBlock), and tools/clearings-search.json carries his three
-         loops as three search loops for the stop, so mapnote puts
-         block i in loop i. The three parts are his own paragraphs:
-         the chain and its specs, the liquidity under it, and the line
-         that hands you to the road — which now sits BESIDE the road.
+         setBlock); tools/clearings-search.json carries the search
+         loops for the stop, and mapnote puts block i in loop i, the
+         last loop taking whatever parts are left, stacked. The parts
+         are his own paragraphs: the chain and its specs beside the
+         palace; the liquidity under it where the note stood; and the
+         line that hands you to the road, which sits UNDER that
+         paragraph — VEN: "put 'this is where the road starts' under
+         the paragraph that reads 'upbit...'". It was beside the road
+         in Zico's third loop for one commit; that loop is retired.
 
-         The first cut of this stacked all three in the old column, at
-         11 units, and VEN sent it back: "that isnt in the right part
-         of the website". Positions are Zico's; the tool sizes the
-         clearings to the words. His loops as drawn held the note at
-         8.5 (the top one is small for a 193-character paragraph, and
-         the road takes the middle of the third), so two of them were
-         grown where nothing stands — A 26 units toward the palace and
-         a row up, C 20 units left — and it sits at 10.5, the size the
-         note had before his cut. HANDOFF §9af.
+         The first cut of this stacked all three in the old column and
+         VEN sent it back: "that isnt in the right part of the
+         website". Positions are the client's; the tool sizes the
+         clearings to the words. Zico's top loop as drawn held his own
+         first paragraph at 9 units, so it was grown 26 units toward
+         the palace and a row up, and the second loop 42 units down to
+         take the closer. 11 units — half a unit over what the note
+         had before his cut. HANDOFF §9af.
 
          `mw` on every box is the measure the wrap was planned at,
          which is not the box's own width — see tools/mapnote.js;
          without it a short block re-wraps and orphans its last word. */
       clear: [
         [
-          { box: [0.635, 0.075, 0.762, 0.146], fs: 10.5, mw: 126.8 },
-          { box: [0.566, 0.207, 0.751, 0.246], fs: 10.5, mw: 182.6 },
-          { box: [0.371, 0.308, 0.446, 0.322], fs: 10.5, mw: 76.1 }
+          { box: [0.635, 0.068, 0.751, 0.151], fs: 11, mw: 116.9 },
+          { box: [0.566, 0.215, 0.760, 0.255], fs: 11, mw: 191.3 },
+          { box: [0.566, 0.270, 0.713, 0.277], fs: 11, mw: 191.3 }
         ],
         { box: [0.621, 0.378, 0.779, 0.501], fs: 9, mw: 156.5 },
         { box: [0.621, 0.699, 0.784, 0.739], fs: 13.5, mw: 176.1 },
