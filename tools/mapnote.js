@@ -63,10 +63,25 @@ var MEAS_MAX = 36, MEAS_MIN = 18;   // measure, in characters, widest first
    (`cap.peak` in shape.json) is past CAP_INK — on the ground wash it
    needs none, which is what "if required" means. */
 var CAP_SIZE = 9.5, CAP_MARGIN = 20, CAP_INK = 0.03;
-/* per-stop ceilings on the measure (`--measmax 36,36,36,20`). Jeonju's is
-   20: its name stands west of the seal and its note east of the
-   village, and on a 390px phone at PHONE_ZOOM 2.0 the frame is 500
-   units — a 23-character block there ran 15px off the right edge. */
+/* per-stop ceilings on the measure (`--measmax 36,36,36,18`). Jeonju's is
+   the low one: its name stands west of the seal and its note east of
+   the village, and on a 390px phone at PHONE_ZOOM 2.0 the frame is 500
+   units — a 23-character block there ran 15px off the right edge.
+   IT IS A WIDTH, WRITTEN AS CHARACTERS: the measure is `chars *
+   fallbackEm` for EVERY stop, measured words or not — fallbackEm sets
+   the wrap target, it is not only the estimate for words the table is
+   missing. So when fallbackEm was corrected from a hand-written 0.44
+   to the measured 0.486 (2026-08-28) the same width became 18
+   characters instead of 20.
+
+   KEEP `MEAS_CAP[3] * fallbackEm` AT ABOUT 8.75. Every re-run of
+   tools/widths.html recomputes fallbackEm over the whole vocabulary,
+   so this number has to be re-derived with it: 20*0.44, 18*0.486 and
+   20*0.434 are all ~8.7 em, the measure Jeonju's block has had since
+   §9ab.12. The last of those is 2026-08-30, the first re-measure where
+   the widths were REAL rather than the estimate 0.486 always was.
+   Leave it alone across a widths re-measure and its note quietly
+   grows into the span a 390px phone's frame cannot hold. */
 var MEAS_CAP = [36, 36, 36, 20];
 /* per-stop ceilings on the size (`--sizes 13.5,11,13.5,10`). SIZE alone
    is a common cap, and a narrow loop that could never reach it (the
@@ -97,14 +112,51 @@ var shape  = JSON.parse(fs.readFileSync(src, "utf8"));
 var widths = JSON.parse(fs.readFileSync(path.join(__dirname, "songmyung-widths.json"), "utf8"));
 var js     = fs.readFileSync(path.join(__dirname, "..", "js", "journey.js"), "utf8");
 
-/* the copy and the names, lifted from SPOTS the way build.js lifts TYPES */
+/* the copy and the names, lifted from SPOTS the way build.js lifts TYPES.
+
+   TAKE THE QUOTED STRINGS, do not strip the array's commas with a
+   replace: `copy` is prose and the prose has commas in it. Until
+   2026-08-28 this joined the lines by replacing every comma-plus-
+   space with a space, which ate the separators AND every comma inside
+   a sentence, so the tool planned the wrap over "Upbit" while the
+   page drew "Upbit,".
+   Every comma-bearing word then missed the widths table and fell back
+   to 0.44em a character — an under-estimate — so the block was
+   planned shorter than it renders and the note ran past the paper cut
+   for it. It survived because the old copy had five such words in
+   four notes; the copy of 2026-08-28 has thirty. */
 var COPY = [], NAMES = [], re = /name:\s*"([^"]+)"[\s\S]*?copy:\s*\[((?:\s*"[^"]*",?)+)\s*\]/g, m;
 while ((m = re.exec(js))){
   NAMES.push(m[1]);
-  COPY.push(m[2].replace(/"/g, "").replace(/,\s*/g, " ").replace(/\s+/g, " ").trim());
+  COPY.push((m[2].match(/"[^"]*"/g) || []).map(function(s){ return s.slice(1, -1); })
+              .join(" ").replace(/\s+/g, " ").trim());
 }
 if (COPY.length !== shape.stops.length)
   throw new Error("found " + COPY.length + " copy blocks in js/journey.js for " + shape.stops.length + " stops");
+
+/* SAY SO WHEN THE WRAP IS GUESSED. The plan is only as good as the
+   widths: a word this table has not seen is estimated at fallbackEm a
+   character, the page then draws the real one, and the difference
+   comes out as a line the block was not planned for — text past the
+   paper cut for it. Cheap to fix (open tools/widths.html on the dev
+   server and save the result), and impossible to notice without this. */
+var unmeasured = [];
+COPY.forEach(function(t){
+  t.split(" ").forEach(function(w){
+    if (w && widths.words[w] == null && unmeasured.indexOf(w) < 0) unmeasured.push(w);
+  });
+});
+if (unmeasured.length){
+  var seen = 0, tot = 0;
+  COPY.forEach(function(t){ t.split(" ").forEach(function(w){ tot++; if (widths.words[w] == null) seen++; }); });
+  console.error("  ! " + unmeasured.length + " of the copy's distinct words are NOT measured (" +
+                seen + " of " + tot + " on the sheet), so their width is a guess at " +
+                widths.fallbackEm + "em a character:");
+  console.error("    " + unmeasured.slice(0, 24).join(" ") + (unmeasured.length > 24 ? " …" : ""));
+  console.error("    Run tools/widths.html on the dev server and save it over " +
+                "tools/songmyung-widths.json, then re-run this.");
+  console.error("");
+}
 
 /* the sheet: a 1000-wide map, its height from the grid's aspect */
 var MW = 1000, MH = 1000 * shape.rows / shape.cols;

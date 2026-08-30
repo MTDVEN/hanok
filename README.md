@@ -10,6 +10,13 @@ silently did nothing.
 **Starting a fresh working session? Read `HANDOFF.md` first** — full
 brief, architecture, art-wiring plan, and environment gotchas.
 
+> **The widths were measured and the clearings re-cut on 2026-08-30**
+> (HANDOFF §9ad), which closes the one step that had been outstanding
+> since 2026-08-28. `tools/mapnote.js` no longer prints its `!` line,
+> so every word of the copy is measured in the real face and the wrap
+> the tool plans is the wrap the page draws. **If you change `copy`
+> again, THE CLEARINGS starts at step 0 — see QA below.**
+
 ## Deploy
 
 | | |
@@ -37,13 +44,19 @@ somewhere real.
 
 ## Launch-day checklist (all in `js/config.js`)
 
-0. `token.ticker` — Zico has not named it, so the hero, the manifesto
-   and the `<title>` all read "$XXX", a placeholder meant to look like
-   one. Set it once and `js/main.js` writes it into all three.
-   `token.ko` is what the hero WRITES, and it is not free text: every
-   character needs brush strokes in `LETTERS` (js/hero.js), because
-   the animation is stroke-dashoffset along real paths and a webfont
-   glyph has no stroke order to write in.
+0. `token.ticker` — **DONE, `TILES`** (VEN, 2026-08-29). It writes
+   itself into the manifesto and the `<title>`; nothing reads `$XXX`
+   any more. The hero does not take it from here — it DRAWS it, from
+   `token.wordmark`.
+   `token.wordmark` is what the hero writes, and it is not free text:
+   every character needs brush strokes in `LETTERS` (js/hero.js),
+   because the animation is stroke-dashoffset along real paths and a
+   webfont glyph has no stroke order to write in. It is `$TILES`
+   since 2026-08-30 (Zico asked for the mark to carry the ticker, and
+   for it smaller than the hangul it replaced); `기와` is still drawn
+   in `LETTERS` and is one word away. Render either without a browser
+   with `node tools/heropng.js '$TILES'`, and set the SIZE in
+   css/site.css `.hero__title` — `?mark=560` tries a width live.
 1. `ca` — the contract address. The floating pill starts copying it.
 2. `links` — buy / X / dexscreener / telegram. `null` hides footer links
    and marks hero buttons "at launch".
@@ -146,6 +159,20 @@ text written only so the layout could be judged. This is the main new
 dependency split mode introduces — the road mode only needed two-word
 captions.
 
+**`SPOTS[i].copy` is NOT placeholder** — that is map mode's, written
+onto the sheet, and it is the client's own words. Stops 1 and 2 are
+VEN's paste of 2026-08-28 (the chain itself, then the argument for
+the token); stops 3 and 4 are Zico's from sessions 13–14. The one gap
+left in it is stop 3's bridge and swap steps, which say "written here
+at launch" on purpose — a guessed bridge or DEX on a token page is
+the mistake that costs somebody money.
+
+**Changing `copy` is never just an edit.** The text is drawn on the
+map, the map has paper cleared for it, and the clearing is cut to the
+block — so any change to `copy` means re-running THE CLEARINGS under
+QA below, starting at step 0. Editing the strings alone leaves the
+words standing on mountains.
+
 ## QA
 
 - `?motion=1` forces animations on, `?motion=0` forces them off
@@ -239,13 +266,24 @@ captions.
   uniform block of the display serif, and its clearing is cut to
   that block plus one margin; outside it the terrain stands. The
   pipeline, in order:
+  0. **After ANY change to `copy` in js/journey.js:** `node
+     tools/serve.js`, then open
+     `localhost:8137/tools/widths.html` once. It measures every word
+     of the new copy in Song Myung with the same canvas call
+     js/journey.js wraps with, and POSTs the result back over
+     `tools/songmyung-widths.json` (the one path serve.js will
+     write). Skip it and mapnote guesses those words at `fallbackEm`
+     a character, wraps to a different line count than the page, and
+     the note runs past the paper cut for it — mapnote prints a loud
+     `!` line naming the unmeasured words, so this is hard to forget.
   1. `node tools/maproute.js art/journey/map-ink-solid.png --base
      map-ink-master-plain.png --clear tools/clearings-search.json
      --plan --caption --shape-out tools/shape.json` — the usable rows
      inside VEN's loops (`clearings-search.json`, his markup traced:
      the one hand-drawn thing here; the fourth loop, Jeonju, is the
-     one he did not draw), and the English caption's anchor under
-     each building (paste its MAP_STOPS: elements 5+6).
+     one he did not draw; stop 2's was widened in 2026-08-28 to hold
+     Zico's long copy — see below), and the English caption's anchor
+     under each building (paste its MAP_STOPS: elements 5+6).
   2. `node tools/mapnote.js tools/shape.json` — lays the four notes
      out (the copy from js/journey.js, the words' widths from
      `songmyung-widths.json`), writes `tools/clearings.json` (a
@@ -271,10 +309,14 @@ captions.
   block and its size in sheet units, from tools/mapnote.js; `setBlock`
   wraps the copy to the box's width at that size and centres it. What
   changes with the screen is only how large the sheet is drawn —
-  phones at settle zoom `?pzoom=2.1` (about 11 / 9 / 11 / 8 px), a
-  960px window ~21px, wider windows capped at `?dtextmax=32` (the
-  block then sits centred a little smaller). Sizes are `SIZE_CAP` in
-  tools/mapnote.js (`--sizes 13.5,11,13.5,10`), leading `LH` there and
+  phones at settle zoom `?pzoom=2.1` (about 8.6 / 7.3 / 11 / 8 px), a
+  960px window about 17 / 14 / 21 / 16, wider windows capped at
+  `?dtextmax=32` (the block then sits centred a little smaller).
+  `SIZE_CAP` in tools/mapnote.js is the CEILING (`--sizes
+  13.5,11,13.5,10`), not the answer: stops 1 and 2 carry Zico's long
+  copy since 2026-08-28 and come out at 10.5 and 9 because that is
+  the largest their loops will hold — which is why the first two
+  notes read smaller than the third. Leading is `LH` there and
   `?leading=1.38` here — the two must agree. The camera frames seal,
   name, landmark and note together at every stop, the seal's side
   winning when a short window cannot hold them all (`?frame=0`
@@ -288,6 +330,19 @@ captions.
   apart (the value tools/mapnote.js plans with — change both). The
   trail is the footsteps alone (`?trail=foot` adds a faint dotted road
   under them, `?trail=dots` is the line alone).
+- **`tools/widths.html` measures the note's words** in Song Myung
+  (canvas `measureText` at 100px — the same call js/journey.js wraps
+  with) and POSTs the result over `tools/songmyung-widths.json`.
+  `tools/serve.js` writes that one path and no other: 405 on anything
+  else, 400 on non-JSON, 4MB cap. Open it after ANY change to `copy`
+  — it is step 0 of THE CLEARINGS. **The wrap the tool plans and the
+  wrap the page draws must be the same wrap**, and they are only the
+  same if every word is in that file; a word that is not is estimated
+  at `fallbackEm` a character, which is how a note ends up a line
+  longer than the paper cut for it. `fallbackEm` is itself derived
+  (the mean character width over the words that ARE measured, 0.486
+  as of 2026-08-28) — it was a hand-written 0.44 until then, 10% low,
+  and low is the direction that overflows.
 - `node tools/mapbox.js <sheet> <out> cx,cy,hw,up,dn` draws a label's
   REAL footprint on the sheet. **This is the authority when the grid
   and the eye disagree** — a 25px cell statistic cannot see a thin

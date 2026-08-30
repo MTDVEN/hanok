@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>tools/widths — measure the journey copy in Song Myung</title>
+<!-- ================================================================
+     MEASURE THE NOTES' WORDS, and write tools/songmyung-widths.json.
+
+     WHY THIS EXISTS. tools/mapnote.js plans each note's block — the
+     wrap, the width, the height — and the clearing is then cut to
+     that block. If the tool's idea of a word's width is not the
+     browser's, the plan is wrong and the text runs past the paper
+     that was cleared for it. Until 2026-08-28 the widths were
+     measured by hand in a console, so any new copy arrived with its
+     words estimated at 0.44em a character: that fallback is out by
+     up to 43% on a short Latin word and by 50% on Korean, and it
+     under-estimates by ~6% on average — the direction that overflows.
+
+     WHAT IT MEASURES, and why it matches: the page measures with
+     `mctx.font = "100px " + DISPLAY_FONT; measureText(str).width`
+     (js/journey.js, textW), so this does exactly that, in the same
+     face, after document.fonts.load has actually landed it. The
+     0.01em per-gap tracking journey.js adds is NOT baked in here —
+     mapnote adds it itself, per line, from the character count.
+
+     RUN IT:  node tools/serve.js, then open
+     http://localhost:8137/tools/widths.html
+     It measures, then POSTs the result straight back to
+     tools/songmyung-widths.json (the one path tools/serve.js will
+     write). Nothing to copy. Then re-run the pipeline from mapnote
+     (README, THE CLEARINGS). Dev only — tools/ never ships.
+
+     It reads the copy from js/journey.js with the same regex
+     tools/mapnote.js uses, so the two cannot disagree about which
+     words are on the sheet.
+================================================================= -->
+<style>
+  body{font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;margin:24px;background:#f4ecd8;color:#2b2118}
+  h1{font:600 16px/1.3 ui-monospace,monospace;margin:0 0 12px}
+  #status{padding:8px 12px;background:#e6d9bd;border-radius:4px;margin-bottom:12px}
+  textarea{width:100%;height:60vh;font:12px/1.4 ui-monospace,monospace;background:#fffdf6;
+           border:1px solid #c9b894;border-radius:4px;padding:10px;color:#2b2118}
+  .warn{color:#a33}
+</style>
+<h1>tools/widths — Song Myung word widths for the journey notes</h1>
+<div id="status">loading Song Myung…</div>
+<textarea id="out" spellcheck="false"></textarea>
+<script>
+var FONT = '"Song Myung", "Times New Roman", serif';
+var S = document.getElementById("status"), OUT = document.getElementById("out");
+
+function say(m, bad){ S.innerHTML = m; S.className = bad ? "warn" : ""; }
+
+/* the same lift tools/mapnote.js does — quoted strings joined with a
+   space. Not a comma-strip: the copy is prose and keeps its commas,
+   or the words measured here are not the words the page draws. */
+function copyOf(js){
+  var copy = [], names = [], re = /name:\s*"([^"]+)"[\s\S]*?copy:\s*\[((?:\s*"[^"]*",?)+)\s*\]/g, m;
+  while ((m = re.exec(js))){
+    names.push(m[1]);
+    copy.push((m[2].match(/"[^"]*"/g) || []).map(function(s){ return s.slice(1, -1); })
+                .join(" ").replace(/\s+/g, " ").trim());
+  }
+  return { copy: copy, names: names };
+}
+
+function measure(){
+  var ctx = document.createElement("canvas").getContext("2d");
+  ctx.font = "100px " + FONT;
+  return function(s){ return ctx.measureText(s).width / 100; };
+}
+
+fetch("/js/journey.js").then(function(r){
+  if (!r.ok) throw new Error("js/journey.js " + r.status);
+  return r.text();
+}).then(function(js){
+  var got = copyOf(js);
+  if (!got.copy.length) throw new Error("no copy blocks found in js/journey.js");
+  /* load the face with a sample that covers Latin AND the Korean the
+     copy carries, then wait for every face the page asks for */
+  var sample = got.copy.join(" ").slice(0, 400);
+  return Promise.all([
+    document.fonts.load("100px " + FONT, sample),
+    document.fonts.ready
+  ]).then(function(){ return got; });
+}).then(function(got){
+  if (!document.fonts.check("100px " + FONT))
+    say("Song Myung did NOT load — the numbers below are the fallback serif's. " +
+        "Check the network, reload.", true);
+
+  var w = measure(), words = {}, n = 0;
+  got.copy.forEach(function(t){
+    t.split(" ").forEach(function(word){
+      if (word && words[word] == null){ words[word] = +w(word).toFixed(3); n++; }
+    });
+  });
+
+  /* the fallback: the mean width of a character across every word
+     measured, so a word this file misses is estimated from THIS copy
+     rather than from a number carried over from older text */
+  var chars = 0, em = 0;
+  Object.keys(words).forEach(function(k){ chars += k.length; em += words[k]; });
+  var fallback = +(em / chars).toFixed(3);
+
+  /* the caption is the place's name in caps, tracked — mapnote sizes
+     it per character, so measure a capital's mean width the same way */
+  var capChars = 0, capEm = 0;
+  got.names.forEach(function(nm){
+    var u = nm.toUpperCase(); capChars += u.length; capEm += w(u);
+  });
+
+  var out = {
+    _: "em widths of each word of the journey copy in Song Myung, measured with canvas " +
+       "measureText at 100px by tools/widths.html (open it on the dev server after any copy " +
+       "change and save the result here). A word not here is estimated at fallbackEm a " +
+       "character. tools/mapnote.js adds journey.js's 0.01em per-gap tracking itself.",
+    space: +w(" ").toFixed(3),
+    capEm: +(capEm / capChars).toFixed(3),
+    fallbackEm: fallback,
+    words: words
+  };
+  var json = JSON.stringify(out, null, 1);
+  OUT.value = json;
+  var head = "measured <b>" + n + "</b> distinct words in " + got.copy.length + " notes · " +
+             "space " + out.space + "em · fallback " + out.fallbackEm + "em/char · " +
+             "cap " + out.capEm + "em/char";
+  say(head + " — saving…");
+  console.log("WIDTHS_JSON_BEGIN\n" + json + "\nWIDTHS_JSON_END");
+
+  /* save it where mapnote reads it, so there is no clipboard step to
+     forget — tools/serve.js writes this one path and no other */
+  return fetch("/tools/songmyung-widths.json", {
+    method: "POST", headers: { "content-type": "application/json" }, body: json
+  }).then(function(r){
+    if (!r.ok) return r.text().then(function(t){ throw new Error(r.status + " " + t); });
+    say(head + " — <b>saved to tools/songmyung-widths.json</b>. Now re-run " +
+        "<code>node tools/mapnote.js tools/shape.json</code> and the rest of THE CLEARINGS.");
+  }).catch(function(e){
+    say(head + " — could NOT save (" + e.message + "). The JSON is below and on your " +
+        "clipboard; paste it over <b>tools/songmyung-widths.json</b> by hand.", true);
+    try { navigator.clipboard.writeText(json); } catch (e2){}
+  });
+}).catch(function(e){
+  say("failed: " + e.message, true);
+  console.error(e);
+});
+</script>

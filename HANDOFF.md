@@ -7,14 +7,53 @@ fixed), and the exact next steps. `README.md` is the short ops sheet;
 this file is the deep context.
 
 **THE TOKEN IS 기와 / GIWA** (Zico, 2026-08-21) — Korean for roof
-tile, and the name of the Upbit L2 it launches on. The hero writes
-hangul now, the ticker is a live "$XXX" placeholder under it, and the
-journey's four stops carry Zico's actual pitch copy written onto the
-map sheet. **§9y** is that whole pass; `CONFIG.token` is the one place
-to set the name and ticker. Still his to send: the ticker and
-Namsangol's bridge/swap steps. (Jeonju's stop was blank until session
-14, when VEN forwarded Upbit's own framing and it took the tile
-metaphor — **§9aa**.)
+tile, and the name of the Upbit L2 it launches on — **AND THE TICKER
+IS `$TILES`** (VEN, 2026-08-29). The journey's four stops carry Zico's
+actual pitch copy written onto the map sheet. **§9y** is that whole
+pass; `CONFIG.token` is the one place to set both. Still his to send:
+Namsangol's bridge/swap steps and the CA. (Jeonju's stop was blank
+until session 14, when VEN forwarded Upbit's own framing and it took
+the tile metaphor — **§9aa**.)
+
+**THE HERO DRAWS `$TILES`, NOT THE HANGUL — SINCE 2026-08-30, AND
+AFTER ONE FALSE START.** Zico marked up a screenshot and asked for the
+mark to carry the ticker, smaller than the hangul it replaced; the
+same change had been made and reverted the day before, when nobody had
+asked for it. 기와 is still the project's NAME and is still on the
+page in four places — the eyebrow, the footer word, the `<title>` and
+the OG tags — and its brush strokes are still in `LETTERS`, so the way
+back is `token.wordmark` in js/config.js. **§9ad** is that pass, and
+it is also where the size lives: the mark's whole type size is the
+width of `.hero__title` in css/site.css, and `?mark=N` tries a new one
+without an edit.
+
+**SESSION 16 (2026-08-28), READ FIRST IF YOU TOUCH THE COPY OR THE
+CLEARINGS — AND THERE IS ONE UNFINISHED STEP.** VEN pasted two long
+blocks of copy for stops 1 and 2 (555 and 664 characters, against the
+~170 those notes held). They are in, the clearings are re-cut to hold
+them, and stops 3 and 4 are untouched. Three things a fresh session
+must know before touching any of it:
+
+  1. **§9ac.6 IS DONE — 2026-08-30, see §9ad.** The widths were
+     measured, the whole pipeline re-run and `MAP_CLEAR` re-pasted.
+     `fallbackEm` turned out to be 0.434, not the 0.486 estimated
+     here, so all four notes re-wrapped; the numbers in §9ac.7 are
+     the estimate's, not the shipped ones. mapnote no longer prints
+     its `!` line.
+  2. **`SIZE_CAP` is a ceiling, not the answer.** Stops 1 and 2 come
+     out at 10.5 and 9 units because that is all their loops hold, not
+     because anyone chose those numbers. Stop 2's search loop was
+     already widened to the last of the room available (road west,
+     coastline east, stop 1 above, stop 3 below) — at VEN's original
+     loop *nothing fit at any size*. There is no size left to give.
+  3. **Two long-standing bugs were fixed here**, both of which push
+     text past its clearing and both invisible with the old copy:
+     mapnote was stripping the commas out of the prose, and
+     `fallbackEm` was a hand-written 0.44 against a measured 0.486.
+     If you are reading old numbers in §9ab and they do not reproduce,
+     this is why.
+
+**§9ac** is the whole record.
 
 **SESSION 15 (2026-08-27), READ FIRST IF YOU TOUCH THE MAP ART, THE
 COPY, OR THE JOURNEY'S ENDING.** One long day with VEN, fourteen
@@ -275,11 +314,19 @@ Static site, no build step, no framework. Plain scripts (NOT ES
 modules — deliberate, so it works from any static host and file://).
 Host anywhere (Vercel/Netlify/Pages).
 
-**Zico still owes us** (chase before launch):
-- Final token name + ticker (HANOK is a placeholder VEN chose)
-- The website copy ("ill have to write up some text for you")
-- CA + buy/social links (launch day)
-- Confirmation on art placement after he sees the demo
+**Zico still owes us** (chase before launch). *This list is from
+session 1 and most of it has since landed — struck through below, kept
+for the record rather than deleted:*
+- ~~Final token name~~ — **기와 / GIWA**, session 13 (§9y). The
+  ticker is still `null` in the config but is almost certainly
+  `TILES`; see LAUNCH DAY §2.
+- ~~The website copy~~ — the four map notes are written. Stops 1 and
+  2 were replaced wholesale on 2026-08-28 (§9ac); stop 3's bridge and
+  swap steps are the one hole left in it, and say so on the sheet.
+  The manifesto section and `SPOTS[i].blurb` are still placeholder.
+- CA + buy/social links (launch day) — **still outstanding**
+- ~~Confirmation on art placement after he sees the demo~~ — given
+  across sessions 13–15
 
 ## 2. The client brief (reconstructed from Zico's chat)
 
@@ -5451,6 +5498,548 @@ Everything above is LIVE at tilesongiwa.com (last push: the walk at
 
 ---
 
+## 9ac. Session 16 (2026-08-28) — Zico's long copy, and the two notes that grew
+
+VEN pasted two blocks of copy separated by a rule of dashes: *"That
+whole block of text should be in the first and second location only,
+the partition between them with the dashes represents where the first
+one ends and the second one starts. Can this be added but then also
+they do look quite long so if needed scale down the text a bit, most
+important bit is just making sure that the clearing in the background
+wraps the text properly."*
+
+They ARE long. Stop 1 goes from 170 characters to **555**, stop 2 from
+150 to **664** — three and four times what those notes held. Stops 3
+and 4 are untouched, to the thousandth.
+
+### 1. Two bugs found on the way in, both of which overflow a clearing
+
+Neither was visible with the old copy. Both would have bitten hard
+with this one, and both are exactly the failure VEN named.
+
+- **`tools/mapnote.js` ate the copy's commas.** It joined the `copy`
+  array's lines by replacing every comma-plus-space with a space —
+  which hits the commas INSIDE the prose too. So the tool planned the
+  wrap over `Upbit` while the page drew `Upbit,`; every comma-bearing
+  word then missed the widths table and fell back to an estimate. It
+  survived because the old copy had five such words across four notes.
+  The new copy has thirty. Fixed to take the quoted strings.
+- **`fallbackEm` was a hand-written `0.44`.** The mean width of a
+  character across the words that had actually been measured is
+  **0.486** — the guess was 10% low, and low is the direction that
+  wraps to fewer lines than the page draws, i.e. text past the paper.
+  Recalibrated, and the file now says where the number comes from.
+  `MEAS_CAP` is a width written as a character count, so Jeonju's 20
+  became **18** to keep the same measure; its block comes back
+  byte-identical to session 15's.
+
+### 2. `tools/widths.html` — the widths are measured, not guessed
+
+The words' widths had only ever been measured by hand in a console,
+so any new copy arrived estimated. **`tools/widths.html` (new)** reads
+the copy out of js/journey.js with the same lift mapnote uses,
+measures every word with `measureText` at 100px in the real face —
+the same call `textW` in journey.js wraps with — and **POSTs the
+result back over `tools/songmyung-widths.json`**. `tools/serve.js`
+gained a write endpoint for that one path and no other (405 on
+anything else, 400 on non-JSON). One page open, no clipboard step.
+
+`tools/mapnote.js` now prints a loud `!` line listing any word it had
+to guess, so a stale widths file announces itself instead of quietly
+costing a line.
+
+**This has not been run yet** — the Chrome extension was not connected
+this session (`list_connected_browsers` → `[]`), so the blocks below
+are planned on the recalibrated 0.486 estimate for the 115 words of
+new copy. Open `localhost:8137/tools/widths.html` once and re-run from
+mapnote; expect the boxes to move by a line or so.
+
+### 3. Stop 2's loop had to grow, and there was no version where it did not
+
+At VEN's own loop, **nothing fit at any size down to 8 units** — 664
+characters need roughly a 250x270-unit rectangle and his loop's
+largest inscribed one is 167x250. The loop is walled: the road on the
+west, the coastline's wave pattern on the east, stop 1's loop above
+and stop 3's below. It was widened to the last of that room —
+`clearings-search.json` stop 2 — east to the cliff, north to 0.348,
+south to 0.584. That buys 9 units and not a half more; the terraced
+hill east of the road is mostly gone, its western contours kept.
+
+Stop 1 fits inside VEN's original loop, untouched, at 10.5.
+
+### 4. What it costs, stated plainly
+
+- **Sizes 10.5 / 9 / 13.5 / 10** (from 13.5 / 11 / 13.5 / 10). On a
+  phone that is about **8.6 / 7.3 / 11 / 8** px — the first two notes
+  are now the smallest type on the sheet, and stop 2 is smaller than
+  anything shipped so far. This is the "scale down the text a bit"
+  VEN authorised, and it is the whole of the room available.
+- **Blocks of 16 and 18 lines** where every other note is 4 to 10.
+- **The loops are 10.15% of the sheet**, from ~6%. Two large panels of
+  bare parchment in the upper half, roughly 220x275 and 205x270 units.
+  `?map=solid` is still the sheet before any of it.
+- The stops come back at 0.341/0.120, 0.492/0.360, 0.623/0.601,
+  0.375/0.857 — within a thousandth of what js/journey.js carries, so
+  the road, the label anchors and the seal nudges all stand and
+  `stops` was not re-pasted.
+
+### 5. Not done, and deliberately
+
+- **The ticker.** Zico's block 2 writes `$TILES` literally, and
+  `tilesongiwa.com` says the same, but `CONFIG.token.ticker` is still
+  `null` so the hero, the `<title>` and the manifesto still read
+  `$XXX`. The sheet now says `$TILES` three times while the hero says
+  `$XXX`. One line in js/config.js when VEN confirms it.
+- The manifesto is still placeholder copy.
+- **VEN has not seen this rendered.** No browser this session: the
+  evidence is the sheet PNG with each planned line drawn at its true
+  width inside its clearing, which is what the clearings were checked
+  against.
+
+### 6. THE ONE OUTSTANDING STEP — do this first next session
+
+The widths were never measured for the new copy, because the Chrome
+extension was not connected (`list_connected_browsers` → `[]`). The
+blocks below are planned on the recalibrated 0.486 estimate for 115
+of the copy's words. **Everything else is finished and consistent;
+this is the only loose end.**
+
+```
+node tools/serve.js                       # if it is not already up
+# open http://localhost:8137/tools/widths.html  — once, that is all.
+# it measures and POSTs itself over tools/songmyung-widths.json
+```
+
+Then re-run steps 2–5 of README's THE CLEARINGS (step 1 does not
+depend on the copy, and `tools/shape.json` is current):
+
+```
+node tools/mapnote.js tools/shape.json
+node tools/mapclear.js map-ink-master-nams.png map-ink-master-clear.png \
+     --clear tools/clearings.json --keep map-ink-master-plain.png --debug
+node tools/mapclear.js map-ink-master-plain.png map-ink-master-plain-clear.png \
+     --clear tools/clearings.json
+node tools/mapprep.js map-ink-master-clear.png art/journey/map-ink.png 1800
+node tools/maproute.js art/journey/map-ink.png --base map-ink-master-plain-clear.png \
+     --terrain art/journey/map-ink-solid.png --clear tools/clearings.json --debug
+```
+
+Paste the new `MAP_CLEAR` over `MAPS.ink.clear`. Expect stops 1 and 2
+to move by a line or so.
+
+**Expect stops 3 and 4 to move a little too, and put them back.**
+Their words are all already measured, but the wrap TARGET is
+`chars * fallbackEm` — so `fallbackEm` steers every stop's wrap, not
+just the words missing from the table, and widths.html recomputes it
+over the whole vocabulary including the 115 new words. If stop 3 or 4
+comes back off the values in §9ac.7, the fix is `MEAS_CAP`, which is a
+width written as a character count:
+
+> **keep `MEAS_CAP[3] * fallbackEm` at about 8.75.**
+> It was `20 * 0.44` before this session and is `18 * 0.486` now, both
+> ≈ 8.8 em — the measure Jeonju's block has had since §9ab.12, and the
+> widest its note can be without running off a 390px phone's frame.
+
+Stop 3 has no cap (36) and should re-land on its own; if it does not,
+its box is in §9ac.7 to compare against.
+
+If a stop's SIZE drops below 9, say so rather than shipping it — that
+is a conversation with VEN, not a number to quietly accept.
+
+`mapnote` prints a loud `!` line naming any word it had to guess. If
+that line is absent, the widths are current and the plan is exact.
+
+### 7. The numbers this session ended on, so a re-run can be checked
+
+`node tools/mapnote.js tools/shape.json` prints, with the widths still
+estimated:
+
+```
+  stop 1  10.5 units, 34-char measure, 0+16 lines, block 173x229 at 0.607,0.192
+  stop 2   9   units, 36-char measure, 0+18 lines, block 157x221 at 0.621,0.378
+  stop 3  13.5 units, 27-char measure, 0+4  lines, block 158x70  at 0.635,0.676
+  stop 4  10   units, 18-char measure, 0+10 lines, block 83x135  at 0.691,0.800
+```
+
+and `MAPS.ink.clear` in js/journey.js is:
+
+```
+  { box: [0.607, 0.192, 0.781, 0.319], fs: 10.5 },
+  { box: [0.621, 0.378, 0.778, 0.501], fs: 9 },
+  { box: [0.635, 0.676, 0.793, 0.716], fs: 13.5 },   // unchanged since §9ab.12
+  { box: [0.691, 0.800, 0.773, 0.876], fs: 10 }      // unchanged since §9ab.12
+```
+
+`mapclear` reports `loops 6 covering 10.15% of the sheet`. `maproute`
+on the cut sheet returns stops `0.341,0.120 / 0.492,0.360 /
+0.623,0.601 / 0.375,0.857`. `stops` and `sealNudge` in js/journey.js
+were NOT re-pasted and must not be — see §9ab on why the nudge list
+is kept separate.
+
+### Where things stood at the end of session 16
+
+**NOT pushed. NOT seen by VEN in a browser.** `git status` is dirty
+with the ten files below plus `tools/widths.html` untracked. The
+working tree is coherent — the sheet on disk matches
+`tools/clearings.json` matches `MAPS.ink.clear` — so it is shippable
+as-is if the estimated wrap is accepted; the honest move is to run
+§9ac.6 first.
+
+What the next session inherits:
+
+- **The one outstanding step** is §9ac.6 above. Nothing else is
+  half-finished.
+- **The pipeline** is README's THE CLEARINGS, now SIX steps: step 0
+  (measure the widths) was added this session and is the one people
+  will skip. `SIZE_CAP`, `MEAS_CAP`, `LH`, `MARGIN`, `CAP_SIZE` in
+  tools/mapnote.js are the knobs; `COPY_LH` and `CAPU` in journey.js
+  must match `LH` and `CAP_SIZE`. **`SIZE_CAP` is a ceiling, not the
+  answer** — stops 1 and 2 come out under it because their loops
+  cannot hold the copy any larger.
+- **`MEAS_CAP` is a width written as a character count** (`chars *
+  fallbackEm`). If `fallbackEm` moves — and it will, the moment
+  widths.html runs — Jeonju's cap has to move with it or its note
+  grows past the phone frame. That is why it reads 18 and not 20.
+- **The masters**: `map-ink-master-clear.png` (shipped) and
+  `map-ink-master-plain-clear.png` (the `--base`), both regenerable
+  from `-nams` / `-plain` + tools/clearings.json. Still gitignored,
+  still not backed up anywhere. `map-ink-master-nams.png` and
+  `map-ink-master-plain.png` are the two that must never be lost.
+- **Phones.** The two long notes read at ~8.6 and ~7.3px. Nobody has
+  looked. The levers, honestly: there is no size left in stop 2's
+  loop, so the real options are `?copy=strip` (the band under the map
+  on narrow screens) or shorter copy. Do not promise a bigger `SIZE_CAP`
+  will fix it — it is already above what fits.
+- **Still Zico's**: Namsangol's bridge and swap steps (stop 3 still
+  says "written here at launch"), the CA. The ticker is now known in
+  everything but the config — see §9ac.5.
+
+### Files (session 16)
+
+- `tools/widths.html` — **new**. Measures the copy's words in Song
+  Myung in the browser and POSTs the result over
+  `tools/songmyung-widths.json`. Dev only; `tools/` never deploys.
+- `tools/serve.js` — gained a POST endpoint for that one path
+  (`WRITABLE`). 405 on any other path or method, 400 on non-JSON,
+  4MB cap. Static serving is unchanged.
+- `tools/mapnote.js` — the comma fix, the unmeasured-word warning,
+  `MEAS_CAP` 20 → 18 for Jeonju.
+- `tools/songmyung-widths.json` — `fallbackEm` 0.44 → 0.486, and the
+  `_` field now says where the number comes from and how to
+  regenerate. **The 88 word entries are still session 15's; the new
+  copy's 115 words are not in it yet.**
+- `tools/clearings-search.json` — stop 2's loop widened.
+- `tools/clearings.json`, `tools/shape.json` — regenerated.
+- `js/journey.js` — `SPOTS[0].copy`, `SPOTS[1].copy`, the provenance
+  comment above `SPOTS`, and `MAPS.ink.clear`.
+- `art/journey/map-ink.png` — re-prepped (3.05MB).
+- `README.md` — THE CLEARINGS step 0, the sizes paragraph.
+
+### Open (session 16)
+
+- **Run §9ac.6.** Everything else waits behind it.
+- VEN has not seen the sheet in a browser. `?map=solid` is the sheet
+  before the clearings, on the same URL, for the comparison.
+- The two upper clearings are large and close together. If VEN wants
+  them smaller the only lever is shorter copy — the sizes are already
+  at what the loops hold.
+- `CONFIG.token.ticker` still `null` while the sheet says `$TILES`.
+
+---
+
+## 9ad. Session 17 (2026-08-29 / 08-30) — the mark became the ticker, and the sheet was measured
+
+Two sittings on one thread. On the 29th the slot under the mark
+stopped being a ticker and became prose. On the 30th the mark itself
+became the ticker. In between, that second change was made, reverted,
+and made again — and the reversal is the part of this worth reading.
+
+§§1-7 are the hero. **§§8-10 are the round after VEN looked at it**:
+the writing animation had been starting as a scatter of stray dots,
+Zico's stop 1 was still carrying the copy he had already shortened,
+and fixing that meant running THE CLEARINGS — which finally closed
+§9ac.6, the step that had been outstanding since 2026-08-28.
+
+### 1. What Zico asked for, in his words
+
+He marked up a screenshot of the live hero and listed it top to bottom:
+
+  - `GIWA (기와)` in place of `GIWA · roof tiles`
+  - the big lettering and the little red box → `$tiles`
+  - the `$XXX` line → `understand the narrative, understand the lore`
+  - *"then keep rest the same."*
+
+VEN read the middle item back to him — *"so you want the big korean
+writing to change to $TILES?"* — and Zico answered *"Yeah bro but
+make it a bit smaller pls"*, then *"Doesnt need to be that big."*
+
+That last line is the entire size brief, and it is a comparison: the
+mark is to be smaller than the hangul it replaces. It is not a number,
+so §4 below is how it was turned into one.
+
+### 2. The same change was made and reverted the day before
+
+On 2026-08-29 the wordmark was swapped to `$TILES` unasked, and VEN
+put it straight back: *"i didnt tell you to change the korean
+characters."* Three things were left behind by that round, and all
+three are why the 30th took an hour instead of a day:
+
+  - the `$ T I L E S` strokes in `LETTERS`, drawn to sit beside
+    `H A N O K` rather than as their own alphabet
+  - `CONFIG.token.wordmark`, split out from `token.ko` so the drawn
+    mark and the project's name stopped being the same string
+  - a loud note in js/config.js saying not to set it without VEN
+    asking in those words
+
+That note did its job and has been rewritten, not deleted: it now
+records who asked and when. **기와 is still the project's name**, on
+the page in the eyebrow, the footer word, the `<title>` and the OG
+tags — Zico marked none of those, and "keep rest the same" covers
+them. Only the drawn mark changed.
+
+### 3. THE SEAL WAS PLACED BY A CONSTANT, AND THE CONSTANT WAS WRONG
+
+`SEAL_GAP` was `HANGUL ? 32 : 2` — hand-tuned to 기와 and to HANOK,
+the only two words that had ever been set. $TILES ends in S, which
+reaches x=86 on the 100-unit grid where K stops at 84, and 2 units of
+gap had nothing to give: **the stamp landed on top of the S.**
+
+It is measured now. After the letters are built, `inkGroup.getBBox()`
+gives the word's own right edge in the svg's user space — no stroke
+width, no filter, deterministic for a given word — and the stamp goes
+`SEAL_AIR` units past it, with the viewBox sized off that.
+`SEAL_AIR = 37` is not a new taste: it is the air the hand-tuned
+hangul gap worked out to, so **기와 lands within two units of where it
+always did** — measured in Chrome, ink right 218.6 and the stamp at
+256 against the old constant's 254. Those two units are the
+over-stroke, which is offset `translate(1.6 -1.2)`: getBBox counts it
+and the old arithmetic never did. Every other word now gets that same
+air without another constant. A `try`/`catch` keeps the
+old arithmetic as the fallback, because getBBox throws under a hidden
+ancestor in Firefox.
+
+### 4. The size: what "a bit smaller" turned into
+
+The svg fills `.hero__title` and keeps its own aspect, so **that one
+width is the whole type size** — and the same width draws two words at
+wildly different sizes, because 기와's viewBox is 302 units wide and
+$TILES's is 674. The old 460px box drew 181px-tall hangul. The same
+460px would have drawn 72px caps, which is not "a bit smaller", it is
+a different design.
+
+**560px**, measured in the browser at a 1280px viewport:
+
+| | 기와 @ 460 | $TILES @ 500 | $TILES @ 560 |
+|---|---|---|---|
+| cap height | 181px | 79px | 88px |
+| ink width | ~445px | ~460px | ~515px |
+| vs the tagline under it | 25% narrower | 22% narrower | about equal |
+
+500 and 560 both answer the brief on height — less than half the
+hangul either way. 560 won on width: at 500 the tagline underneath is
+visibly wider than the mark above it and starts to compete, and at 560
+the two agree. The vw ceiling went 74 → 84 at the same time, because
+six letters need the phone's full measure where two hangul blocks did
+not (386px viewport: 324px box, 51px caps, no overflow — checked).
+
+**`?mark=N` sets it live** (js/hero.js writes `--mark-w`), so this is
+re-judgeable on the real page against the real painting without an
+edit. `?mark=460`, `?mark=660`.
+
+### 5. The flourish belongs to a letter, not to a script
+
+The trailing ink tail was drawn for HANOK and gated on `!HANGUL`, so
+$TILES inherited it — and it shipped for a few minutes looking like a
+comma. A flourish is the pen carrying on after the last stroke, so it
+has to leave from where the pen actually stopped: K stops at the foot
+of its right leg, bottom-right, and the tail falls out of it. **S
+finishes at its bottom-LEFT (17,107)**, so a tail drawn at the
+bottom-right hangs there attached to nothing and the mark reads as
+`$TILES,`. It is a `FLOURISH` map keyed by the last character now —
+K names its own, and a word ending in anything else does not get one.
+
+### 6. A stray `*/` had silently deleted the lore line's whole rule
+
+Found on the way in, in the uncommitted 2026-08-29 work. A comment
+above `.hero__lore` closed four lines early, so the rest of the prose
+became the prelude of an unparseable rule and **took the entire
+`.hero__lore` block down with it** — CSS drops the rule and does not
+warn. Verified rather than assumed: the same pattern in a probe
+stylesheet parses 1 rule out of 2, and the one immediately after the
+stray marker is the one that vanishes. The line had been rendering as
+unstyled body text for a session.
+
+### 7. QA notes for whoever is next
+
+- **The hero animation does not run in a backgrounded tab.** rAF is
+  throttled to nothing, so a screenshot taken right after a navigate
+  catches three ink blobs and an empty hero, and it looks exactly like
+  a broken build. It is not. Either take a second screenshot a beat
+  later (the tab paints, the timeline uses absolute timestamps and
+  catches up), or force the end state from the console: set every
+  `#heroTitle svg path`'s `strokeDashoffset` to 0, the seal group's
+  opacity to 1, then add `is-written` to `#hero` and `is-in` to
+  `heroLore`/`heroTagline`/`heroActions`.
+- `?motion=0` also paints the finished mark instantly — but it is the
+  reduced-motion build, so the scene backdrop is not where it is in
+  the real one. Good for type, not for the composition.
+- **A phone viewport without a phone:** an iframe 390px wide pointing
+  at the same server has its own viewport, so `vw` units resolve
+  against it. That is how the 386px numbers above were measured.
+
+### 8. The hero began as a scatter of black dots
+
+VEN, on the first screenshot back: *"this screenshot was captured at
+the very start of the animation ... You can see small black dots,
+parts of the other letters that are exposed/showing before the
+animation has rendered the text in."* He was right, and it was not a
+rendering artefact of the screenshot — it shipped that way, and it had
+shipped that way since the hero was first written.
+
+The cause is one number. Each stroke hides itself with
+`stroke-dasharray: len len` and `stroke-dashoffset: len`. That makes
+the pattern period exactly `2·len`, so at the starting offset the
+**next** dash begins at path position `len` — a zero-length dash
+sitting on the stroke's end point. `stroke-linecap: round` renders a
+zero-length dash as a DOT. Every stroke that had not started yet was
+showing one, which is why the count of marks fell as the writing
+progressed.
+
+`[len, len + 4]` moves that boundary to `len + 4`, off the end of the
+path, and changes nothing else — the revealed span is still
+`s < len - offset`, so the timeline, the swell remap and the nib all
+work exactly as before. The swell paths get the same treatment.
+
+**It is visible in the backgrounded-tab freeze** (§7 above), which is
+the one useful thing about that trap: navigate, screenshot at once,
+and you are looking at frame zero. Before the fix that showed three
+blobs on bare paper; after it, bare paper.
+
+### 9. Zico's stop 1 got shorter, and the widths were finally measured
+
+Zico had sent the copy with *"made first section a little shorter"*
+under it and the shorter version was never taken up — the sheet still
+carried the long one. VEN, with a screenshot of the note: *"this block
+of text does not read as me and zico asked."* The cut is the last
+three sentences of stop 1, the tile paragraph:
+
+> ~~기와 is the fired clay tile that has sat on Korean roofs for
+> centuries. Palaces, temples, hanok villages. The chain took both its
+> name and its mark from that tile.~~ This is where the road starts.
+
+Stop 2 he passed as it stands.
+
+Changing `copy` means THE CLEARINGS from step 0, and step 0 was the
+job that had been outstanding since 2026-08-28 — so both landed in one
+pass. `tools/widths.html` measured all 157 words of the new copy in
+Song Myung and **`fallbackEm` came back 0.434 against the 0.486 that
+had been estimated for it**. That number is not just the guess for
+missing words: the wrap target is `chars * fallbackEm` for every stop,
+so it steers all four notes. Everything moved.
+
+### 10. What moved, and why none of it is a new decision
+
+```
+          size          lines        block          why
+  stop 1  10.5 -> 13    16 -> 13     174x229        shorter copy, same loop
+  stop 2  9             18 -> 19     157 -> 140 wide   fallbackEm
+  stop 3  13.5          4 -> 3       158 -> 195 wide   fallbackEm
+  stop 4  10            10 -> 9      83 -> 84 wide     held, see below
+```
+
+**Stops 3 and 4 had been untouched to the thousandth since §9ab.12 and
+are not any more.** That is the estimate unwinding rather than a new
+taste: 0.486 was 10% high, so every measure it planned was 10% wide of
+the character counts `MEAS_MAX` and `MEAS_CAP` were actually set in.
+`36 * 0.434` = 15.6em is within a hair of the `36 * 0.44` = 15.8em the
+tool was written against.
+
+Stop 4 was held at its designed width by re-deriving `MEAS_CAP[3]` from
+18 to 20, exactly as §9ac.6 instructs: `20 * 0.434` = 8.7em, the same
+measure `20 * 0.44` and `18 * 0.486` both meant. It came back within a
+line of where it was. **Stop 3 has no cap and re-planned wider and
+shorter** — 3 lines across 195 units instead of 4 across 158 — which
+uses its loop better than the estimate did, since the loop always had
+room for ~200 units and the inflated em had been stepping the measure
+down to 27 characters to avoid a width that was never really too wide.
+
+**Stop 1's type is now the largest on the sheet** (13 against stop 2's
+9, side by side and both Zico's prose). The block footprint is set by
+VEN's traced loop, not by the copy, so shorter copy buys bigger type
+rather than a smaller panel. `--sizes 10.5,11,13.5,10` on mapnote
+matches them again in one re-run if that reads wrong to him.
+
+**Checked, and it is right:** every planned block sits inside cleared
+paper with its uniform margin (cropped out of the master with the box
+drawn on it, all four), the page's drawn blocks land on the planned
+boxes to within the glyph overhang, and sampling the shipped
+`art/journey/map-ink.png` down the middle of stop 1's block returns
+bare parchment at every point and terrain immediately below the
+clearing's edge.
+
+**One thing that is NOT new but is now measured.** Stop 1's note runs
+past the bottom of the camera frame on a desktop: 144px at 1280x820,
+227px at 1440x900, 450px at VEN's own 1280x551. The block's height in
+sheet units is unchanged by this pass (229 against 229), so this is
+exactly as true of the sheet VEN has been looking at — but nobody had
+put a number on it. The README already says the camera lets the seal's
+side win "when a short window cannot hold them all", so it is at least
+a known direction; whether four lines of Zico's copy sitting below the
+fold is acceptable is his call, and the levers are the loop (his own
+markup), `SIZE_CAP`, or the settle zoom.
+
+**maproute's stop 4 moved** — `0.375,0.857` in §9ac.7, `0.321,0.895`
+now — because Jeonju's clearing changed height and the most-open-cell
+search near that row saw different ground. `stops` is not re-pasted
+(§9ab), js/journey.js keeps `0.374,0.857`, no clearing covers that
+point on the new sheet, and the seal nudges still stand. The first
+three stops came back identical.
+
+### Files (session 17)
+
+- `js/config.js` — `wordmark: "$TILES"`, and the note above it
+  rewritten to record who asked
+- `js/hero.js` — header note; measured seal placement (§3); the
+  `FLOURISH` map (§5); the `?mark=` knob; the dash gap (§8)
+- `css/site.css` — `.hero__title` width 460 → 560 and the vw ceiling
+  74 → 84; the no-JS fallback sized for six latin characters; the
+  stray `*/` (§6)
+- `index.html` — the hero's `aria-label` and no-JS fallback, which
+  are hand-kept and both still said 기와
+- `js/journey.js` — `SPOTS[0].copy` cut to Zico's shorter block (§9);
+  `MAPS.ink.clear` re-pasted from mapnote (§10)
+- `tools/mapnote.js` — `MEAS_CAP[3]` 18 → 20, re-derived against the
+  measured `fallbackEm` (§10)
+- `tools/songmyung-widths.json` — measured, at last: 157 words,
+  `fallbackEm` 0.434
+- `tools/clearings.json`, `map-ink-master-clear.png`,
+  `map-ink-master-plain-clear.png`, `art/journey/map-ink.png` — all
+  regenerated by the pipeline
+- `README.md` — launch checklist item 0 was still describing a null
+  ticker and a hangul hero; the UNFINISHED banner is finished
+
+### Open
+
+- **THE LITTLE RED BOX.** Zico's line was *"big lettering and little
+  red box to change to $tiles"*, which can be read as "the mark, which
+  is those two things, becomes $TILES" or as "both of them go away and
+  $TILES replaces them". **The seal was kept**, on the evidence that
+  VEN reverted a default-off stamp on 2026-08-29 and that the same 韓
+  is stamped on the manifesto, the footer and every marker on the
+  journey map, so dropping it from the hero alone would break the one
+  motif that runs the length of the page. `?stamp=0` is the hero
+  without it — one URL, no edit, and that is the way to settle it
+  rather than describing it.
+- **Stop 1's note is now the biggest type on the sheet** and stop 2's
+  is the smallest, with the same author and the same kind of prose.
+  `--sizes 10.5,11,13.5,10` matches them in one re-run — §10.
+- **Four lines of stop 1 sit below the camera frame on a desktop.**
+  Measured in §10, unchanged by this pass, and never raised with VEN.
+- §9ac.6 IS DONE. The clearings pipeline has been run end to end on
+  measured widths and nothing in it is outstanding.
+
+---
+
 ## LAUNCH DAY — everything still outstanding
 
 VEN, 2026-08-16, wrapping the session: *"all adjustments will be made
@@ -5486,17 +6075,40 @@ token-specific and waits on Zico.
 
 ### 2. The name and the ticker
 
-The site says HANOK / 한옥 throughout — hero title, footer word, page
-title, OG tags, the favicon glyph. If the token is not called HANOK,
-these are the places to change:
+**The NAME is settled and shipped: 기와 / GIWA** (Zico, 2026-08-21,
+§9y). The hero writes the hangul, the footer word, the `<title>` and
+the OG tags all say it, and `LETTERS` in js/hero.js carries the brush
+strokes for 기 and 와. Nothing here is outstanding. (This section said
+"HANOK / 한옥 throughout" until 2026-08-28 — it had been stale since
+session 13. If you find other HANOK references, they are stale too.)
 
-- `index.html` — `<title>`, OG/Twitter meta, the inline favicon SVG,
-  the footer word
+**The TICKER is settled too: `TILES`** (VEN, 2026-08-29), which is
+what the domain and Zico's map copy had said all along.
+`CONFIG.token.ticker` carries it, `js/main.js` writes it into the
+manifesto and the `<title>`, and nothing on the page reads `$XXX` any
+more.
+
+**The hero does not take the ticker from there — it DRAWS it.**
+`CONFIG.token.wordmark` is `$TILES` since 2026-08-30 and is a set of
+brush strokes, not text (§9ad). Two consequences worth keeping in
+mind: setting `ticker` alone would no longer change the mark, and a
+different ticker would mean drawing letters that do not exist in
+`LETTERS` yet.
+
+Should the NAME ever change (it should not), these are the places:
+
+- `index.html` — `<title>`, OG/Twitter meta, the inline favicon SVG
+  (the one hand-kept copy of `CONFIG.token.seal`), the footer word
 - `js/hero.js` — `WORD` plus the per-letter stroke paths in `LETTERS`.
   **This is the expensive one:** the title is hand-drawn strokes on a
   100×140 grid, not text, so a new name means drawing new letters.
-  Budget real time for it.
+  Budget real time for it. `node tools/heropng.js [word]` renders them
+  without a browser.
 - `README.md` line 1 and `HANDOFF.md`'s brief
+- `SPOTS[i].copy` in js/journey.js names the chain and the token in
+  prose — and changing a single character there means re-running THE
+  CLEARINGS from step 0, because the words are drawn on the map and
+  the map has paper cut to fit them.
 
 ### 3. Remove the market-cap slider
 

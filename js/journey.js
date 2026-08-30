@@ -124,11 +124,32 @@
      ~52 characters — the block's footprint is what maproute searches
      blank paper for, and a longer line is a line over a mountain.
 
+     THE LINE BREAKS HERE ARE ONLY FOR READING. The page re-flows the
+     joined text to the box's width (setBlock -> reflow), and
+     tools/mapnote.js plans that wrap from the same joined text, so
+     where a line ends in this file changes nothing on the sheet.
+
      THE CONTENT IS ZICO'S, 2026-08-21, revised 2026-08-25 against the
      brief VEN forwarded (Upbit's own framing of the chain). Four
      stops, four beats: the palace says what Giwa IS, the complex says
      what the project intends, the village says how to get on-chain,
      and Jeonju says what the tile MEANS.
+
+     2026-08-28: STOPS 1 AND 2 WERE REPLACED WHOLESALE, VEN pasting
+     two blocks — *"that whole block of text should be in the first
+     and second location only"*. Stop 1 is now the chain itself
+     (Dunamu, the OP Stack, one-second blocks, ETH for gas, the tile
+     the name comes from) and stop 2 is the argument for the token
+     (the tile is not a mascot borrowed from nowhere; it is Giwa's own
+     brand and founding metaphor, so $TILES sits inside the chain's
+     story rather than on top of it). 555 and 664 characters against
+     the ~170 those notes carried, which is why stop 2's search loop
+     had to be widened and why the first two notes are set smaller
+     than the third — see HANDOFF §9ac. Beats 3 and 4 are unchanged.
+
+     Note it says $TILES, in full, three times. CONFIG.token.ticker is
+     still null, so the hero and the manifesto still read "$XXX" — the
+     sheet is ahead of the config until VEN sets it.
 
      What the 2026-08-25 brief added, and where each line of it went:
        - "Giwa chain is launched by Upbit cex. They have 75% of market
@@ -157,16 +178,33 @@
   var SPOTS = [
     { d0: 1150, s: -1, name: "Gyeongbokgung Palace",   ko: "경복궁",  img: "art/gyeongbokgung.png", art: gate(),
       blurb: "The palace of shining happiness. Six centuries of court and quiet, burned and raised again, still facing the mountain it was built to answer.",
-      copy: ["An L2 from Upbit, the exchange that carries",
-             "about three quarters of all crypto traded",
-             "in Korea. 기와 means roof tile, and the chain",
-             "takes both its name and its mark from one."] },
+      copy: ["GIWA is Upbit's Ethereum Layer 2. Dunamu, the",
+             "company behind Korea's largest exchange, built",
+             "it on the OP Stack. One-second blocks. Fees",
+             "that barely register. ETH for gas. No extra",
+             "chain token. Upbit already clears most of the",
+             "crypto that moves through Korea. This chain is",
+             "the floor they are laying underneath that",
+             "market — ready to tap into all that liquidity.",
+             "This is where the road starts."] },
     { d0: 1900, s:  1, name: "Changdeokgung Palace",   ko: "창덕궁",  img: "art/changdeokgung.png", art: hall(),
       blurb: "Built to follow the land rather than flatten it. Its rear garden was kept for the king alone, and the trees there are older than the hands that planted them.",
-      copy: ["More than a meme. Partnerships with local and",
-             "larger charities are coming, and a share of",
-             "funds goes to re-roofing homes for families",
-             "in need."] },
+      copy: ["Every chain gets memecoins built on it. Most",
+             "borrow a mascot from nowhere and hope it",
+             "sticks. $TILES doesn't have to invent a",
+             "narrative — Giwa already wrote it for us. The",
+             "tile isn't a random symbol we picked to ride",
+             "the hype; it's the literal brand, logo, and",
+             "founding metaphor of the chain itself, straight",
+             "from the team's own messaging. That's the",
+             "difference. A memecoin usually sits on top of a",
+             "chain. $TILES sits inside the chain's own story",
+             "— the smallest possible unit of the same",
+             "structure Giwa is built on. One tile is the",
+             "token. Many tiles, interlocked, is the",
+             "community. The whole roof is the chain. Giwa",
+             "built the roof, and $TILES is what it's made",
+             "of."] },
     { d0: 2650, s: -1, name: "Namsangol Hanok Village",ko: "남산골",  img: "art/namsangol.png",     art: hanoks(),
       blurb: "Five houses carried stone by stone from across the city and set down together beneath the south mountain, so the old way of living would have somewhere to stand.",
       copy: ["How to reach Giwa chain, and how to swap",
@@ -843,11 +881,41 @@
          clearing in the art is cut one margin outside that box — the
          same block on every device. Paste, never hand-edit; the
          pipeline is README's THE CLEARINGS. */
+      /* 2026-08-28: stops 1 and 2 carry Zico's long copy now, against
+         the ~170 characters they held — so their blocks are the two
+         large clearings on the sheet. Stop 2's SEARCH loop had to grow
+         to hold it (tools/clearings-search.json): at VEN's own loop
+         nothing fit at any size down to 8 units.
+
+         2026-08-30, AND THIS IS THE FIRST PLAN BUILT ON REAL WIDTHS.
+         Two things landed at once. Zico cut stop 1's copy by its last
+         three sentences (the tile paragraph — *"made first section a
+         little shorter"*), and tools/widths.html was finally run, so
+         every word is measured instead of 104 of them being guessed.
+         `fallbackEm` went 0.486 (an estimate) to 0.434 (measured),
+         and since the measure is `chars * fallbackEm` for EVERY stop
+         that number steers all four wraps, not just stop 1's:
+
+           stop 1  10.5 -> 13 units, 16 -> 13 lines   (shorter copy)
+           stop 2  9 units, 18 -> 19 lines, 157 -> 140 wide
+           stop 3  13.5 units, 4 -> 3 lines, 158 -> 195 wide
+           stop 4  10 units, 10 -> 9 lines, 83 -> 84 wide
+
+         Stops 3 and 4 had been untouched to the thousandth since
+         §9ab.12 and are not any more. That is the estimate unwinding,
+         not a new decision: 0.486 was 10% high, so every measure it
+         planned was 10% wide of the character counts MEAS_MAX and
+         MEAS_CAP were set in. Stop 4 was held at its designed width by
+         re-deriving MEAS_CAP[3] to 20 (20*0.434 = 8.7em, the same
+         measure 20*0.44 and 18*0.486 both meant) and came back within
+         a line of where it was. Stop 3 has no cap and re-planned wider
+         and shorter, which uses its loop better than the estimate did.
+         */
       clear: [
-        { box: [0.566, 0.215, 0.778, 0.265], fs: 13.5 },
-        { box: [0.580, 0.409, 0.749, 0.449], fs: 11 },
-        { box: [0.635, 0.676, 0.793, 0.716], fs: 13.5 },
-        { box: [0.691, 0.800, 0.773, 0.876], fs: 10 }
+        { box: [0.607, 0.192, 0.782, 0.320], fs: 13 },
+        { box: [0.621, 0.370, 0.761, 0.500], fs: 9 },
+        { box: [0.593, 0.707, 0.788, 0.736], fs: 13.5 },
+        { box: [0.691, 0.800, 0.775, 0.868], fs: 10 }
       ],
 
       /* SEAL NUDGE — [dx, dy] per stop, normalised like everything
