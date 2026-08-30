@@ -211,17 +211,18 @@
   var SPOTS = [
     { d0: 1150, s: -1, name: "Gyeongbokgung Palace",   ko: "경복궁",  img: "art/gyeongbokgung.png", art: gate(),
       blurb: "The palace of shining happiness. Six centuries of court and quiet, burned and raised again, still facing the mountain it was built to answer.",
-      /* THREE BLOCKS, split at Zico's own paragraph breaks
-         (2026-08-30, "can you split it into 3 so its spaced out a
-         little"): the chain and its specs beside the palace, the
-         liquidity under it where the note stood, and the line that
-         hands you to the road under that paragraph (VEN's placement;
-         Zico's third loop, beside the road, is retired). He sent four
-         paragraphs and asked for
-         three, so the opening sentence stays with the specs it
-         introduces. Nesting is what makes it three notes — copyBlocks
-         above; the loops are in tools/clearings-search.json and
-         tools/mapnote.js plans a clearing in each. */
+      /* TWO BLOCKS, in the two loops that survived Zico's markup of
+         2026-08-30 ("can you split it into 3 so its spaced out a
+         little", then VEN placing and re-placing the closer): the
+         chain and its specs beside the palace, and the liquidity
+         paragraph where the note stood — with "This is where the
+         road starts." flowing INSIDE it, the same container, at
+         VEN's word. It was its own third block twice (beside the
+         road in Zico's third loop, then stacked under this one) and
+         both are one commit back if wanted again. Nesting is what
+         makes these separate notes — copyBlocks above; the loops are
+         in tools/clearings-search.json and tools/mapnote.js plans a
+         clearing in each. */
       copy: [["GIWA is Upbit's Ethereum Layer 2. Dunamu, the",
               "company behind Korea's largest exchange, built it",
               "on the OP Stack. One-second blocks. Fees that",
@@ -229,8 +230,7 @@
              ["Upbit already clears most of the crypto that moves",
               "through Korea. This chain is the floor they are",
               "laying underneath that market — ready to tap into",
-              "all that liquidity."],
-             ["This is where the road starts."]] },
+              "all that liquidity. This is where the road starts."]] },
     { d0: 1900, s:  1, name: "Changdeokgung Palace",   ko: "창덕궁",  img: "art/changdeokgung.png", art: hall(),
       blurb: "Built to follow the land rather than flatten it. Its rear garden was kept for the king alone, and the trees there are older than the hands that planted them.",
       copy: ["Every chain gets memecoins built on it. Most",
@@ -955,7 +955,7 @@
          a line of where it was. Stop 3 has no cap and re-planned wider
          and shorter, which uses its loop better than the estimate did.
          */
-      /* 2026-08-30: STOP 1 IS THREE NOTES IN TWO OF THE PLACES ZICO
+      /* 2026-08-30: STOP 1 IS TWO NOTES, IN TWO OF THE PLACES ZICO
          DREW. On a phone screenshot of the stop he looped three spots
          down the sheet — beside the palace in the range to its right,
          where the note stood, and lower-left across the road — with
@@ -964,22 +964,22 @@
          LIST of boxes, one per block of a split `copy` (copyBlocks,
          setBlock); tools/clearings-search.json carries the search
          loops for the stop, and mapnote puts block i in loop i, the
-         last loop taking whatever parts are left, stacked. The parts
-         are his own paragraphs: the chain and its specs beside the
-         palace; the liquidity under it where the note stood; and the
-         line that hands you to the road, which sits UNDER that
-         paragraph — VEN: "put 'this is where the road starts' under
-         the paragraph that reads 'upbit...'". It was beside the road
-         in Zico's third loop for one commit; that loop is retired.
+         last loop taking whatever parts are left, stacked. The chain
+         and its specs sit beside the palace; the liquidity paragraph
+         where the note stood, with "This is where the road starts."
+         flowing inside it — VEN walked the closer in over three asks
+         (beside the road in Zico's third loop, then its own block
+         under this one, then "the same container"), and the two
+         earlier placements are one and two commits back.
 
-         The first cut of this stacked all three in the old column and
-         VEN sent it back: "that isnt in the right part of the
-         website". Positions are the client's; the tool sizes the
+         The first cut of this stacked all three parts in the old
+         column and VEN sent it back: "that isnt in the right part of
+         the website". Positions are the client's; the tool sizes the
          clearings to the words. Zico's top loop as drawn held his own
          first paragraph at 9 units, so it was grown 26 units toward
-         the palace and a row up, and the second loop 42 units down to
-         take the closer. 11 units — half a unit over what the note
-         had before his cut. HANDOFF §9af.
+         the palace and a row up; his second is grown 42 units down.
+         11 units — half a unit over what the note had before his
+         cut. HANDOFF §9af.
 
          `mw` on every box is the measure the wrap was planned at,
          which is not the box's own width — see tools/mapnote.js;
@@ -987,8 +987,7 @@
       clear: [
         [
           { box: [0.635, 0.068, 0.751, 0.151], fs: 11, mw: 116.9 },
-          { box: [0.566, 0.215, 0.760, 0.255], fs: 11, mw: 191.3 },
-          { box: [0.566, 0.270, 0.713, 0.277], fs: 11, mw: 191.3 }
+          { box: [0.566, 0.215, 0.761, 0.264], fs: 11, mw: 191.3 }
         ],
         { box: [0.621, 0.378, 0.779, 0.501], fs: 9, mw: 156.5 },
         { box: [0.621, 0.699, 0.784, 0.739], fs: 13.5, mw: 176.1 },

@@ -6303,11 +6303,20 @@ continuation of B's column.
   every stop EXACTLY what js/journey.js carries.
 - mapnote prints no `!`; all 157 words measured in the real face.
 
-### 5. The closer moved under its paragraph (VEN, same day)
+### 5. The closer moved under its paragraph, then INTO it (VEN, same day)
 
 *"can you put 'this is where the road starts' under the paragraph that
-reads 'upbit...'"* — so the third block stacks under the second, in
-Zico's second loop, and his third loop beside the road is retired.
+reads 'upbit...'"* — so the third block stacked under the second, in
+Zico's second loop, and his third loop beside the road was retired.
+Then, seeing that: *"put 'this is where the road starts' in the same
+block as the text above it. The same container."* — so the copy is TWO
+parts now, and the closer is the liquidity paragraph's last sentence,
+wrapping with it. Stop 1 is two notes: 10 lines beside the palace, 6
+where the note stood. The stacked-block state is one commit back.
+Checked on the phone (393x852): 16 lines, the wrap breaking at
+"...all that liquidity. This is where / the road starts.", 27px of
+slack at the right edge, the note between y=101 and 381 of 852.
+Desktop: the union is 23 units shorter than the stacked state's, whose numbers therefore bound it — fits at 1280x820, at most 31px over at 1440x900 and 277 at 1280x551. A bound, not a re-probe: the harness tab kept freezing.
 
 That needed one more case in mapnote's `place()`: part i goes to loop
 i, and once the loops run out the LAST loop takes every part left,
