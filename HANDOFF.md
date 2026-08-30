@@ -6194,7 +6194,141 @@ all along and the intermediate re-run was the wrong one.
   `copy` and a re-run, if Zico wants it.
 - `PHONE_ZOOM` 2.1 leaves stop 1 with 8-14px of margin on a phone. It
   is real slack now rather than 1px, but it is not much; 2.0 would give
-  another 24 units if anything else ever grows.
+  another 24 units if anything else ever grows. (22px after §9af moved
+  the blocks to Zico's places.)
+- **SUPERSEDED BY §9af**: the three blocks stacked in the old column
+  were not what Zico drew. They are in his three places now.
+
+---
+
+## 9af. Session 17, part 4 (2026-08-30) — the three notes go where Zico drew them
+
+VEN, on the three-notes commit (b07cc46): *"that isnt in the right
+part of the website ... reference the screenshot and the current state
+of the website in claude chrome and try again."* He was right. Zico's
+screenshot had three loops drawn in three PLACES down the sheet, and
+§9ae stacked all three blocks in the old column and called it split.
+
+### 1. Where his loops are
+
+Traced off his phone screenshot and mapped onto the sheet through three
+landmarks that agree to within ten screenshot pixels — the seal
+(0.340,0.120 at 70,690), the Korean name column (0.396,0.136 at
+~160,745) and the English caption (0.535,0.178 at ~430,885); 1846 px
+to the sheet's width, 3307 to its height:
+
+  - **A** — beside the palace, in the mountain range to its right, at
+    the seal's height. x 0.626-0.792, y 0.067-0.175.
+  - **B** — where the note stood, opened LEFT to the road. x
+    0.458-0.791, y 0.191-0.272.
+  - **C** — lower-left, straddling the road. x 0.358-0.639, y
+    0.289-0.364.
+
+They are in `tools/clearings-search.json` as three loops for stop 1
+(`part: 1..3`, in reading order), which the file could not hold before:
+tools/maproute.js kept ONE polygon per stop, last wins — a latent bug
+that had quietly made stop 1's mask in the final run the *caption's*
+little loop, since clearings.json lists the caption loop after the
+block loop. It keeps a list now, skips caption loops, runs the shape
+search once per loop, and writes `shapes[]` to shape.json; mapnote puts
+block i in loop i. VEN's original stop-1 loop is in git at 1cc6bdb.
+
+### 2. His loops mark WHERE, not how much
+
+Measured (scratch probe, same arithmetic as mapnote), the loops as
+drawn hold:
+
+```
+            A (13 rows, 181 tall)   B (10 rows, 139 tall)   C (9 rows, 125 tall)
+  P1+P2     9 units, 8 lines        11                      no
+  P3        10                      12                      no
+  P4        13.5                    13.5                    8.5, 2 lines
+```
+
+So the note — one voice, one size — lands at **8.5**: the top loop is
+small for a 193-character paragraph, and the road takes the middle of
+the third, leaving ~125 units of run either side. On his own screen at
+the size he was looking at, loop A holds about 76 characters — the
+first paragraph is two and a half times that. He drew places.
+
+Two of them were grown where nothing stands, keeping his positions:
+**A 26 units toward the palace and one row up** (no peak touched; the
+palace's halo is what it meets), **C 20 units left**. That buys
+**10.5** — the size the note had before he cut its last paragraph — and
+the blocks come out 127x127 beside the palace, 185x69 where the note
+was, 75x26 beside the road:
+
+```
+  var MAP_CLEAR[0] = [
+    { box: [0.635, 0.075, 0.762, 0.146], fs: 10.5, mw: 126.8 },   // A, 9 lines
+    { box: [0.566, 0.207, 0.751, 0.246], fs: 10.5, mw: 182.6 },   // B, 5 lines
+    { box: [0.371, 0.308, 0.446, 0.322], fs: 10.5, mw:  76.1 }    // C, 2 lines
+  ]
+```
+
+**"This is where the road starts." sits beside the road**, on two
+lines, left of it — the tool's pick over the right side by its own box
+score, and the better one: the right side would have read as a
+continuation of B's column.
+
+### 3. Three small things the parts needed
+
+- **Each part picks its own measure.** The parts share one size — a
+  size change between them reads as two voices — but the measure is a
+  property of the loop, and a two-line closer in a loop the road cuts
+  in half cannot be held to the six-line opener's column width.
+  mapnote searches size alone and a size wins when every part places.
+- **A short part may wrap under MEAS_MIN.** The 18-character floor
+  keeps a paragraph from being set as a ribbon; a 30-character line is
+  not a paragraph, and at 18 it could never fit a 125-unit run. The
+  floor is now MEAS_MIN or half the text, never under ten.
+- **maproute's copy-length reader** used the old flat regex, which
+  did not match a nested `copy` at all — so stop 1 was skipped and
+  every stop after it took the figure of the one before. It walks the
+  brackets now, anchored on `name:` because a bare `copy: [` also
+  matches the examples in journey.js's own comments, and carries one
+  length per block.
+
+### 4. Checked
+
+- **Zico's phone (393x852, the iPhone his screenshot came from):** 15
+  lines drawn against 16 planned (A one line under, the safe
+  direction); the rightmost text at x=371 of 393 — **22px inside** the
+  edge where his screenshot had it cut; the closing line at x=43-110
+  beside the road; the whole note between y=118 and 468 of 852.
+- The three blocks cropped out of the cut master with their boxes
+  drawn on them: all on cleared paper with the uniform margin, A
+  merged into the palace's halo.
+- maproute returns 0.340/0.120, 0.493/0.360, 0.623/0.601, 0.375/0.857 —
+  every stop EXACTLY what js/journey.js carries.
+- mapnote prints no `!`; all 157 words measured in the real face.
+
+### Files (session 17, part 4)
+
+- `tools/clearings-search.json` — stop 1's loop replaced by Zico's
+  three (`part`, `who`)
+- `tools/maproute.js` — a list of loops per stop, `shapes[]` in
+  shape-out, the bracket-walking copy reader
+- `tools/mapnote.js` — block i in loop i; per-part measure; the
+  measure floor for short parts
+- `js/journey.js` — `MAPS.ink.clear[0]` re-pasted; the notes rewritten
+- `tools/shape.json`, `tools/clearings.json`, both masters,
+  `art/journey/map-ink.png` — regenerated
+
+### Open
+
+- **Loops A and C are Zico's, grown.** If he wants them exactly as
+  drawn, `loops2.js`'s two numbers go back to `598, 515` and `103` and
+  the note ships at 8.5 — his call, and it should be put to him with
+  the size stated.
+- **Desktop, measured after the paste:** the note's union runs from
+  A's top to C's bottom now, so it is taller than the column was and
+  the overhang past the camera frame went 20px the wrong way — **152 /
+  194 / 422 px** at 1280x820 / 1440x900 / 1280x551 against §9ae's 131
+  / 170 / 400. Same behaviour as always (the top wins; the closing line
+  comes up as the camera moves on), and the same three levers: VEN's
+  loop, SIZE_CAP, the settle zoom.
+- Stop 2 is still 9 units, under a stop 1 at 10.5.
 
 ---
 

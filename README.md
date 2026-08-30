@@ -280,17 +280,23 @@ words standing on mountains.
   1. `node tools/maproute.js art/journey/map-ink-solid.png --base
      map-ink-master-plain.png --clear tools/clearings-search.json
      --plan --caption --shape-out tools/shape.json` — the usable rows
-     inside VEN's loops (`clearings-search.json`, his markup traced:
-     the one hand-drawn thing here; the fourth loop, Jeonju, is the
-     one he did not draw; stop 2's was widened in 2026-08-28 to hold
-     Zico's long copy — see below), and the English caption's anchor
-     under each building (paste its MAP_STOPS: elements 5+6).
+     inside the traced loops (`clearings-search.json`: VEN's markup
+     for stops 2-3, the fourth loop, Jeonju, the one he did not draw,
+     and since 2026-08-30 **Zico's three for stop 1** — a stop may
+     carry several loops, in reading order, and a split `copy` puts
+     block i in loop i; HANDOFF §9af), and the English caption's
+     anchor under each building (paste its MAP_STOPS: elements 5+6).
   2. `node tools/mapnote.js tools/shape.json` — lays the four notes
      out (the copy from js/journey.js, the words' widths from
      `songmyung-widths.json`), writes `tools/clearings.json` (a
      rounded rectangle `MARGIN` outside each block, plus a small one
      behind any caption that would sit on ink) and prints `MAP_CLEAR`
-     to paste over `MAPS.ink.clear`.
+     to paste over `MAPS.ink.clear`. A split note (nested `copy`)
+     gets a block per part — in its own loop where the stop has one
+     per part, stacked down one loop otherwise — at one shared size.
+     **A loop marks where, not how much**: if a stop comes out under
+     10 units, grow the loop where nothing stands before lowering the
+     size (§9af.2 is the worked case).
   3. `node tools/mapclear.js map-ink-master-nams.png
      map-ink-master-clear.png --clear tools/clearings.json --keep
      map-ink-master-plain.png --debug`, and the SAME loops on the

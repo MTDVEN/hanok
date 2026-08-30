@@ -276,7 +276,16 @@ var CLEAR = (function(){
   var i = argv.indexOf("--clear");
   if (i < 0) return null;
   var lst = JSON.parse(fs.readFileSync(argv[i + 1], "utf8")), by = {};
-  lst.forEach(function(l){ by[l.stop] = l.poly; });
+  /* A LIST OF LOOPS PER STOP (2026-08-30). A stop whose note is split
+     across the sheet has one search loop per block — Zico drew three
+     for Gyeongbokgung — and the phone-box/shape search below runs once
+     per loop, in file order, so tools/mapnote.js can put block i in
+     loop i. Until now this was `by[l.stop] = l.poly`, LAST WINS, which
+     with tools/clearings.json (a block loop and then a caption loop
+     for the same stop) quietly made stop 1's mask the caption's
+     little loop. Caption loops are skipped here: they are not where a
+     note goes. */
+  lst.forEach(function(l){ if (l.caption) return; (by[l.stop] = by[l.stop] || []).push(l.poly); });
   return by;
 })();
 /* The copy's length per stop, in characters, for the box score (see
@@ -285,11 +294,37 @@ var CLEAR = (function(){
    overrides, and a stop with no figure gets 160. */
 var COPY_N = (function(){
   var i = argv.indexOf("--copy"), out = [];
-  if (i >= 0) return argv[i + 1].split(",").map(Number);
+  if (i >= 0) return argv[i + 1].split(",").map(function(n){ return [Number(n)]; });
+  /* A STOP'S FIGURE IS A LIST, one length per block: `copy` nests
+     since 2026-08-30 (js/journey.js, copyBlocks), and the flat regex
+     this used to match with did not match a nested one at all, so the
+     stop that carried it was skipped and every stop after it took the
+     figure of the one before. Walk the brackets, as mapnote does. */
   try {
     var js = fs.readFileSync(require("path").join(__dirname, "..", "js", "journey.js"), "utf8");
-    var re = /copy:\s*\[((?:\s*"[^"]*",?)+)\s*\]/g, m;
-    while ((m = re.exec(js))) out.push(m[1].replace(/"/g, "").replace(/,\s*/g, " ").replace(/\s+/g, " ").trim().length);
+    /* anchored on the stop's name, as mapnote is: a bare `copy: [` also
+       matches the examples in js/journey.js's own comments */
+    var re = /name:\s*"[^"]+"[\s\S]*?copy:\s*\[/g, m;
+    while ((m = re.exec(js))){
+      var i0 = re.lastIndex - 1, depth = 0, inStr = false, j, ch, parts = [], cur = null, buf = "";
+      for (j = i0; j < js.length; j++){
+        ch = js[j];
+        if (inStr){
+          if (ch === '"'){ inStr = false; (cur || (cur = [])).push(buf); buf = ""; } else buf += ch;
+          continue;
+        }
+        if (ch === '"'){ inStr = true; continue; }
+        if (ch === "["){ depth++; if (depth === 2) cur = []; }
+        else if (ch === "]"){
+          depth--;
+          if (depth === 1 && cur){ parts.push(cur); cur = null; }
+          if (!depth) break;
+        }
+      }
+      if (cur && cur.length) parts.push(cur);
+      out.push(parts.map(function(g){ return g.join(" ").replace(/\s+/g, " ").trim().length; }));
+      re.lastIndex = j + 1;
+    }
   } catch (e){}
   return out;
 })();
@@ -395,10 +430,21 @@ function polyMask(poly, inset){
     }
   return m;
 }
-var clearMask = {}, clearLoose = {};
+function unionMask(polys, inset){
+  var m = null;
+  polys.forEach(function(p){
+    var q = polyMask(p, inset), j;
+    if (!m) m = q; else for (j = 0; j < m.length; j++) if (q[j]) m[j] = 1;
+  });
+  return m;
+}
+/* the caption/block search sees a stop's loops as one region; the
+   shape search sees them one at a time (clearLooseEach) */
+var clearMask = {}, clearLoose = {}, clearLooseEach = {};
 if (CLEAR) Object.keys(CLEAR).forEach(function(k){
-  clearMask[k]  = polyMask(CLEAR[k], CLEAR_INSET);
-  clearLoose[k] = polyMask(CLEAR[k], PHONE_INSET);   /* see PHONE_INSET */
+  clearMask[k]  = unionMask(CLEAR[k], CLEAR_INSET);
+  clearLoose[k] = unionMask(CLEAR[k], PHONE_INSET);   /* see PHONE_INSET */
+  clearLooseEach[k] = CLEAR[k].map(function(p){ return polyMask(p, PHONE_INSET); });
 });
 
 /* With --base: the landmark field, before the seam runs.
@@ -798,7 +844,7 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
   /* cm: this stop's clearing mask (see --clear), or null; cml: the
      same loop with the smaller PHONE_INSET, for the box; stopIdx for
      the copy length the box is scored against */
-  function labelSpot(gy0, rx0, cm, cml, stopIdx){
+  function labelSpot(gy0, rx0, cm, cml, stopIdx, cmls){
     /* The landmark itself, as a FLOOD-FILLED component, not a
        thresholded bounding box. image2image regenerates the whole
        sheet, so the vig field carries a residue of drift everywhere;
@@ -1154,8 +1200,14 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
        landmark when it can be. Emitted as MAP_CLEAR; a stop with no
        clearing still gets one, searched round the stop, so Jeonju's
        phone block has somewhere measured to go. */
-    var pb = null, pbRows = null;
-    (function(){
+    /* ONE SHAPE PER LOOP. `cmls` is the stop's loops one mask each (or
+       null — then the single `cml`, which is their union, as before);
+       each gets its own box-and-rows search and the first is what
+       `pb`/`shape` carry, so a one-loop stop comes out exactly as it
+       always did. `li` only decides which block's length scores the
+       box, when the loops and the blocks pair up. */
+    function phoneBox(cml, loopIdx, nLoops){
+      var pb = null, pbRows = null;
       /* the loose loop's extent, when there is one */
       var lx0 = COLS, lx1 = -1, ly0 = ROWS, ly1 = -1, li;
       if (cml){
@@ -1170,7 +1222,7 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
       var ux0 = cml ? lx0 : Math.max(0, rx0 - 24), ux1 = cml ? lx1 : Math.min(COLS - 1, rx0 + 24),
           uy0 = cml ? ly0 : Math.max(0, gy0 - 6),  uy1 = cml ? ly1 : Math.min(ROWS - 1, gy0 + 24);
       var uw = ux1 - ux0 + 1, uh = uy1 - uy0 + 1, ux, uy;
-      if (uw < 3 || uh < 3) return;
+      if (uw < 3 || uh < 3) return { pb: null, pbRows: null };
       var use = new Uint8Array(uw * uh);
       for (uy = 0; uy < uh; uy++)
         for (ux = 0; ux < uw; ux++){
@@ -1193,7 +1245,9 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
       }
       /* the largest type size, in cells, at which N characters of copy
          re-flowed to w cells fit h cells — the box's score */
-      var N = (COPY_N[stopIdx] || 160) * COPY_WASTE;
+      var lens = COPY_N[stopIdx] || [160];
+      var N = (nLoops > 1 && lens.length === nLoops ? lens[loopIdx]
+               : lens.reduce(function(a, b){ return a + b; }, 0)) * COPY_WASTE;
       function typeSize(w, h){
         var lo = 0.05, hi = 4, it;
         for (it = 0; it < 24; it++){
@@ -1219,7 +1273,7 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
               if (sc > best){ best = sc; bs = ts; bb = [gx0, gy0b, gx1 + 1, gy1b + 1]; }
             }
       if (bb) pb = bb;
-      if (bb) console.log("  box     stop " + (stopIdx + 1) + "  " + (bb[2] - bb[0]) + "x" + (bb[3] - bb[1]) +
+      if (bb) console.log("  box     stop " + (stopIdx + 1) + (nLoops > 1 ? "." + (loopIdx + 1) : " ") + " " + (bb[2] - bb[0]) + "x" + (bb[3] - bb[1]) +
                           " cells, type up to " + bs.toFixed(2) + " cells for " + Math.round(N / COPY_WASTE) + " chars");
 
       /* THE SHAPE, row by row (2026-08-27, VEN: "scale up the text a
@@ -1276,7 +1330,17 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
           console.log("           " + (gy2 < 100 ? " " : "") + (uy0 + uy) + " " + ln);
         }
       }
-    })();
+      return { pb: pb, pbRows: pbRows };
+    }
+    var loopsIn = cmls && cmls.length ? cmls : [cml];
+    var boxes = loopsIn.map(function(c, li){ return phoneBox(c, li, loopsIn.length); });
+    var pb = boxes[0].pb, pbRows = boxes[0].pbRows;
+    function shapeOf(r){
+      return r ? {
+        top: r.top / ROWS, dy: 1 / ROWS,
+        rows: r.rows.map(function(q){ return q ? [q[0] / COLS, q[1] / COLS] : null; })
+      } : null;
+    }
 
     return {
       lx: (bx + 0.5) / COLS, ly: (by + 0.5) / ROWS,
@@ -1284,10 +1348,10 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
       ey: ecy != null ? (ecy + 0.5) / ROWS : null,
       epk: ecpk,
       pb: pb ? [pb[0] / COLS, pb[1] / ROWS, pb[2] / COLS, pb[3] / ROWS] : null,
-      shape: pbRows ? {
-        top: pbRows.top / ROWS, dy: 1 / ROWS,
-        rows: pbRows.rows.map(function(r){ return r ? [r[0] / COLS, r[1] / COLS] : null; })
-      } : null
+      shape: shapeOf(pbRows),
+      /* every loop's shape, in file order, when the stop has more than
+         one — tools/mapnote.js puts block i in shapes[i] */
+      shapes: boxes.length > 1 ? boxes.map(function(b){ return shapeOf(b.pbRows); }) : null
     };
   }
 
@@ -1318,10 +1382,10 @@ var PHONE_SOFT = 0.15;   /* PHONE_INSET itself is declared up by polyMask */
     picked.forEach(function(gy3, si3){
       var pt2 = atRow(gy3);
       var spot = labelSpot(gy3, Math.round(road[gy3]), clearMask[si3 + 1] || null,
-                           clearLoose[si3 + 1] || null, si3);
+                           clearLoose[si3 + 1] || null, si3, clearLooseEach[si3 + 1] || null);
       pt2.lx = spot.lx; pt2.ly = spot.ly;
       pt2.ex = spot.ex; pt2.ey = spot.ey;
-      pt2.pb = spot.pb; pt2.shape = spot.shape; pt2.epk = spot.epk;
+      pt2.pb = spot.pb; pt2.shape = spot.shape; pt2.shapes = spot.shapes; pt2.epk = spot.epk;
       if (BLOCK_X[si3] != null && pt2.ex != null){
         console.log("  review  stop " + (si3 + 1) + " block x " +
                     pt2.ex.toFixed(3) + " -> " + BLOCK_X[si3].toFixed(3) +
@@ -1434,6 +1498,7 @@ if (SHAPE_OUT){
     road: road.map(function(r){ return (r + 0.5) / COLS; }),
     stops: stops.map(function(p){
       return { x: p.x, y: p.y, lx: p.lx, ly: p.ly, box: p.pb, shape: p.shape,
+               shapes: p.shapes || null,
                cap: p.ex != null ? { x: p.ex, y: p.ey, peak: +(p.epk || 0).toFixed(3) } : null };
     })
   }, null, 1));

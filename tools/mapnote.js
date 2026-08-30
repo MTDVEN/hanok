@@ -318,46 +318,67 @@ function fitAt(R, y0, y1, halfW){
   return lo <= hi ? [lo, hi] : null;
 }
 
-/* ONE BLOCK PER PART, EACH BELOW THE ONE BEFORE. A stop whose copy is
-   split (COPY[k].length > 1) gets a clearing per part, stacked down
-   the loop with GAP units of standing terrain between one clearing and
-   the next, so they read as separate notes on the map rather than one
-   panel with white space in it.
+/* ONE BLOCK PER PART — IN ITS OWN LOOP, OR STACKED IN ONE.
 
-   Why it exists: Zico, 2026-08-30, on a phone screenshot of stop 1 -
-   "The text is slightly cropped in some parts, can you split it into 3
-   so its spaced out a little", with three loops drawn down the sheet.
-   The crop was the deep block's own fault: thirteen lines can only
-   stand where the loop is clean for thirteen rows, which here is the
-   narrow column against the right edge, and on a phone the frame that
-   has to hold the seal, the name AND that column is 476 map units wide
-   against their 457 - so the last letters fell off. Three shallow
-   blocks each pick their own width and sit as near the road as their
-   own rows allow, which walks them left as they descend.
+   A stop whose copy is split (COPY[k].length > 1) gets a clearing per
+   part. Where the shape file carries one loop per part (`shapes`, from
+   maproute --plan over a clearings-search.json with several loops for
+   the stop), block i goes in loop i — that is Zico's markup for
+   Gyeongbokgung, 2026-08-30: three loops down the sheet, "split it
+   into 3 so its spaced out a little", one beside the palace, one where
+   the note was, one lower-left across the road. With a single loop the
+   blocks stack down it, GAP apart, which is how the first cut of this
+   was built and what a stop with no markup of its own still gets.
 
-   The parts share ONE size and ONE measure: they are one note read in
-   sequence, and a size change between them reads as two voices. So the
-   search is over (size, measure) as before, and a candidate only wins
-   if EVERY part finds a home at it. */
-function place(R, sx, parts, S, chars){
-  var bottom = R.top + R.runs.length * R.dy;
-  var out = [], yMin = R.top + MARGIN, i, y;
-  for (i = 0; i < parts.length; i++){
-    var b = block(parts[i], S, chars), halfW = b.w / 2 + MARGIN, got = null;
+   The parts share ONE SIZE — they are one note read in sequence, and a
+   size change between them reads as two voices — but each picks its
+   OWN MEASURE: the measure is a property of the loop the block sits
+   in, not of the voice, and a one-line closing part in a loop that
+   straddles the road has to be allowed to break in two without forcing
+   the six-line opening part narrow with it. So the search is over size
+   alone, descending, and a size wins when EVERY part finds a home at
+   it, each at the widest measure its loop allows. */
+function placeOne(R, sx, text, S, measMax, yMin){
+  var bottom = R.top + R.runs.length * R.dy, chars, y;
+  /* MEAS_MIN keeps a paragraph from being set as a ribbon, but a
+     thirty-character closing line is not a paragraph: in a loop the
+     road cuts in two — Zico's third, 2026-08-30 — the widest run is
+     ~125 units, and an 18-character floor (87 units of text plus the
+     margins) can never fit it, while the same words on two lines of
+     fifteen fit easily. So the floor is MEAS_MIN or half the text,
+     whichever is less, and never under ten. */
+  var minChars = Math.max(10, Math.min(MEAS_MIN, Math.ceil(text.length / 2)));
+  for (chars = measMax; chars >= minChars; chars--){
+    var b = block(text, S, chars), halfW = b.w / 2 + MARGIN;
     /* the rows this block needs are its own PLUS its margin band top
        and bottom — the clearing has to clear the text on every side,
-       whether or not it merges with the block's neighbours */
-    for (y = yMin; y + b.h + MARGIN <= bottom && !got; y += R.dy / 2){
+       whether or not it merges with a neighbour */
+    for (y = yMin; y + b.h + MARGIN <= bottom; y += R.dy / 2){
       var iv = fitAt(R, y - MARGIN, y + b.h + MARGIN, halfW);
       if (!iv) continue;
-      /* as near the road as the interval allows — which is what walks
-         a split note left as it descends, since this loop is a funnel
-         that opens toward the road on the way down */
-      got = { b: b, cx: Math.max(iv[0], Math.min(iv[1], sx)), y0: y };
+      /* as near the road as the interval allows — in a funnel loop
+         that is what walks stacked blocks left as they descend */
+      return { b: b, cx: Math.max(iv[0], Math.min(iv[1], sx)), y0: y };
     }
-    if (!got) return null;
-    out.push(got);
-    yMin = got.y0 + b.h + GAP;
+  }
+  return null;
+}
+function place(Rs, sx, parts, S, measMax){
+  var out = [], i, g;
+  if (Rs.length > 1){                       /* a loop per part */
+    for (i = 0; i < parts.length; i++){
+      g = placeOne(Rs[i], sx, parts[i], S, measMax, Rs[i].top + MARGIN);
+      if (!g) return null;
+      out.push(g);
+    }
+    return out;
+  }
+  var R = Rs[0], yMin = R.top + MARGIN;     /* stacked down one loop */
+  for (i = 0; i < parts.length; i++){
+    g = placeOne(R, sx, parts[i], S, measMax, yMin);
+    if (!g) return null;
+    out.push(g);
+    yMin = g.y0 + g.b.h + GAP;
   }
   return out;
 }
@@ -365,13 +386,20 @@ function place(R, sx, parts, S, chars){
 var loops = [], clear = [];
 shape.stops.forEach(function(st, k){
   if (!st.shape){ loops.push(null); clear.push(null); return; }
-  var R = runsOf(st), sx = st.x * MW, parts = COPY[k], best = null, S, chars;
-  /* the largest size that places every part; at that size the widest
-     measure; at that measure the highest start for each */
+  var parts = COPY[k], sx = st.x * MW, best = null, S;
+  /* one loop per part when the shape file has them and they pair up;
+     otherwise the stop's single loop for all of them */
+  var Rs = (st.shapes && st.shapes.length === parts.length && st.shapes.every(Boolean))
+    ? st.shapes.map(function(sh){ return runsOf({ shape: sh }); })
+    : [runsOf(st)];
+  if (parts.length > 1 && Rs.length === 1 && st.shapes)
+    console.error("  stop " + (k + 1) + ": " + parts.length + " blocks but " + st.shapes.length +
+                  " loops in the shape file — stacking them in the first");
+  /* the largest size that places every part; each at the widest
+     measure its own loop allows, at the highest start */
   var measMax = Math.min(MEAS_MAX, MEAS_CAP[k] || MEAS_MAX);
   for (S = Math.min(SIZE, SIZE_CAP[k] || SIZE); S >= 8 && !best; S -= 0.5)
-    for (chars = measMax; chars >= MEAS_MIN && !best; chars -= 1)
-      best = place(R, sx, parts, S, chars);
+    best = place(Rs, sx, parts, S, measMax);
   if (!best){
     console.error("  stop " + (k + 1) + ": no block fits its loop — widen the loop or lower --size");
     loops.push(null); clear.push(null); return;
