@@ -17,11 +17,36 @@ const TYPES = {
   ".ico": "image/x-icon"
 };
 
+// The ONE thing this server writes: tools/songmyung-widths.json, when
+// tools/widths.html POSTs the widths it measured. The measuring has to
+// happen in a browser (canvas measureText in the real face is what
+// js/journey.js wraps with), and a hand round-trip through the
+// clipboard is where a stale widths file comes from — so the page
+// saves its own result. Nothing else is writable, no other method is,
+// and tools/ is never deployed.
+const WRITABLE = "/tools/songmyung-widths.json";
+
 http.createServer((req, res) => {
   const urlPath = decodeURIComponent(req.url.split("?")[0]);
   const file = path.join(ROOT, urlPath === "/" ? "index.html" : urlPath);
   if (!path.normalize(file).startsWith(path.normalize(ROOT))) {
     res.writeHead(403); res.end(); return;
+  }
+  if (req.method === "POST") {
+    if (urlPath !== WRITABLE) { res.writeHead(405); res.end("only " + WRITABLE + " is writable"); return; }
+    let body = "";
+    req.on("data", c => { body += c; if (body.length > 4e6) req.destroy(); });
+    req.on("end", () => {
+      try { JSON.parse(body); } catch (e) {
+        res.writeHead(400); res.end("not JSON: " + e.message); return;
+      }
+      fs.writeFile(file, body, err => {
+        if (err) { res.writeHead(500); res.end(String(err)); return; }
+        console.log("wrote " + WRITABLE + "  (" + body.length + " bytes)");
+        res.writeHead(200, { "content-type": "text/plain" }); res.end("saved");
+      });
+    });
+    return;
   }
   fs.readFile(file, (err, data) => {
     if (err) { res.writeHead(404); res.end("not found"); return; }
