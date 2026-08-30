@@ -112,6 +112,39 @@
   /* Client copy goes into innerHTML in map mode, so it is escaped on
      the way in. Nothing in SPOTS needs it today; the next paste from
      Zico might. */
+  /* ZICO'S COPY, IN ONE BLOCK OR SEVERAL. `SPOTS[i].copy` is a list
+     of authored lines whose breaks are cosmetic — the note is always
+     re-wrapped to the box it is drawn in — and since 2026-08-30 a
+     stop may split it across several clearings by nesting:
+
+         copy: ["one", "block"]                  one note
+         copy: [["first"], ["second"], ["third"]]  three notes
+
+     Zico asked for stop 1 in three, *"so its spaced out a little"*,
+     after the single tall column came back cropped on his phone: one
+     block deep enough to need thirteen lines can only stand where the
+     loop is clean for all thirteen rows, which on this sheet is the
+     narrow column against the right edge. Three shallow blocks each
+     find their own width, and step down and left into the room the
+     loop actually has.
+
+     Everything that wants the words goes through one of these two.
+     `copyBlocks` is a string per block — what gets wrapped and drawn.
+     `copyLines` is every authored line, flat, for the no-boxes
+     fallback that draws the lines exactly as written. Neither ever
+     returns the nested array itself: a stray `.join(" ")` over that
+     prints commas onto the sheet. */
+  function copyBlocks(sp){
+    var c = (sp && sp.copy) || [];
+    if (!c.length) return [];
+    return (Array.isArray(c[0]) ? c : [c]).map(function(p){ return p.join(" "); });
+  }
+  function copyLines(sp){
+    var c = (sp && sp.copy) || [];
+    if (!c.length) return [];
+    return Array.isArray(c[0]) ? [].concat.apply([], c) : c;
+  }
+
   function esc(s){
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
@@ -178,15 +211,23 @@
   var SPOTS = [
     { d0: 1150, s: -1, name: "Gyeongbokgung Palace",   ko: "경복궁",  img: "art/gyeongbokgung.png", art: gate(),
       blurb: "The palace of shining happiness. Six centuries of court and quiet, burned and raised again, still facing the mountain it was built to answer.",
-      copy: ["GIWA is Upbit's Ethereum Layer 2. Dunamu, the",
-             "company behind Korea's largest exchange, built",
-             "it on the OP Stack. One-second blocks. Fees",
-             "that barely register. ETH for gas. No extra",
-             "chain token. Upbit already clears most of the",
-             "crypto that moves through Korea. This chain is",
-             "the floor they are laying underneath that",
-             "market — ready to tap into all that liquidity.",
-             "This is where the road starts."] },
+      /* THREE BLOCKS, split at Zico's own paragraph breaks
+         (2026-08-30, "can you split it into 3 so its spaced out a
+         little"): the chain and its specs, the liquidity under it,
+         and the line that hands you to the road. He sent four
+         paragraphs and asked for three, so the opening sentence
+         stays with the specs it introduces. Nesting is what makes it
+         three notes — copyBlocks above, and tools/mapnote.js plans a
+         clearing for each. */
+      copy: [["GIWA is Upbit's Ethereum Layer 2. Dunamu, the",
+              "company behind Korea's largest exchange, built it",
+              "on the OP Stack. One-second blocks. Fees that",
+              "barely register. ETH for gas. No extra chain token."],
+             ["Upbit already clears most of the crypto that moves",
+              "through Korea. This chain is the floor they are",
+              "laying underneath that market — ready to tap into",
+              "all that liquidity."],
+             ["This is where the road starts."]] },
     { d0: 1900, s:  1, name: "Changdeokgung Palace",   ko: "창덕궁",  img: "art/changdeokgung.png", art: hall(),
       blurb: "Built to follow the land rather than flatten it. Its rear garden was kept for the king alone, and the trees there are older than the hands that planted them.",
       copy: ["Every chain gets memecoins built on it. Most",
@@ -911,11 +952,33 @@
          a line of where it was. Stop 3 has no cap and re-planned wider
          and shorter, which uses its loop better than the estimate did.
          */
+      /* 2026-08-30, SECOND PASS: stop 1 is THREE blocks. Zico, on a
+         phone screenshot with three loops drawn down the sheet — "The
+         text is slightly cropped in some parts, can you split it into
+         3 so its spaced out a little". A stop's entry may now be a
+         LIST of boxes, one per block of a split `copy` (see
+         copyBlocks and setBlock). Their clearings OVERLAP on purpose
+         and mapclear cuts them as one stepped region: three separate
+         islands cost 96 more units of a ~430-unit loop and mapnote
+         answered by dropping the type to 8.5, which is smaller than
+         anything on the sheet. At 11 the three blocks span the same
+         paper the single block did (0.192 to 0.317), so nothing about
+         the framing moved, and they are a HALF UNIT LARGER than the
+         10.5 that note carried before Zico cut its last paragraph.
+
+         `mw` is new and every box carries it — the measure the wrap
+         was planned at, which is not the box's own width. See the
+         note beside it in tools/mapnote.js; without it a short block
+         re-wraps on the page and orphans its last word. */
       clear: [
-        { box: [0.607, 0.192, 0.782, 0.320], fs: 13 },
-        { box: [0.621, 0.370, 0.761, 0.500], fs: 9 },
-        { box: [0.593, 0.707, 0.788, 0.736], fs: 13.5 },
-        { box: [0.691, 0.800, 0.775, 0.868], fs: 10 }
+        [
+          { box: [0.607, 0.192, 0.781, 0.241], fs: 11, mw: 170 },
+          { box: [0.566, 0.255, 0.736, 0.296], fs: 11, mw: 170 },
+          { box: [0.566, 0.310, 0.713, 0.317], fs: 11, mw: 170 }
+        ],
+        { box: [0.621, 0.378, 0.779, 0.501], fs: 9, mw: 156.5 },
+        { box: [0.621, 0.699, 0.784, 0.739], fs: 13.5, mw: 176.1 },
+        { box: [0.691, 0.800, 0.777, 0.876], fs: 10, mw: 86.9 }
       ],
 
       /* SEAL NUDGE — [dx, dy] per stop, normalised like everything
@@ -1471,7 +1534,7 @@
        fell to about 7px. Neither is survivable, and it is cheaper to
        carry four paragraphs than to branch. */
     var notes = SPOTS.map(function(sp){
-      var body = (sp.copy && sp.copy.length) ? sp.copy.join(" ") : "";
+      var body = copyBlocks(sp).join(" ");
       if (!body) return null;
       var p = document.createElement("p");
       p.className = "jmap__note-p";
@@ -1780,7 +1843,7 @@
              — maproute sizes the blank-paper search to the block, not
              to the caption alone (COPY_ROWS in tools/maproute.js), so
              what is measured is what is drawn. */
-          var copy = sp.copy || [];
+          var copy = copyLines(sp);
           /* with a clearing per stop (MAPS.ink.clear) the copy is its own
              group, built by setBlock; the caption keeps this one and its
              writing stroke. Without (solid, pirate) it hangs under the
@@ -2033,37 +2096,72 @@
        line-by-line fade instead. Returns the block's extents in map
        units for the framing. */
     function setBlock(lb, c, unit, cap, narrow){
-      var sp = lb.sp, box = c.box;
-      var bx0 = box[0] * MW, by0 = box[1] * MH, bx1 = box[2] * MW, by1 = box[3] * MH;
-      var text = (sp.copy || []).join(" "), name = HAND === "0" ? sp.name.toUpperCase() : sp.name;
+      var sp = lb.sp;
+      /* ONE NOTE OR SEVERAL (2026-08-30). `c` is the stop's entry in
+         MAPS.ink.clear — {box, fs}, or a LIST of them where the copy
+         is split across clearings (see copyBlocks). Every block of a
+         stop shares one size: they are one note read in sequence, and
+         a size change between them reads as two different voices.
+         mapnote plans them that way, so this only has to trust it.
+
+         The blocks all render into the SAME group and the same
+         writing mask — a line record already carries its own cx and
+         y, so a second block is just more lines at other coordinates,
+         and everything downstream (the mask, the html, the extents,
+         the fade) works over the whole list without knowing. */
+      var boxes = [].concat(c), parts = copyBlocks(sp);
+      /* a count mismatch is a config error — the copy was split and
+         mapnote not re-run, or the reverse. Draw the whole note in the
+         first box rather than nothing, and say so: silently dropping
+         two thirds of the client's copy is the worse failure. */
+      if (parts.length !== boxes.length){
+        console.warn("journey: " + sp.name + " has " + parts.length + " copy block(s) and " +
+                     boxes.length + " clearing(s) — re-run tools/mapnote.js");
+        boxes = boxes.slice(0, 1);
+        parts = [parts.join(" ")];
+      }
+      var name = HAND === "0" ? sp.name.toUpperCase() : sp.name;
       var capSp = HAND !== "0" ? PCAP_SP : 0.2;
       /* the size: the planned one, unless that is more px than the
          window should carry */
-      var S = c.fs || 17, cf = S * unit;
+      var S = boxes[0].fs || 17, cf = S * unit;
       if (cap && cf > cap){ cf = cap; S = cf / unit; }
-      var capPx = cf * PCAP, bw = (bx1 - bx0) * unit;
-      /* the copy alone: the caption is under the building (its own
-         group, `ge`, placed in measure()) since 2026-08-27 */
-      var capLines = [], lines = reflow(text, bw, cf, 0.01);
-      var capLH = capPx * 1.25, LHpx = cf * COPY_LH;
-      var h = (capLines.length ? capLines.length * capLH + cf * 0.55 : 0) + lines.length * LHpx - cf * 0.3;
-      if (h > (by1 - by0) * unit + 1)
-        console.warn("journey: the note for " + sp.name + " runs " + Math.round(h - (by1 - by0) * unit) +
-                     "px past its box — re-run tools/mapnote.js");
-      /* centred in the box, both ways */
-      var cx = (bx0 + bx1) / 2, top = (by0 + by1) / 2 - h / unit / 2, y = top, out = [], j;
-      for (j = 0; j < capLines.length; j++){
-        out.push({ t: capLines[j], y: y + ((capLH - capPx) / 2 + capPx * 0.78) / unit, cx: cx,
-                   w: textW(capLines[j], capPx, capSp) / unit, cap: true });
-        y += capLH / unit;
-      }
-      if (capLines.length) y += cf * 0.55 / unit;
-      for (j = 0; j < lines.length; j++){
-        out.push({ t: lines[j], y: y + ((LHpx - cf) / 2 + cf * 0.78) / unit, cx: cx,
-                   w: textW(lines[j], cf, 0.01) / unit, cap: false });
-        y += LHpx / unit;
-      }
-      var fit = { cf: cf, lines: out, bottom: y - (LHpx - cf) / unit };
+      var capPx = cf * PCAP, capLH = capPx * 1.25, LHpx = cf * COPY_LH;
+      var out = [], top = Infinity, bottom = -Infinity;
+      boxes.forEach(function(bn, bi){
+        var box = bn.box;
+        var bx0 = box[0] * MW, by0 = box[1] * MH, bx1 = box[2] * MW, by1 = box[3] * MH;
+        /* the copy alone: the caption is under the building (its own
+           group, `ge`, placed in measure()) since 2026-08-27 */
+        /* WRAP TO THE MEASURE, CENTRE IN THE BOX. `mw` is the width
+           mapnote wrapped at; `box` is only as wide as the longest line
+           that came out of it, so wrapping to the box breaks lines the
+           plan had fitted — see the note beside mw in tools/mapnote.js.
+           A sheet planned before mw existed has no mw, and the box is
+           the best available answer for it. */
+        var mw = (bn.mw != null ? bn.mw : bx1 - bx0) * unit;
+        var capLines = [], lines = reflow(parts[bi], mw, cf, 0.01), j;
+        var h = (capLines.length ? capLines.length * capLH + cf * 0.55 : 0) + lines.length * LHpx - cf * 0.3;
+        if (h > (by1 - by0) * unit + 1)
+          console.warn("journey: note " + (bi + 1) + " of " + sp.name + " runs " +
+                       Math.round(h - (by1 - by0) * unit) + "px past its box — re-run tools/mapnote.js");
+        /* centred in the box, both ways */
+        var cx = (bx0 + bx1) / 2, y = (by0 + by1) / 2 - h / unit / 2;
+        top = Math.min(top, y);
+        for (j = 0; j < capLines.length; j++){
+          out.push({ t: capLines[j], y: y + ((capLH - capPx) / 2 + capPx * 0.78) / unit, cx: cx,
+                     w: textW(capLines[j], capPx, capSp) / unit, cap: true });
+          y += capLH / unit;
+        }
+        if (capLines.length) y += cf * 0.55 / unit;
+        for (j = 0; j < lines.length; j++){
+          out.push({ t: lines[j], y: y + ((LHpx - cf) / 2 + cf * 0.78) / unit, cx: cx,
+                     w: textW(lines[j], cf, 0.01) / unit, cap: false });
+          y += LHpx / unit;
+        }
+        bottom = Math.max(bottom, y - (LHpx - cf) / unit);
+      });
+      var fit = { cf: cf, lines: out, bottom: bottom };
 
       /* build: sizes in label units, the group scaled by sq so the
          copy lands at cf px */
@@ -2129,9 +2227,9 @@
     }
     /* the desktop block's extents in map units, from the same measure */
     function deskExtent(lb, etx, ety, lq, unit){
-      var sp = lb.sp, F = lb.F, CF = F * 0.8, CLH = CF * 1.42, n = (sp.copy || []).length, li2;
+      var sp = lb.sp, F = lb.F, CF = F * 0.8, CLH = CF * 1.42, cl2 = copyLines(sp), n = cl2.length, li2;
       var wmax = textW(sp.name.toUpperCase(), F * lq * unit, 0.2);
-      for (li2 = 0; li2 < n; li2++) wmax = Math.max(wmax, textW(sp.copy[li2], CF * lq * unit, 0.01));
+      for (li2 = 0; li2 < n; li2++) wmax = Math.max(wmax, textW(cl2[li2], CF * lq * unit, 0.01));
       var wU = wmax / unit;
       return { x0: etx - wU / 2, x1: etx + wU / 2, y0: ety - F * lq,
                y1: ety + (n ? (F * 1.55 + (n - 1) * CLH + CF * 0.3) : F * 0.3) * lq };

@@ -77,12 +77,14 @@ var CAP_SIZE = 9.5, CAP_MARGIN = 20, CAP_INK = 0.03;
    KEEP `MEAS_CAP[3] * fallbackEm` AT ABOUT 8.75. Every re-run of
    tools/widths.html recomputes fallbackEm over the whole vocabulary,
    so this number has to be re-derived with it: 20*0.44, 18*0.486 and
-   20*0.434 are all ~8.7 em, the measure Jeonju's block has had since
-   §9ab.12. The last of those is 2026-08-30, the first re-measure where
-   the widths were REAL rather than the estimate 0.486 always was.
+   18*0.483 are all ~8.7 em, the measure Jeonju's block has had since
+   §9ab.12. It went briefly to 20 on 2026-08-30 against a fallbackEm of
+   0.434, and 0.434 was itself wrong — tools/widths.html was measuring
+   in Times, not Song Myung. The real number is 0.483, close to the
+   0.486 that had been guessed, so the cap is 18 again.
    Leave it alone across a widths re-measure and its note quietly
    grows into the span a 390px phone's frame cannot hold. */
-var MEAS_CAP = [36, 36, 36, 20];
+var MEAS_CAP = [36, 36, 36, 18];
 /* per-stop ceilings on the size (`--sizes 13.5,11,13.5,10`). SIZE alone
    is a common cap, and a narrow loop that could never reach it (the
    terraces, Jeonju) would not shrink with the others when SIZE is
@@ -90,6 +92,32 @@ var MEAS_CAP = [36, 36, 36, 20];
    ceiling is a fifth under what it had (16 / 13 / 17 / 12). */
 var SIZE_CAP = [13.5, 11, 13.5, 10];
 var RADIUS = 30;     // the loop's corner radius, map units
+/* map units of PAPER between one block of a split note and the next
+   (`--gap 26`) — the paragraph space, measured text-edge to text-edge.
+
+   IT IS DELIBERATELY SMALLER THAN 2*MARGIN, so consecutive clearings
+   OVERLAP and mapclear cuts them as one stepped region rather than as
+   three islands with terrain between. Three islands is what Zico's
+   markup literally drew, and it was built and measured that way
+   first: three separate clearings cost 3*2*MARGIN of the loop's
+   height instead of 2*MARGIN, which is 96 units of a loop that only
+   has ~430, and mapnote answered by dropping the type from 13 units
+   to 8.5 — smaller than anything on the sheet, on the note the client
+   most wants read. Overlapping the clearings buys all of that back and
+   still reads as three blocks, because the eye reads the TEXT's gaps,
+   not the paper's edges. */
+var GAP = 26;
+/* ems of tolerance added to a block's width — see block() */
+var SLACK = 0.35;
+/* `mw` — THE MEASURE THE WRAP WAS PLANNED AT, in map units, emitted
+   beside every box. The box is only as wide as the longest line the
+   wrap produced, which is NOT the width it was wrapped to: a six-line
+   block can easily leave 6 units unused, a one-line block 40. The page
+   used to re-wrap to the BOX, so it wrapped at a narrower measure than
+   this tool did and broke lines this tool had fitted — 12 planned
+   lines came out as 15 the first time stop 1 was split (2026-08-30),
+   with "This is where the road starts." orphaning its last word.
+   js/journey.js reflows to `mw` now and centres the result in `box`. */
 
 /* ---- args ------------------------------------------------------- */
 
@@ -125,11 +153,43 @@ var js     = fs.readFileSync(path.join(__dirname, "..", "js", "journey.js"), "ut
    planned shorter than it renders and the note ran past the paper cut
    for it. It survived because the old copy had five such words in
    four notes; the copy of 2026-08-28 has thirty. */
-var COPY = [], NAMES = [], re = /name:\s*"([^"]+)"[\s\S]*?copy:\s*\[((?:\s*"[^"]*",?)+)\s*\]/g, m;
+/* A STOP'S COPY IS A LIST OF BLOCKS since 2026-08-30 — one string per
+   clearing. `copy: ["a", "b"]` is one block of two authored lines;
+   `copy: [["a"], ["b"]]` is two blocks of one. So the brackets have to
+   be walked rather than matched with one regex: find `copy: [`, scan
+   to its partner counting depth and skipping string bodies, and group
+   the quoted strings by the sub-array they sit in. COPY[k] is always
+   an array, length 1 for an unsplit stop. */
+function copyBlocksOf(body){
+  var out = [], cur = null, depth = 0, inStr = false, buf = "", i, ch;
+  for (i = 0; i < body.length; i++){
+    ch = body[i];
+    if (inStr){
+      if (ch === '"'){ inStr = false; (cur || (cur = [])).push(buf); buf = ""; }
+      else buf += ch;
+      continue;
+    }
+    if (ch === '"'){ inStr = true; continue; }
+    if (ch === "["){ depth++; if (depth === 2) cur = []; }
+    else if (ch === "]"){ depth--; if (depth === 1 && cur){ out.push(cur); cur = null; } }
+  }
+  if (cur && cur.length) out.push(cur);        /* the flat form */
+  return out.map(function(g){ return g.join(" ").replace(/\s+/g, " ").trim(); })
+            .filter(function(t){ return t.length; });
+}
+var COPY = [], NAMES = [], re = /name:\s*"([^"]+)"[\s\S]*?copy:\s*\[/g, m;
 while ((m = re.exec(js))){
+  var i0 = re.lastIndex - 1, depth = 0, inStr = false, i, ch;
+  for (i = i0; i < js.length; i++){
+    ch = js[i];
+    if (inStr){ if (ch === '"') inStr = false; continue; }
+    if (ch === '"'){ inStr = true; continue; }
+    if (ch === "[") depth++;
+    else if (ch === "]" && !--depth) break;
+  }
   NAMES.push(m[1]);
-  COPY.push((m[2].match(/"[^"]*"/g) || []).map(function(s){ return s.slice(1, -1); })
-              .join(" ").replace(/\s+/g, " ").trim());
+  COPY.push(copyBlocksOf(js.slice(i0, i + 1)));
+  re.lastIndex = i + 1;
 }
 if (COPY.length !== shape.stops.length)
   throw new Error("found " + COPY.length + " copy blocks in js/journey.js for " + shape.stops.length + " stops");
@@ -140,15 +200,16 @@ if (COPY.length !== shape.stops.length)
    comes out as a line the block was not planned for — text past the
    paper cut for it. Cheap to fix (open tools/widths.html on the dev
    server and save the result), and impossible to notice without this. */
+var ALL = COPY.map(function(p){ return p.join(" "); });
 var unmeasured = [];
-COPY.forEach(function(t){
+ALL.forEach(function(t){
   t.split(" ").forEach(function(w){
     if (w && widths.words[w] == null && unmeasured.indexOf(w) < 0) unmeasured.push(w);
   });
 });
 if (unmeasured.length){
   var seen = 0, tot = 0;
-  COPY.forEach(function(t){ t.split(" ").forEach(function(w){ tot++; if (widths.words[w] == null) seen++; }); });
+  ALL.forEach(function(t){ t.split(" ").forEach(function(w){ tot++; if (widths.words[w] == null) seen++; }); });
   console.error("  ! " + unmeasured.length + " of the copy's distinct words are NOT measured (" +
                 seen + " of " + tot + " on the sheet), so their width is a guess at " +
                 widths.fallbackEm + "em a character:");
@@ -196,15 +257,25 @@ function wrap(words, measureEm, emOf){
 
 /* lay the note out at size S (units) to a measure of `chars` characters:
    the block's width and height in units, and its lines */
-function block(k, S, chars){
+function block(text, S, chars){
   var measure = chars * widths.fallbackEm;                 /* ems */
-  var lines = wrap(COPY[k].split(" "), measure, lineEm);
+  var lines = wrap(text.split(" "), measure, lineEm);
   var w = 0, j;
   for (j = 0; j < lines.length; j++) w = Math.max(w, lineEm(lines[j]));
   /* the same arithmetic as setBlock in js/journey.js — the copy alone,
      the caption is under the building now */
   var h = lines.length * LH - 0.3;
-  return { w: w * S, h: h * S, cap: [], lines: lines, S: S, chars: chars };
+  /* THE BOX GETS A HAIR MORE THAN THE TEXT MEASURES. The page wraps to
+     the box with its own canvas measureText, and the two arithmetics
+     are not bit-identical: this one sums word widths plus a constant
+     `space`, the page measures the whole string with its real spaces
+     in it. A few thousandths of an em either way is invisible in a
+     six-line block and decides the wrap in a ONE-line one — "This is
+     where the road starts." came back broken after "road" the first
+     time stop 1 was split (2026-08-30). SLACK is ems, and it widens
+     the box and its clearing, never the measure the wrap was planned
+     at. */
+  return { w: w * S + SLACK * S, mw: measure * S, h: h * S, cap: [], lines: lines, S: S, chars: chars };
 }
 
 /* a rounded rectangle, normalised, r units of corner */
@@ -247,35 +318,76 @@ function fitAt(R, y0, y1, halfW){
   return lo <= hi ? [lo, hi] : null;
 }
 
+/* ONE BLOCK PER PART, EACH BELOW THE ONE BEFORE. A stop whose copy is
+   split (COPY[k].length > 1) gets a clearing per part, stacked down
+   the loop with GAP units of standing terrain between one clearing and
+   the next, so they read as separate notes on the map rather than one
+   panel with white space in it.
+
+   Why it exists: Zico, 2026-08-30, on a phone screenshot of stop 1 -
+   "The text is slightly cropped in some parts, can you split it into 3
+   so its spaced out a little", with three loops drawn down the sheet.
+   The crop was the deep block's own fault: thirteen lines can only
+   stand where the loop is clean for thirteen rows, which here is the
+   narrow column against the right edge, and on a phone the frame that
+   has to hold the seal, the name AND that column is 476 map units wide
+   against their 457 - so the last letters fell off. Three shallow
+   blocks each pick their own width and sit as near the road as their
+   own rows allow, which walks them left as they descend.
+
+   The parts share ONE size and ONE measure: they are one note read in
+   sequence, and a size change between them reads as two voices. So the
+   search is over (size, measure) as before, and a candidate only wins
+   if EVERY part finds a home at it. */
+function place(R, sx, parts, S, chars){
+  var bottom = R.top + R.runs.length * R.dy;
+  var out = [], yMin = R.top + MARGIN, i, y;
+  for (i = 0; i < parts.length; i++){
+    var b = block(parts[i], S, chars), halfW = b.w / 2 + MARGIN, got = null;
+    /* the rows this block needs are its own PLUS its margin band top
+       and bottom — the clearing has to clear the text on every side,
+       whether or not it merges with the block's neighbours */
+    for (y = yMin; y + b.h + MARGIN <= bottom && !got; y += R.dy / 2){
+      var iv = fitAt(R, y - MARGIN, y + b.h + MARGIN, halfW);
+      if (!iv) continue;
+      /* as near the road as the interval allows — which is what walks
+         a split note left as it descends, since this loop is a funnel
+         that opens toward the road on the way down */
+      got = { b: b, cx: Math.max(iv[0], Math.min(iv[1], sx)), y0: y };
+    }
+    if (!got) return null;
+    out.push(got);
+    yMin = got.y0 + b.h + GAP;
+  }
+  return out;
+}
+
 var loops = [], clear = [];
 shape.stops.forEach(function(st, k){
   if (!st.shape){ loops.push(null); clear.push(null); return; }
-  var R = runsOf(st), sx = st.x * MW, best = null, S, chars, y;
-  /* the largest size that fits anywhere; at that size the widest
-     measure; at that measure the highest start */
+  var R = runsOf(st), sx = st.x * MW, parts = COPY[k], best = null, S, chars;
+  /* the largest size that places every part; at that size the widest
+     measure; at that measure the highest start for each */
   var measMax = Math.min(MEAS_MAX, MEAS_CAP[k] || MEAS_MAX);
   for (S = Math.min(SIZE, SIZE_CAP[k] || SIZE); S >= 8 && !best; S -= 0.5)
-    for (chars = measMax; chars >= MEAS_MIN && !best; chars -= 1){
-      var b = block(k, S, chars), halfW = b.w / 2 + MARGIN;
-      for (y = R.top; y + b.h + 2 * MARGIN <= R.top + R.runs.length * R.dy && !best; y += R.dy / 2){
-        var iv = fitAt(R, y, y + b.h + 2 * MARGIN, halfW);
-        if (!iv) continue;
-        /* as near the road as the interval allows */
-        var cx = Math.max(iv[0], Math.min(iv[1], sx));
-        best = { b: b, cx: cx, y0: y + MARGIN };
-      }
-    }
+    for (chars = measMax; chars >= MEAS_MIN && !best; chars -= 1)
+      best = place(R, sx, parts, S, chars);
   if (!best){
     console.error("  stop " + (k + 1) + ": no block fits its loop — widen the loop or lower --size");
     loops.push(null); clear.push(null); return;
   }
-  var b2 = best.b, x0 = best.cx - b2.w / 2, x1 = best.cx + b2.w / 2, y0 = best.y0, y1 = y0 + b2.h;
-  console.log("  stop " + (k + 1) + "  " + b2.S + " units, " + b2.chars + "-char measure, " +
-              b2.cap.length + "+" + b2.lines.length + " lines, block " + Math.round(b2.w) + "x" + Math.round(b2.h) +
-              " at " + (x0 / MW).toFixed(3) + "," + (y0 / MH).toFixed(3));
-  /* the loop: a rounded rectangle MARGIN outside the block */
-  loops.push({ stop: k + 1, poly: roundRect(x0 - MARGIN, y0 - MARGIN, x1 + MARGIN, y1 + MARGIN, RADIUS) });
-  clear.push({ box: [x0 / MW, y0 / MH, x1 / MW, y1 / MH], fs: b2.S });
+  var boxes = best.map(function(g){
+    var b2 = g.b, x0 = g.cx - b2.w / 2, x1 = g.cx + b2.w / 2, y0 = g.y0, y1 = y0 + b2.h;
+    console.log("  stop " + (k + 1) + (best.length > 1 ? "." + (best.indexOf(g) + 1) : "  ") + " " +
+                b2.S + " units, " + b2.chars + "-char measure, " +
+                b2.cap.length + "+" + b2.lines.length + " lines, block " +
+                Math.round(b2.w) + "x" + Math.round(b2.h) +
+                " at " + (x0 / MW).toFixed(3) + "," + (y0 / MH).toFixed(3));
+    /* the loop: a rounded rectangle MARGIN outside the block */
+    loops.push({ stop: k + 1, poly: roundRect(x0 - MARGIN, y0 - MARGIN, x1 + MARGIN, y1 + MARGIN, RADIUS) });
+    return { box: [x0 / MW, y0 / MH, x1 / MW, y1 / MH], fs: b2.S, mw: +b2.mw.toFixed(1) };
+  });
+  clear.push(boxes.length > 1 ? boxes : boxes[0]);
 
   /* the caption's own small clearing, only where the paper under the
      anchor carries real ink */
@@ -299,7 +411,13 @@ console.log("  /* the note per stop: `box` is the text block [x0, y0, x1, y1],")
 console.log("     `fs` its copy size in map units — from tools/mapnote.js, the");
 console.log("     clearing is cut MARGIN outside it. Paste over MAPS.ink.clear. */");
 console.log("  var MAP_CLEAR = [");
+function one(c){
+  return "{ box: [" + c.box.map(function(v){ return v.toFixed(3); }).join(", ") +
+         "], fs: " + c.fs + ", mw: " + c.mw + " }";
+}
 console.log(clear.map(function(c){
-  return c ? "    { box: [" + c.box.map(function(v){ return v.toFixed(3); }).join(", ") + "], fs: " + c.fs + " }" : "    null";
+  if (!c) return "    null";
+  if (!Array.isArray(c)) return "    " + one(c);
+  return "    [" + c.map(function(b){ return "\n      " + one(b); }).join(",") + "\n    ]";
 }).join(",\n"));
 console.log("  ];");

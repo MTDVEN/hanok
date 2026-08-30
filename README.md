@@ -268,7 +268,8 @@ words standing on mountains.
   pipeline, in order:
   0. **After ANY change to `copy` in js/journey.js:** `node
      tools/serve.js`, then open
-     `localhost:8137/tools/widths.html` once. It measures every word
+     `localhost:8137/tools/widths.html` once. It must say it measured
+     the words in Song Myung, not warn about a fallback. It measures every word
      of the new copy in Song Myung with the same canvas call
      js/journey.js wraps with, and POSTs the result back over
      `tools/songmyung-widths.json` (the one path serve.js will
@@ -333,6 +334,13 @@ words standing on mountains.
 - **`tools/widths.html` measures the note's words** in Song Myung
   (canvas `measureText` at 100px — the same call js/journey.js wraps
   with) and POSTs the result over `tools/songmyung-widths.json`.
+  **It has to LOAD the face to measure it, and until 2026-08-30 it did
+  not** — the page carried no font link, so every width in the file was
+  Times New Roman, 7-17% narrow, and the guard passed because
+  `fonts.check` over a stack containing Times is always true. It links
+  the font and checks the family alone now, and refuses to save
+  without it. If you ever port this measuring trick anywhere else,
+  that is the trap: check the FACE, never the stack.
   `tools/serve.js` writes that one path and no other: 405 on anything
   else, 400 on non-JSON, 4MB cap. Open it after ANY change to `copy`
   — it is step 0 of THE CLEARINGS. **The wrap the tool plans and the

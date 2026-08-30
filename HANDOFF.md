@@ -34,12 +34,15 @@ blocks of copy for stops 1 and 2 (555 and 664 characters, against the
 them, and stops 3 and 4 are untouched. Three things a fresh session
 must know before touching any of it:
 
-  1. **§9ac.6 IS DONE — 2026-08-30, see §9ad.** The widths were
-     measured, the whole pipeline re-run and `MAP_CLEAR` re-pasted.
-     `fallbackEm` turned out to be 0.434, not the 0.486 estimated
-     here, so all four notes re-wrapped; the numbers in §9ac.7 are
-     the estimate's, not the shipped ones. mapnote no longer prints
-     its `!` line.
+  1. **§9ac.6 IS DONE — 2026-08-30, and it took two goes: §9ad then
+     §9ae.** The first re-measure was itself wrong — tools/widths.html
+     had never loaded the webfont and measured every word in Times New
+     Roman, 7-17% narrow (§9ae.5). With that fixed, `fallbackEm` is
+     **0.483**, near the 0.486 this section estimated, and stops 2 and
+     4 re-planned to §9ac.7's numbers to the thousandth — so the
+     session-16 plan was right all along. mapnote no longer prints its
+     `!` line, and the page's wrap now matches the plan or comes in
+     one line under it.
   2. **`SIZE_CAP` is a ceiling, not the answer.** Stops 1 and 2 come
      out at 10.5 and 9 units because that is all their loops hold, not
      because anyone chose those numbers. Stop 2's search loop was
@@ -6037,6 +6040,161 @@ three stops came back identical.
   Measured in §10, unchanged by this pass, and never raised with VEN.
 - §9ac.6 IS DONE. The clearings pipeline has been run end to end on
   measured widths and nothing in it is outstanding.
+
+---
+
+## 9ae. Session 17, part 3 (2026-08-30) — three notes, and the widths were measured in the wrong font
+
+Zico, on a phone screenshot of stop 1 with three loops drawn down the
+sheet: *"The text is slightly cropped in some parts, can you split it
+into 3 so its spaced out a little."* Both halves of that turned out to
+be the same bug, and finding it turned up a third that had been
+poisoning the whole pipeline.
+
+### 1. Why the note was cropped, and why splitting it fixes that
+
+The note has to live inside VEN's traced loop, and that loop is a
+**funnel**: 14 units of clean run on its top row, 306 at its widest,
+~264 down the rest. A block is only placed where every row it spans is
+clean for its full width — so a thirteen-line block can only stand in
+the part of the funnel that is wide for thirteen rows, which is the
+narrow column against the sheet's right edge (x 0.607 to 0.782).
+
+On a phone the frame is `1000 / PHONE_ZOOM` = 476 map units across, and
+it has to hold the seal (x 340), the Korean name and that column
+(to 790) — 450 units of content with 26 to spare. Measured at the
+settle point, the note's right edge came to **1px past the frame**. Any
+drift at all and the last letters go, which is what Zico photographed.
+
+Three shallow blocks each pick their own width and sit as near the road
+as their own rows allow, which walks them left as they descend — the
+staircase Zico drew, and it is not a coincidence: it is the shape of
+the funnel. The note's right edge is now 8 to 14px INSIDE the frame at
+every phone width tested (360, 390, 393, 430).
+
+### 2. A stop's copy can be a list of blocks now
+
+`SPOTS[i].copy` nests: `[["a"], ["b"], ["c"]]` is three notes,
+`["a", "b"]` is one of two authored lines. Two helpers in js/journey.js
+(`copyBlocks`, `copyLines`) are the only things allowed to read it —
+a stray `.join(" ")` over the nested form prints commas onto the sheet.
+`MAPS.ink.clear[i]` takes a matching list of boxes, and `setBlock`
+renders all of a stop's blocks into ONE group on ONE writing mask: a
+line record already carries its own `cx` and `y`, so a second block is
+just more lines at other coordinates and nothing downstream needed to
+know. tools/mapnote.js places a block per part, each below the last.
+
+**Split at the client's own paragraph breaks.** Zico sent four
+paragraphs and asked for three, so the opening sentence stays with the
+specs it introduces: [1+2], [3], [4].
+
+### 3. THE CLEARINGS OVERLAP ON PURPOSE
+
+Three separate islands is what the markup literally drew, and it was
+built that way first. It costs `3 x 2 x MARGIN` of the loop's height
+instead of `2 x MARGIN` — 96 units of a loop that has ~430 — and
+mapnote answered by dropping the type from 13 units to **8.5**, smaller
+than anything on the sheet, on the note the client most wants read.
+
+`GAP` (26 units, text edge to text edge) is deliberately smaller than
+`2 x MARGIN`, so consecutive clearings overlap and mapclear cuts them
+as one stepped region. It still reads as three blocks, because the eye
+reads the TEXT's gaps and not the paper's edges. At 11 units the three
+blocks span 0.192 to 0.317 — the same paper the single block had, so
+nothing about the framing moved, and they are a half unit LARGER than
+the 10.5 that note carried before Zico cut its last paragraph.
+
+### 4. `mw` — the measure is not the box
+
+A block is wrapped to a **measure** (`chars * fallbackEm`) and the box
+is then only as wide as the longest line that came out of it. Those are
+not the same number: six lines can leave 6 units unused, one line can
+leave 40. The page re-wrapped to the BOX, so it wrapped at a narrower
+measure than the tool had, and broke lines the plan had fitted — the
+first split put "This is where the road starts." across two lines with
+"starts." alone on the second.
+
+Every entry in `MAPS.ink.clear` now carries `mw`, the measure it was
+planned at, and js/journey.js reflows to that and centres the result in
+`box`. A sheet planned before `mw` existed has none and falls back to
+the box, which is what it always did.
+
+### 5. THE WIDTHS WERE MEASURED IN TIMES NEW ROMAN
+
+The one that matters. `tools/widths.html` is a standalone page under
+`/tools/` and **it never loaded the webfont**. Its stack is
+`"Song Myung", "Times New Roman", serif`, `document.fonts.load` had no
+`@font-face` to fetch, and the guard — `document.fonts.check("100px " +
+FONT)` — returned true the whole time, because Times New Roman is in
+that stack and is installed. It measured every word in Times and said
+it had measured Song Myung.
+
+Times is **7 to 17% narrower**: `the` 1.222em against the real 1.432,
+`and` 1.444 against 1.648, the space 0.25 against 0.226. So the tool
+planned every note to a measure the page could not hold, in exactly the
+direction the file's own header warns about, and the page drew one to
+three lines more than the plan on every stop.
+
+It had been hidden by a second error cancelling it: the page wrapped to
+the box, which is narrower than the measure by about the same fraction.
+Fixing §4 removed the cancellation and exposed this.
+
+Fixed by linking the same Google Fonts href index.html uses, and by
+checking `'100px "Song Myung"'` — the FAMILY, not the stack, since a
+check over a stack can never fail. It refuses to save now if the face
+is missing, rather than writing a file full of the wrong font.
+
+**Two knock-on corrections.** `fallbackEm` is **0.483**, close to the
+0.486 that had been *estimated* in session 16 and nothing like the
+0.434 that the Times pass produced this morning; `MEAS_CAP[3]` is
+therefore **18** again. And stops 2 and 4 re-planned to their §9ac.7
+numbers to the thousandth — 9 units / 18 lines / 0.621,0.378 and 10
+units / 10 lines / 0.691,0.800 — so the session-16 plan had been right
+all along and the intermediate re-run was the wrong one.
+
+### 6. What was checked
+
+- The page's wrap against the plan, per stop, at a real phone viewport:
+  **12 / 17 / 4 / 9** drawn against **12 / 18 / 4 / 10** planned. Stop
+  1 exact; the other two come in one line UNDER their clearing, which
+  is the safe direction. Before the font fix every stop was over.
+- Every word width in the saved file against the browser's own
+  `measureText` in the loaded face: `the` 1.432 = 1.432, `and` 1.648 =
+  1.648, space 0.226 = 0.226.
+- The three blocks cropped out of the master with their boxes drawn on
+  them: all on cleared paper, uniform margin, and the three clearings
+  merged into one stepped region.
+- maproute returns 0.341/0.120, 0.492/0.360, 0.623/0.601, 0.375/0.857 —
+  every stop within a thousandth or two of what js/journey.js carries,
+  so `stops`, the road and the seal nudges all stand.
+- The desktop overhang improved rather than regressed: stop 1's note
+  runs 131px past the frame at 1280x820 (was 144), 170 at 1440x900 (was
+  227), 400 at 1280x551 (was 450). Still not fixed — see Open.
+
+### Files (session 17, part 3)
+
+- `js/journey.js` — `copyBlocks`/`copyLines`; stop 1's copy split in
+  three; `setBlock` lays out a list of boxes; `MAPS.ink.clear` re-pasted
+- `tools/mapnote.js` — walks the brackets to read a split `copy`;
+  `place()` puts a block per part; `GAP`, `SLACK` and `mw`;
+  `MEAS_CAP[3]` back to 18
+- `tools/widths.html` — the font link, the family check, the refusal to
+  save without it, and the same bracket walk
+- `tools/songmyung-widths.json` — re-measured in the real face
+- `tools/clearings.json`, both masters, `art/journey/map-ink.png` —
+  regenerated
+
+### Open
+
+- **Stop 1's note still runs past the bottom of the camera frame on a
+  desktop** (§6). Better than it was, not fixed. The levers are VEN's
+  own loop, `SIZE_CAP`, or the settle zoom, and which one is his call.
+- Stop 2 is still 9 units, the smallest type on the sheet, and now sits
+  under a stop 1 set at 11. Splitting stop 2 the same way is one nested
+  `copy` and a re-run, if Zico wants it.
+- `PHONE_ZOOM` 2.1 leaves stop 1 with 8-14px of margin on a phone. It
+  is real slack now rather than 1px, but it is not much; 2.0 would give
+  another 24 units if anything else ever grows.
 
 ---
 
