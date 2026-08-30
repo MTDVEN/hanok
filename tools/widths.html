@@ -32,6 +32,14 @@
      tools/mapnote.js uses, so the two cannot disagree about which
      words are on the sheet.
 ================================================================= -->
+<!-- THE FACE ITSELF. Without this link the page has no @font-face for
+     Song Myung, document.fonts.load has nothing to fetch, and the
+     canvas quietly measures the next family in the stack. That is what
+     happened on 2026-08-30: every width in the file was Times New
+     Roman, 7-17% narrow, and mapnote planned every note to a measure
+     the page could not hold. It is the same href index.html uses. -->
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Song+Myung&display=swap">
 <style>
   body{font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;margin:24px;background:#f4ecd8;color:#2b2118}
   h1{font:600 16px/1.3 ui-monospace,monospace;margin:0 0 12px}
@@ -45,6 +53,11 @@
 <textarea id="out" spellcheck="false"></textarea>
 <script>
 var FONT = '"Song Myung", "Times New Roman", serif';
+/* CHECK THE FAMILY ALONE. document.fonts.check() over the whole stack
+   is always true — "Times New Roman" and serif are installed — so it
+   cannot tell you that the one face you care about is missing, which
+   is exactly the failure it is there to catch. */
+var FACE = '100px "Song Myung"';
 var S = document.getElementById("status"), OUT = document.getElementById("out");
 
 function say(m, bad){ S.innerHTML = m; S.className = bad ? "warn" : ""; }
@@ -52,12 +65,29 @@ function say(m, bad){ S.innerHTML = m; S.className = bad ? "warn" : ""; }
 /* the same lift tools/mapnote.js does — quoted strings joined with a
    space. Not a comma-strip: the copy is prose and keeps its commas,
    or the words measured here are not the words the page draws. */
+/* A stop's copy may be one array of lines or several nested — a
+   split note (js/journey.js, copyBlocks). So walk the brackets rather
+   than matching one flat list: the old regex simply did not match a
+   nested `copy`, and the stop that carried it was silently left out of
+   the measurements. That is how stop 1 came to be measured as "3
+   notes" on 2026-08-30. Every word of every block, flat, is all this
+   file needs. */
 function copyOf(js){
-  var copy = [], names = [], re = /name:\s*"([^"]+)"[\s\S]*?copy:\s*\[((?:\s*"[^"]*",?)+)\s*\]/g, m;
+  var copy = [], names = [], re = /name:\s*"([^"]+)"[\s\S]*?copy:\s*\[/g, m;
   while ((m = re.exec(js))){
+    var i0 = re.lastIndex - 1, depth = 0, inStr = false, i, ch;
+    for (i = i0; i < js.length; i++){
+      ch = js[i];
+      if (inStr){ if (ch === '"') inStr = false; continue; }
+      if (ch === '"'){ inStr = true; continue; }
+      if (ch === "[") depth++;
+      else if (ch === "]" && !--depth) break;
+    }
     names.push(m[1]);
-    copy.push((m[2].match(/"[^"]*"/g) || []).map(function(s){ return s.slice(1, -1); })
+    copy.push((js.slice(i0, i + 1).match(/"[^"]*"/g) || [])
+                .map(function(s){ return s.slice(1, -1); })
                 .join(" ").replace(/\s+/g, " ").trim());
+    re.lastIndex = i + 1;
   }
   return { copy: copy, names: names };
 }
@@ -78,13 +108,16 @@ fetch("/js/journey.js").then(function(r){
      copy carries, then wait for every face the page asks for */
   var sample = got.copy.join(" ").slice(0, 400);
   return Promise.all([
-    document.fonts.load("100px " + FONT, sample),
+    document.fonts.load(FACE, sample),
     document.fonts.ready
   ]).then(function(){ return got; });
 }).then(function(got){
-  if (!document.fonts.check("100px " + FONT))
-    say("Song Myung did NOT load — the numbers below are the fallback serif's. " +
-        "Check the network, reload.", true);
+  if (!document.fonts.check(FACE)){
+    say("Song Myung did NOT load — the numbers below are the fallback serif's, " +
+        "which is ~10% narrow and will plan every note past its clearing. " +
+        "NOTHING HAS BEEN SAVED. Check the network and reload.", true);
+    return;
+  }
 
   var w = measure(), words = {}, n = 0;
   got.copy.forEach(function(t){
