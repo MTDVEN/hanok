@@ -7,10 +7,19 @@
    red seal stamps and the rest of the hero fades in.
 
    To change the title: add letters to LETTERS (100x140 grid,
-   baseline y=128) and set CONFIG.token.ko.
+   baseline y=128) and set CONFIG.token.wordmark.
 
-   THE TITLE IS HANGUL SINCE 2026-08-21 (Zico named the token 기와 /
-   GIWA). Two things that matter if it changes again:
+   THE TITLE IS $TILES SINCE 2026-08-30. It was hangul from
+   2026-08-21 (Zico named the token 기와 / GIWA) until then, and it
+   was swapped to latin once before and put straight back —
+   2026-08-29, VEN: *"i didnt tell you to change the korean
+   characters."* What makes this one stick is that Zico asked for it
+   himself, on a marked-up screenshot, and confirmed it when VEN read
+   it back to him: *"Yeah bro but make it a bit smaller pls."* The
+   hangul strokes stay in LETTERS below — this has flipped twice now
+   and `wordmark: "기와"` in js/config.js is the whole way back.
+
+   Two things that matter if it changes again:
 
    - **Every character must exist in LETTERS.** There is no font
      fallback here and there cannot be one: the writing animation is
@@ -32,7 +41,7 @@
 
   var CFG   = window.HANOK_CONFIG || {},
       TOKEN = CFG.token || {},
-      WORD  = TOKEN.ko || "HANOK";
+      WORD  = TOKEN.wordmark || TOKEN.ko || "HANOK";
 
   /* stroke paths per letter, in writing order, on a 100x140 grid */
   var LETTERS = {
@@ -86,6 +95,53 @@
       "M24 24 C21 58 21 94 26 128",
       "M80 27 C64 47 48 62 27 75",
       "M36 70 C51 87 67 106 84 128"
+    ],
+
+    /* ---- the ticker, 2026-08-29 ---------------------------------
+       $ T I L E S — authored to join H A N O K rather than to be
+       their own alphabet. The test that settled them was rendering
+       `node tools/heropng.js HANOKTILES`: if you can see where one
+       set stops and the other starts, they are not finished.
+
+       Every stroke bows (VEN's rule, above). The two that would
+       otherwise be ruled lines are $'s stem and T's — both are S
+       curves that lean out and land a few units off where they
+       started.
+
+       I is drawn with a top and bottom bar on purpose: a bare
+       upright at this weight reads as a stray mark rather than a
+       letter, and $TILES puts it between two other verticals. */
+
+    /* $ — stem first, then the S round it in one pass. Written this
+       way because the stem is what makes it a currency mark; drawn
+       S-first the second stroke has nothing to register against and
+       the two halves come out misaligned. */
+    "$": [
+      "M48 15 C45 50 46 94 53 132",
+      "M84 52 C82 34 65 25 50 27 C33 29 16 38 18 53 C20 66 37 71 52 77 C69 83 82 90 81 102 C80 114 61 122 45 119 C32 117 22 109 19 101"
+    ],
+    T: [
+      "M12 31 C36 23 62 22 88 27",
+      "M50 25 C47 58 47 94 53 128"
+    ],
+    I: [
+      "M22 28 C40 23 60 22 79 27",
+      "M51 26 C55 58 55 94 50 127",
+      "M23 125 C41 130 59 130 78 126"
+    ],
+    /* L is ONE stroke — down the stem and away along the foot,
+       which is how a hand writes it and why the corner is a curve
+       rather than a joint. */
+    L: [
+      "M25 24 C20 56 21 92 23 122 C46 132 68 128 88 128"
+    ],
+    E: [
+      "M24 28 C45 22 65 21 84 25",
+      "M27 29 C22 59 23 95 26 123 C42 130 62 130 85 126",
+      "M25 75 C43 70 59 70 76 73"
+    ],
+    S: [
+      "M86 46 C83 30 68 23 53 25 C35 27 15 33 17 48 C19 60 36 66 53 72 C71 79 85 88 84 104 C83 120 64 130 46 127 C31 125 19 116 17 107"
     ]
   };
 
@@ -117,11 +173,33 @@
   /* The seal stands clear of the last glyph, and the viewBox is sized
      from the seal rather than the other way round — 와's ㅏ bar
      reaches further right than a latin K's foot does, and at the old
-     fixed gap the seal was stamped on top of it. */
-  var SEAL_GAP = HANGUL ? 32 : 2;
-  var sealX = X0 + WORD.length * ADVANCE + SEAL_GAP;
-  var width = sealX + 46;
-  var svg = el("svg", { viewBox: "0 0 " + width + " 176", "aria-hidden": "true" }, mount);
+     fixed gap the seal was stamped on top of it.
+
+     WHERE "CLEAR" IS, IS NOW MEASURED — see the block after the
+     letters loop. It used to be a constant per script (32 units for
+     hangul, 2 for latin) tuned to the two words that had ever been
+     set, and the day the wordmark became $TILES the stamp landed on
+     top of the S: S reaches x=86 on the grid where K stops at 84,
+     and 2 units of gap had no room to give.
+
+     `?stamp=0` drops the stamp and ends the box just past the last
+     letter, so the wordmark is not dragged off-centre by 80 units of
+     empty paper. It is ON by default and stays that way — it was
+     briefly made default-off on 2026-08-29 and reverted the same
+     session. The trailing flourish overruns either box and is allowed
+     to: the svg is `overflow: visible`. */
+  var STAMP = !/[?&]stamp=0/.test(location.search);
+
+  /* `?mark=N` sets the drawn mark's box width in px. That one number
+     is the whole type size (css/site.css, .hero__title), and it is a
+     knob rather than an edit because the size is a judgement made
+     against the painting behind it — Zico asked for the mark smaller
+     on 2026-08-30 and it will be looked at again. Digits only, capped:
+     it reaches an inline style from the query string. */
+  var markQ = /[?&]mark=([0-9]{2,4})/.exec(location.search);
+  if (markQ) mount.style.setProperty("--mark-w", Math.min(2000, +markQ[1]) + "px");
+  var sealX = X0 + WORD.length * ADVANCE + 32;      // provisional; measured below
+  var svg = el("svg", { viewBox: "0 0 " + (sealX + 46) + " 176", "aria-hidden": "true" }, mount);
 
   /* rough ink edge. Applied per stroke (not to the whole word) so the
      browser only re-runs the filter over the stroke that is animating. */
@@ -154,7 +232,17 @@
     }, g);
     var len = main.getTotalLength();
     [main, over].forEach(function(p){
-      p.style.strokeDasharray = len + " " + len;
+      /* THE GAP IS LONGER THAN THE DASH, and it has to be. With
+         [len, len] the pattern period is exactly 2·len, so at the
+         starting offset the NEXT dash begins at path position len —
+         a zero-length dash on the end point, which stroke-linecap
+         round renders as a DOT. Every stroke that had not started
+         yet was showing one, so the hero began as a scatter of black
+         marks over the paper. VEN caught it on 2026-08-30.
+         [len, len+4] moves that boundary to len+4, off the end of
+         the path, and changes nothing else: the revealed span is
+         still s < len - offset. */
+      p.style.strokeDasharray = len + " " + (len + 4);
       p.style.strokeDashoffset = len;
     });
 
@@ -183,7 +271,7 @@
         "stroke-linecap": "round", "stroke-linejoin": "round"
       }, g);
       sLen = swell.getTotalLength();
-      swell.style.strokeDasharray = sLen + " " + sLen;
+      swell.style.strokeDasharray = sLen + " " + (sLen + 4);   // see the note above
       swell.style.strokeDashoffset = sLen;
     }
 
@@ -203,48 +291,94 @@
     });
   });
 
+  /* MEASURE THE INK, THEN PLACE THE STAMP. getBBox is the letters'
+     own geometry in the svg's user space — no stroke width, no
+     filter, and deterministic for a given word, so the viewBox this
+     produces is stable and the CSS box below can still be tuned
+     against it.
+
+     SEAL_AIR is the one number left: units from the last stroke's
+     geometry to the CENTRE of the 34-unit stamp. 37 is the air the
+     hand-tuned hangul gap worked out to, so 기와 lands where it
+     always did to within two units — measured in Chrome, ink right
+     218.6, stamp at 256, against the old constant's 254. The two are
+     the over-stroke: it is offset translate(1.6 -1.2), getBBox counts
+     it and the old arithmetic never did. Every other word now gets
+     that same air without a new constant.
+
+     Measured BEFORE the flourish on purpose: the flourish leaves the
+     baseline and curls down and back, so it is not what the seal has
+     to stand clear of. If getBBox is unavailable — a hidden ancestor
+     throws in Firefox — the provisional arithmetic above stands. */
+  var SEAL_AIR = 37, inkRight = 0;
+  try { var bb = inkGroup.getBBox(); inkRight = bb.x + bb.width; } catch(e){}
+  if (inkRight > 0){
+    sealX = Math.round(inkRight + SEAL_AIR);
+    svg.setAttribute("viewBox",
+      "0 0 " + (STAMP ? sealX + 46 : Math.round(inkRight) + 6) + " 176");
+  }
+
   /* Trailing flourish off the last letter — the ink-line motif that
-     leads the eye down toward the journey. LATIN ONLY, deliberately:
-     off 와 the only place it can leave from is the foot of ㅏ's stem,
-     where it reads as part of the vowel rather than as a flourish and
-     makes the glyph look mis-written. Korean brush writing does not
-     tail a syllable block, so there is nothing to imitate. */
-  if (!HANGUL){
+     leads the eye down toward the journey. IT BELONGS TO A LETTER,
+     not to a script, and the map is why:
+
+     A flourish is the pen carrying on after the last stroke, so it
+     has to leave from where the pen actually stopped. K stops at the
+     foot of its right leg, bottom-right, and the tail falls out of
+     it. Nothing else here does. Off 와 the only exit is the foot of
+     ㅏ's stem, where it reads as part of the vowel and makes the
+     glyph look mis-written — and Korean brush writing does not tail
+     a syllable block, so there is nothing to imitate either. Off S
+     it is worse and it shipped for a few minutes on 2026-08-30:
+     S finishes at its BOTTOM-LEFT (17,107), so a tail drawn at the
+     bottom-right hangs there attached to nothing and the mark reads
+     as "$TILES,".
+
+     So: a letter that can carry one names its own, and a word ending
+     in anything else simply does not get one. */
+  var FLOURISH = { K: "M84 128 C97 149 74 160 62 171" };
+  var lastCh = WORD.charAt(WORD.length - 1);
+  if (FLOURISH[lastCh]){
     var fx = X0 + (WORD.length - 1) * ADVANCE;
-    addStroke("M84 128 C97 149 74 160 62 171", "translate(" + fx + " 14)", 3.5);
+    addStroke(FLOURISH[lastCh], "translate(" + fx + " 14)", 3.5);
   }
 
   /* nib */
   var nib = el("circle", { r: "4", fill: "#211B11", opacity: "0" }, svg);
 
-  /* seal, stamped after the writing (sealX is set with the viewBox) */
-  var seal = el("g", { opacity: "0", transform: "translate(" + sealX + " 108)" }, svg);
-  el("rect", { x: "-17", y: "-17", width: "34", height: "34", rx: "6", fill: "#8E4A38" }, seal);
-  // One source for the glyph: CONFIG.token.seal, resolved (and
-  // `?seal=`-overridden) in js/config.js so the stamp here, the map
-  // markers and the CSS seals cannot drift apart.
-  var sealG = TOKEN.seal || "韓",
-      sealQ = TOKEN.sealScale || 1;
-  var sealText = el("text", {
-    x: "0", y: String(9 * sealQ), "text-anchor": "middle",
-    "font-family": "'Song Myung', serif",
-    "font-size": String(22 * sealQ), fill: "#EBDDB9"
-  }, seal);
-  sealText.textContent = sealG;
+  /* seal, stamped after the writing (sealX is set with the viewBox).
+     Only built under `?stamp=1` — see STAMP above. */
+  var seal = null;
+  if (STAMP){
+    seal = el("g", { opacity: "0", transform: "translate(" + sealX + " 108)" }, svg);
+    el("rect", { x: "-17", y: "-17", width: "34", height: "34", rx: "6", fill: "#8E4A38" }, seal);
+    // One source for the glyph: CONFIG.token.seal, resolved (and
+    // `?seal=`-overridden) in js/config.js so the stamp here, the map
+    // markers and the CSS seals cannot drift apart.
+    var sealG = TOKEN.seal || "韓",
+        sealQ = TOKEN.sealScale || 1;
+    var sealText = el("text", {
+      x: "0", y: String(9 * sealQ), "text-anchor": "middle",
+      "font-family": "'Song Myung', serif",
+      "font-size": String(22 * sealQ), fill: "#EBDDB9"
+    }, seal);
+    sealText.textContent = sealG;
+  }
 
   /* reveal helpers ---------------------------------------------- */
 
   function finishHero(){
     hero.classList.add("is-written");
-    /* The ticker rides in first and closest — it belongs to the name
-       above it, not to the tagline below. */
-    ["heroTicker", "heroTagline", "heroActions"].forEach(function(id, i){
+    /* The lore line rides in first and closest — it belongs to the
+       mark above it, not to the tagline below. */
+    ["heroLore", "heroTagline", "heroActions"].forEach(function(id, i){
       var n = document.getElementById(id);
       if (n) setTimeout(function(){ n.classList.add("is-in"); }, i * 180);
     });
   }
 
   function stampSeal(instant){
+    if (!seal) return;                    // `?stamp=1` off — nothing to stamp
     if (instant){
       seal.setAttribute("opacity", "1");
       seal.setAttribute("transform", "translate(" + sealX + " 108) rotate(-3)");

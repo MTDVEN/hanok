@@ -9,17 +9,25 @@
   var CFG = window.HANOK_CONFIG || {};
 
   /* ---- the ticker ------------------------------------------------
-     Written into the hero, the manifesto and the <title> from one
-     place, so launch day is a single edit in js/config.js. Until Zico
-     names it, every slot keeps the "$XXX" already in the markup — the
-     same read-as-unfinished placeholder as the CA pill's "coming at
-     launch", and deliberately not a guess at the real ticker. */
+     Written into the manifesto and the <title> from one place, so
+     launch day is a single edit in js/config.js. A slot left unwired
+     keeps the "$XXX" already in the markup — the same
+     read-as-unfinished placeholder as the CA pill's "coming at
+     launch", and deliberately not a guess at the real ticker.
+
+     **THE HERO IS NOT ON THIS LIST, ON PURPOSE** (VEN, 2026-08-29).
+     The hero DRAWS the ticker, as brush strokes from
+     CONFIG.token.wordmark — see LETTERS in js/hero.js. The line under
+     the mark is #heroLore and carries prose, so writing the ticker
+     into it would delete that copy. If the ticker ever needs to
+     appear as text in the hero again, add a NEW element with
+     .js-ticker on it; do not put #heroLore back in this selector. */
 
   var TOKEN = CFG.token || {};
   if (TOKEN.ticker){
     var tick = "$" + String(TOKEN.ticker).replace(/^\$/, "");
     Array.prototype.forEach.call(
-      document.querySelectorAll("#heroTicker, .js-ticker"),
+      document.querySelectorAll(".js-ticker"),
       function(el){ el.textContent = tick; }
     );
     /* The separator is a middot, not an em dash: VEN, 2026-08-21, asked

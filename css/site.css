@@ -346,30 +346,73 @@ a{ color: var(--ink); }
   z-index: 1;
 }
 
-/* The svg fills this box, so the box IS the type size: the viewBox is
-   X0 + chars·ADVANCE + 46 wide, which means a two-character hangul
-   title (268 units) renders twice the size of the five-letter latin
-   one (548) at the same width. Sized for 기와 — widen it here, not in
-   hero.js, if the title ever gets longer again. */
+/* THE BOX IS THE TYPE SIZE. The svg fills this width and keeps its
+   own aspect, so the same number renders two words at wildly
+   different sizes: 기와's viewBox is 302 units wide, $TILES's is
+   674, so at one width the hangul draws more than twice the height.
+   Set the size HERE when the wordmark changes, not in hero.js.
+
+   Sized for $TILES since 2026-08-30, and the size is the ask, not a
+   side effect: Zico wanted the mark smaller than the hangul it
+   replaced — *"Doesnt need to be that big."* 기와 drew 181px-tall
+   glyphs in a 460px box; $TILES at 560 draws ~88px caps in a box
+   that is only 100px wider, so the mark reads as a wordmark rather
+   than a billboard and the lore line under it is no longer whispered
+   at by comparison.
+
+   `?mark=N` overrides the width live (js/hero.js writes --mark-w),
+   so this can be re-judged on the real page against the real
+   painting without an edit — `?mark=460`, `?mark=660`.
+
+   The vw ceiling is 84 rather than 74 because six letters need the
+   phone's full measure where two hangul blocks did not. */
 .hero__title{
-  width: min(460px, 74vw);
+  width: min(var(--mark-w, 560px), 84vw);
   margin: 0 auto;
 }
 .hero__title svg{ display: block; width: 100%; height: auto; overflow: visible; }
+/* no-JS only: the drawn mark replaces this on first paint. Latin
+   since 2026-08-30, and $TILES sets six characters where 기와 set
+   two, so the size comes down to match the box above. */
 .hero__title-fallback{
   font-family: var(--font-display);
-  font-size: clamp(3rem, 11vw, 5.4rem);
-  letter-spacing: .12em;
+  font-size: clamp(2.2rem, 8vw, 3.6rem);
+  letter-spacing: .1em;
 }
 .js .hero__title-fallback{ display: none; }
 
-/* The ticker belongs to the name above it: tight to the title, in the
-   display face, spaced like the eyebrow so the two frame the mark. */
-.hero__ticker{
-  margin-top: .4rem;
+/* The lore line belongs to the mark above it: tight to the title, in
+   the display face, spaced like the eyebrow so the two frame it.
+
+   This slot used to hold the ticker ($XXX) — four spaced characters at
+   1.9rem. Since 2026-08-29 the hero DRAWS the ticker as brush strokes
+   and this line carries a sentence instead, so the size and tracking
+   came down to suit prose: at the old 1.9rem/.22em a 45-character line
+   ran the width of the screen and wrapped against the tagline under it.
+   It is a shade SMALLER than .hero__tagline now and still reads above
+   it, because the hierarchy under the mark is carried by tracking and
+   ink weight rather than by size: spaced and full-strength --ink here,
+   unspaced and --ink-soft there.
+
+   Scaled down once more at VEN's word, 2026-08-29. 34ch is kept
+   deliberately: it is the width that breaks the line at its own comma
+   ("understand the narrative," / "understand the lore") instead of
+   mid-clause.
+
+   THE CLOSING MARKER OF THIS COMMENT WAS ONCE IN THE MIDDLE OF IT,
+   four lines up, and CSS does not warn: everything after it became
+   the prelude of an unparseable rule and took .hero__lore's whole
+   block down with it, so the line rendered as plain body text for a
+   session. If this rule ever looks like it is not applying, read the
+   comment above it before touching the declarations. */
+.hero__lore{
+  margin-top: .8rem;
+  margin-inline: auto;
+  max-width: 34ch;
   font-family: var(--font-display);
-  font-size: clamp(1.35rem, 2.6vw, 1.9rem);
-  letter-spacing: .22em;
+  font-size: clamp(.9rem, 1.45vw, 1.12rem);
+  letter-spacing: .14em;
+  line-height: 1.5;
   color: var(--ink);
 }
 

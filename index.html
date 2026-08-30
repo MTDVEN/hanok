@@ -85,16 +85,23 @@ document.documentElement.classList.add("js");
        the top of the body — there is no hero-local backdrop. -->
 
   <div class="hero__inner">
-    <p class="hero__eyebrow" id="heroRoman">GIWA · roof tiles</p>
+    <p class="hero__eyebrow" id="heroRoman">GIWA (<span lang="ko">기와</span>)</p>
 
-    <!-- The title is WRITTEN, stroke by stroke, from CONFIG.token.ko —
-         js/hero.js owns both the strokes and the aria-label. The
-         fallback below is what a no-JS visitor sees. -->
-    <div class="hero__title" id="heroTitle" role="img" aria-label="기와 (GIWA)">
-      <span class="hero__title-fallback" lang="ko">기와</span>
+    <!-- The title is WRITTEN, stroke by stroke, from CONFIG.token.wordmark
+         — js/hero.js owns the strokes. The aria-label and the fallback
+         are HERE and are not written by script, so BOTH have to be
+         changed by hand when the wordmark changes: the label is what a
+         screen reader reads instead of the drawing, and the span is
+         what a no-JS visitor sees. Both said 기와 until 2026-08-30. -->
+    <div class="hero__title" id="heroTitle" role="img" aria-label="$TILES">
+      <span class="hero__title-fallback">$TILES</span>
     </div>
 
-    <p class="hero__ticker reveal" id="heroTicker">$XXX</p>
+    <!-- NOT the ticker. The hero DRAWS the ticker as strokes above; this
+         line is the lore line (VEN, 2026-08-29). js/main.js deliberately
+         does not target it — see the note there before wiring anything
+         into #heroLore. -->
+    <p class="hero__lore reveal" id="heroLore">understand the narrative, understand the lore</p>
 
     <p class="hero__tagline reveal" id="heroTagline">
       One tile at a time. Community-owned. Fair launch. Forever.

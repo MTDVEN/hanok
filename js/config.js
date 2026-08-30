@@ -10,19 +10,45 @@ window.HANOK_CONFIG = {
 
   /* ---- the token's name -----------------------------------------
      Zico, 2026-08-21: the token is 기와 / GIWA — Korean for roof
-     tiles, and the name of the Upbit L2 it launches on. `ko` is what
-     the hero WRITES, and it is not free text: every character needs
-     brush strokes in LETTERS (js/hero.js), so changing it means
-     authoring those. `roman` is the eyebrow above it.
+     tiles, and the name of the Upbit L2 it launches on. `ko` is the
+     Korean name; it is what the <title> carries and what the eyebrow
+     prints beside GIWA.
 
-     `ticker` is still Zico's to give — he wrote "$XXX" in the brief,
-     so null renders exactly that, a placeholder that reads as one.
-     Fill it in and the hero, the <title> and the manifesto all follow;
-     nothing else needs touching. */
+     `wordmark` is WHAT THE HERO DRAWS, and it is not free text: every
+     character needs brush strokes in LETTERS (js/hero.js), because the
+     writing animation is stroke-dashoffset along real paths and a
+     webfont glyph has no stroke order to write in. An unknown
+     character is skipped SILENTLY, so changing this means authoring
+     letterforms and then checking the title actually renders —
+     `node tools/heropng.js '$TILES'` draws it without a browser.
+
+     THE HERO DRAWS $TILES SINCE 2026-08-30, AND IT TOOK TWO ASKS TO
+     GET HERE. It was swapped to the latin ticker on 2026-08-29 and
+     VEN reverted it the same session — *"i didnt tell you to change
+     the korean characters."* Then Zico marked up a screenshot: the
+     eyebrow to read GIWA (기와), the big lettering to read $tiles,
+     the $XXX line to carry the lore sentence. VEN put the question
+     to him in one line — *"so you want the big korean writing to
+     change to $TILES?"* — and Zico answered *"Yeah bro but make it
+     a bit smaller pls."* So it is asked for, in those words, by the
+     person whose token it is.
+
+     기와 IS STILL THE PROJECT'S NAME and is still on the page in
+     four places Zico did not mark: the eyebrow, the footer word, the
+     <title> and the OG tags. Only the drawn mark changed. The
+     hangul strokes stay in LETTERS — this has now flipped twice and
+     the way back is one word here.
+
+     `ticker` — VEN confirmed TILES on 2026-08-29, which is what the
+     domain (tilesongiwa.com) and Zico's map copy had said all along.
+     It writes itself into the manifesto and the <title>. It does NOT
+     write into the hero: the slot under the mark is #heroLore and
+     carries prose. */
   token: {
     ko: "기와",
     roman: "GIWA",
-    ticker: null,       // e.g. "GIWA" — rendered as $GIWA
+    wordmark: "$TILES", // what the hero DRAWS — needs strokes in LETTERS
+    ticker: "TILES",    // rendered as $TILES in the manifesto + <title>
 
     /* THE SEAL GLYPH — one source, four consumers. It is stamped after
        the hero title, printed on the manifesto and footer seals, and
