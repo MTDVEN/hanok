@@ -6486,6 +6486,9 @@ sheet — so `stops` was not re-pasted.
 
 ### Open
 
+- **SUPERSEDED BY §9ah** (same day): VEN asked for the note to use
+  the path, the loop was re-traced as the corridor band, and the size
+  went back to 9 to buy the phones their slack.
 - Stop 2 is 9.5 units — no longer the runt (stop 4 is 10, stop 1 11),
   but still the smallest with stop 4. **The one lever left to 10+:
   grow the loop north into the saddle below stop 1's second clearing**
@@ -6495,6 +6498,113 @@ sheet — so `stops` was not re-pasted.
 - The desktop over-run grew (~140–170px, numbers above). Same three
   levers as stop 1: the loop, SIZE_CAP, the settle zoom.
 - 8px of phone slack at 360 is the tightest number on the sheet.
+
+---
+
+## 9ah. Session 18, part 2 (2026-08-31) — the note moves onto the path
+
+VEN, on §9ag's screenshot: *"use the space on the path, what i mean
+by this is the part of the background that looks like a path"* — the
+pale valley corridor the road walks, from the bend below Changdeokgung
+down toward Namsangol, which the blocks sat east of.
+
+### 1. What the corridor can and cannot hold
+
+Measured before anything moved (the annotated crop is
+`scratchpad/path-view.png`, rebuild with `path-view.js` there):
+
+- **A block always lands MARGIN east of its binding row's left
+  edge**, and for stop 2's lower rows that left edge IS the road's
+  exclusion corridor — so blocks 2 and 3 were already flush against
+  the trail's verge. The visible "empty path" between them and the
+  footsteps is the verge itself (~40 units), which is deliberate.
+- **Block 1 alone had slack**: its top row was the old loop's slanted
+  NW corner, which bound it 27–55 units east of the road exclusion.
+- **A corridor-only loop fits NOTHING at any size ≥ 8** (mapnote,
+  proven twice): 664 characters need ~350 units of stacked height in
+  runs the corridor tapers to 56–181 units wide. The pockets west of
+  the road are caption (0.335–0.485 at y 0.446), building halo, and
+  the western range — none holds a block at any legal measure.
+- The village's east fringe lives INSIDE the road exclusion at the
+  trail's bend, so the road's own verge is what keeps text off it.
+
+So "on the path" = the note hugging the trail's east shoulder, and
+that is the whole of it without shorter copy.
+
+### 2. What was built — the loop is the corridor now
+
+`clearings-search.json` stop 2 re-traced (v5 after two rejected
+cuts): **flat top** at 0.353 so block 1 binds on the road exclusion,
+not loop geometry; **west edge straddling the road** so the exclusion
+governs; **SE tail** wrapping the trail's bend; **east edge pulled
+in** (0.820) — see §3 for why. Block 1 drops 27 units west onto the
+terraced ribbon — the path-looking feature itself, which mapclear now
+fades under its clearing, along with the pine fringe's eastern edge
+(the dense western pines stand). The far-east basin the old blocks
+cleared is terrain again: the cut region reads as a band along the
+trail, not a bowl beside it.
+
+```
+  MAP_CLEAR[1] = [
+    { box: [0.566, 0.370, 0.722, 0.438], fs: 9, mw: 156.5 },
+    { box: [0.607, 0.452, 0.765, 0.479], fs: 9, mw: 156.5 },
+    { box: [0.663, 0.493, 0.764, 0.540], fs: 9, mw: 104.3 }
+  ]
+```
+
+### 3. 9 units, not 9.5 — a chosen trade, stated
+
+At 9.5, block 3 NEEDS its right edge at 0.781 (the road binds its
+left; its rows cap its wrap; mapnote proved every narrower measure
+fails its rows) — and with block 1 at 0.566 widening the note's
+union, the phone frame-pull left **6px of right slack at 360** (8 at
+393) — one font-metric quirk from the crop Zico photographed, the bug
+this whole workstream started on. Pulling the loop's east edge in
+gives the note a right edge of 0.765 and the phones **14px at 360,
+15px at 393** — and costs the half unit: 9 is what the stop shipped
+at before the split, so against the last state VEN saw the size is a
+wash and the spacing plus placement is the net win. If VEN wants 9.5
+back, it exists at commit `886228a`'s loop with the 6px caveat.
+
+### 4. Checked
+
+- Phones at the settle (marker centred): 19 lines drawn against 21
+  planned (blocks 1 and 3 one under each, the safe direction), block
+  gaps even at ~21px, right slack **15px at 393 / 14px at 360**, the
+  note between y 449–643 of 852.
+- maproute on the cut sheet: stops 1–3 exact to the thousandth;
+  **stop 4 flipped to its OTHER attractor** (0.321,0.895 — the §9ad
+  pair, bistable when upstream clearings change the ink budget);
+  per §9ad the rule is `stops` is NOT re-pasted, journey.js keeps
+  0.374,0.857, and no clearing touches that point.
+- Paste: all 7 mapnote boxes verbatim in js/journey.js; stops 1/3/4
+  entries byte-identical to HEAD.
+- The re-cut sheet eyeballed at 393 (terrain painted): the cleared
+  band hugs the footsteps, the terraces east of it regrown.
+- **QA-harness note:** the compositor served STALE frames repeatedly
+  this session — a capture can lag several driven states behind the
+  DOM, and `?fade=1` reveals nothing under SYNC (the fade rides real
+  frames too). The DOM audit is the authority; screenshots are
+  best-effort.
+
+### Files (session 18, part 2)
+
+- `tools/clearings-search.json` — stop 2's loop re-traced as the
+  corridor band (`who` records VEN's words)
+- `js/journey.js` — `MAPS.ink.clear[1]` re-pasted at 9; the comment
+  above it records the trade
+- `tools/shape.json`, `tools/clearings.json`, both masters,
+  `art/journey/map-ink.png` — regenerated
+- `HANDOFF.md` — this section; §9ag's Open superseded
+
+### Open
+
+- **The size is 9 again** — the §9ag saddle-growth lever (north into
+  0.295–0.348) remains the one route to 9.5+ *with* phone slack, at
+  the cost of more faded mountains. VEN's call.
+- The desktop over-run stands (§9ag numbers, slightly less at 9).
+- VEN has not seen this in a browser — the harness only yielded the
+  terrain shot; the revealed-text state was verified by DOM numbers.
 
 ---
 

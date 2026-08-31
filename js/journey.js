@@ -1001,17 +1001,35 @@
          units, up from the 9 the single 18-line block held: the
          grouping was chosen by running every split of the prose's
          beats through mapnote — see the comment on SPOTS[1].copy.
-         The blocks step RIGHT as they descend, the road bending in
-         from the west below the building. HANDOFF §9ag. */
+         HANDOFF §9ag. */
+      /* Same day, VEN: "use the space on the path ... the part of the
+         background that looks like a path". The loop was re-traced as
+         the corridor band along the road (flat top, west edge
+         straddling the road so the ROAD EXCLUSION is what the blocks
+         hug), which drops block 1 27 units west onto the terraced
+         ribbon beside the trail — every block now sits MARGIN off the
+         road's verge, as near the path as the tool allows. The
+         corridor itself holds ~a third of this copy at 9.5 (mapnote
+         proved a corridor-only loop fits NOTHING at any size >= 8),
+         so this is the whole of what "on the path" can be without
+         shorter copy or smaller type.
+
+         9 UNITS, NOT 9.5 — a chosen trade: at 9.5 block 3 needs its
+         right edge at 0.781 (the road binds its left, its rows cap
+         its wrap), which left the phone frame 6px of right slack at
+         360 — one metric quirk from the crop Zico photographed. The
+         loop's east edge is pulled in instead; the note ends at 0.765
+         and the phones breathe. 9 is what the stop shipped at before
+         the split. HANDOFF §9ah. */
       clear: [
         [
           { box: [0.635, 0.068, 0.751, 0.151], fs: 11, mw: 116.9 },
           { box: [0.566, 0.215, 0.761, 0.264], fs: 11, mw: 191.3 }
         ],
         [
-          { box: [0.593, 0.370, 0.759, 0.442], fs: 9.5, mw: 165.2 },
-          { box: [0.607, 0.456, 0.774, 0.484], fs: 9.5, mw: 165.2 },
-          { box: [0.663, 0.498, 0.781, 0.541], fs: 9.5, mw: 114.7 }
+          { box: [0.566, 0.370, 0.722, 0.438], fs: 9, mw: 156.5 },
+          { box: [0.607, 0.452, 0.765, 0.479], fs: 9, mw: 156.5 },
+          { box: [0.663, 0.493, 0.764, 0.540], fs: 9, mw: 104.3 }
         ],
         { box: [0.621, 0.699, 0.784, 0.739], fs: 13.5, mw: 176.1 },
         { box: [0.691, 0.800, 0.777, 0.876], fs: 10, mw: 86.9 }
