@@ -233,22 +233,33 @@
               "all that liquidity. This is where the road starts."]] },
     { d0: 1900, s:  1, name: "Changdeokgung Palace",   ko: "창덕궁",  img: "art/changdeokgung.png", art: hall(),
       blurb: "Built to follow the land rather than flatten it. Its rear garden was kept for the king alone, and the trees there are older than the hands that planted them.",
-      copy: ["Every chain gets memecoins built on it. Most",
-             "borrow a mascot from nowhere and hope it",
-             "sticks. $TILES doesn't have to invent a",
-             "narrative — Giwa already wrote it for us. The",
-             "tile isn't a random symbol we picked to ride",
-             "the hype; it's the literal brand, logo, and",
-             "founding metaphor of the chain itself, straight",
-             "from the team's own messaging. That's the",
-             "difference. A memecoin usually sits on top of a",
-             "chain. $TILES sits inside the chain's own story",
-             "— the smallest possible unit of the same",
-             "structure Giwa is built on. One tile is the",
-             "token. Many tiles, interlocked, is the",
-             "community. The whole roof is the chain. Giwa",
-             "built the roof, and $TILES is what it's made",
-             "of."] },
+      /* THREE BLOCKS since 2026-08-31 — VEN: do to this one what was
+         done to stop 1. No markup this time, so the parts stack down
+         the stop's one loop, GAP apart, each at its own measure (the
+         mapnote default for a split with no loops of its own), and
+         the grouping was PICKED BY THE LOOP: every grouping of the
+         prose's four beats was run through mapnote, and this one —
+         the argument whole, then the contrast, then the chant —
+         comes out at 9.5 units where cutting the opener from the
+         claim costs a full unit (8.5, under the §9ac.6 floor). The
+         words are untouched from Zico's 2026-08-28 paste. */
+      copy: [["Every chain gets memecoins built on it. Most",
+              "borrow a mascot from nowhere and hope it",
+              "sticks. $TILES doesn't have to invent a",
+              "narrative — Giwa already wrote it for us. The",
+              "tile isn't a random symbol we picked to ride",
+              "the hype; it's the literal brand, logo, and",
+              "founding metaphor of the chain itself, straight",
+              "from the team's own messaging. That's the",
+              "difference."],
+             ["A memecoin usually sits on top of a chain.",
+              "$TILES sits inside the chain's own story —",
+              "the smallest possible unit of the same",
+              "structure Giwa is built on."],
+             ["One tile is the token. Many tiles,",
+              "interlocked, is the community. The whole",
+              "roof is the chain. Giwa built the roof,",
+              "and $TILES is what it's made of."]] },
     { d0: 2650, s: -1, name: "Namsangol Hanok Village",ko: "남산골",  img: "art/namsangol.png",     art: hanoks(),
       blurb: "Five houses carried stone by stone from across the city and set down together beneath the south mountain, so the old way of living would have somewhere to stand.",
       copy: ["How to reach Giwa chain, and how to swap",
@@ -984,12 +995,24 @@
          `mw` on every box is the measure the wrap was planned at,
          which is not the box's own width — see tools/mapnote.js;
          without it a short block re-wraps and orphans its last word. */
+      /* 2026-08-31: STOP 2 IS THREE NOTES, stacked down its one loop
+         (no markup this time — VEN asked for the stop-1 treatment, and
+         with a single loop mapnote stacks the parts GAP apart). 9.5
+         units, up from the 9 the single 18-line block held: the
+         grouping was chosen by running every split of the prose's
+         beats through mapnote — see the comment on SPOTS[1].copy.
+         The blocks step RIGHT as they descend, the road bending in
+         from the west below the building. HANDOFF §9ag. */
       clear: [
         [
           { box: [0.635, 0.068, 0.751, 0.151], fs: 11, mw: 116.9 },
           { box: [0.566, 0.215, 0.761, 0.264], fs: 11, mw: 191.3 }
         ],
-        { box: [0.621, 0.378, 0.779, 0.501], fs: 9, mw: 156.5 },
+        [
+          { box: [0.593, 0.370, 0.759, 0.442], fs: 9.5, mw: 165.2 },
+          { box: [0.607, 0.456, 0.774, 0.484], fs: 9.5, mw: 165.2 },
+          { box: [0.663, 0.498, 0.781, 0.541], fs: 9.5, mw: 114.7 }
+        ],
         { box: [0.621, 0.699, 0.784, 0.739], fs: 13.5, mw: 176.1 },
         { box: [0.691, 0.800, 0.777, 0.876], fs: 10, mw: 86.9 }
       ],

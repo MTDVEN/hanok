@@ -49,6 +49,10 @@ must know before touching any of it:
      already widened to the last of the room available (road west,
      coastline east, stop 1 above, stop 3 below) — at VEN's original
      loop *nothing fit at any size*. There is no size left to give.
+     (Both stops have since been SPLIT and bought size back from their
+     own loops: stop 1 to 11 in Zico's places, §9af; stop 2 to 9.5
+     stacked down its one loop, §9ag — and §9ag's Open names the one
+     lever left, the saddle north of the loop.)
   3. **Two long-standing bugs were fixed here**, both of which push
      text past its clearing and both invisible with the old copy:
      mapnote was stripping the commas out of the prose, and
@@ -6369,7 +6373,128 @@ again. maproute returns 0.341/0.120, 0.493/0.360, 0.623/0.601,
   note's union is shorter again — **it FITS at 1280x820** (8px inside the bottom), runs 31px over at 1440x900 and 277 at 1280x551, against 152 / 194 / 422 with the closer beside the road and 131 / 170 / 400 for the single column. Same behaviour as
   always (the top wins; the last lines come up as the camera moves on),
   and the same three levers: VEN's loop, SIZE_CAP, the settle zoom.
-- Stop 2 is still 9 units, under a stop 1 at 10.5.
+- **DONE IN §9ag**: Stop 2 is still 9 units, under a stop 1 at 10.5.
+
+---
+
+## 9ag. Session 18 (2026-08-31) — stop 2 in three notes, and the loop chose the grouping
+
+VEN: *"In the last session I asked you to chop up the first block of
+text in 'the journey' section into smaller blocks. Can we do the same
+with the second block of text?"* — stop 2, Changdeokgung, the $TILES
+argument: one 18-line block at 9 units, the smallest type on the
+sheet, exactly the case §9ae's Open had named.
+
+### 1. No markup this time, so the parts stack
+
+Zico drew loops for stop 1; nobody drew any for stop 2, and inventing
+places is what §9af exists to warn about. So the split uses the
+mapnote default a stop with no markup gets (§9af.3): the parts stack
+down the stop's ONE search loop, `GAP` apart, each at its own
+measure. The loops file was not touched.
+
+### 2. The grouping was chosen by the loop, not by taste
+
+The prose has four beats — the setup ("Every chain gets memecoins…"),
+the claim ("The tile isn't a random symbol… That's the difference."),
+the contrast ("A memecoin usually sits on top… built on."), the chant
+("One tile is the token… made of."). Every grouping of them was run
+through mapnote (the words never changing, 664 chars verified
+byte-identical to HEAD each time):
+
+```
+  setup | claim | contrast+chant          8.5 units   (three notes)
+  setup | claim | contrast | chant        8.5         (four)
+  setup | claim+contrast | chant          9           (three)
+  setup+claim | contrast+chant            9.5         (two)
+  setup+claim | contrast | chant          9.5         (three)   <- shipped
+```
+
+Cutting the setup from the claim costs a full unit — the extra GAP
+plus the ragged joint line push the tail into the loop's narrowing
+south-west contour (the road bends east below the building, and the
+run's left edge walks from 514 to 653 units over the loop's last
+rows). Splitting the tail is free: short blocks may go NARROW
+(placeOne's per-part measure), and narrow is what those rows hold.
+8.5 would have been under §9ac.6's floor ("if a stop's SIZE drops
+below 9, say so rather than shipping it") — it was not shipped, and
+this table is the saying-so.
+
+**Shipped: 10 / 4 / 6 lines at 9.5 units, up from 9.** The blocks
+step RIGHT as they descend — the mirror of stop 1's staircase,
+because this loop's funnel narrows on the other side:
+
+```
+  var MAP_CLEAR[1] = [
+    { box: [0.593, 0.370, 0.759, 0.442], fs: 9.5, mw: 165.2 },
+    { box: [0.607, 0.456, 0.774, 0.484], fs: 9.5, mw: 165.2 },
+    { box: [0.663, 0.498, 0.781, 0.541], fs: 9.5, mw: 114.7 }
+  ]
+```
+
+The pipeline ran end to end (README THE CLEARINGS; step 0 skipped
+with cause: not one word changed, and mapnote printed no `!`).
+Stops 1, 3 and 4 came back to the thousandth everywhere — plan,
+clearings, MAP_CLEAR, and maproute's stops/name anchors on the cut
+sheet — so `stops` was not re-pasted.
+
+### 3. Checked
+
+- **Adversarial pass, four independent agents:** a wrap re-derivation
+  from the widths table reproduced 10/4/6 lines with every line
+  inside its box and SLACK intact; the journey.js diff vs HEAD is
+  exactly two hunks (SPOTS[1].copy, clear[1]); the three clearings
+  are exact roundRects of box+MARGIN overlapping into ONE stepped
+  region (GAP 25.1 < 2×MARGIN), the road 25 units off at the closest
+  (loop 2's west edge — the tightest spot on the stop); the cut
+  sheet's pixels are bare parchment in all three boxes (zero px under
+  L170), feather inside the margin band, terrain untouched outside.
+- **Phones, at the settle (marker centred, ±10px):** 19 lines drawn
+  against 20 planned (block 1 one under, the safe direction — same as
+  every split stop). Right-edge slack **8px at 360, 11 at 393, 13 at
+  430**; the note between y=434 and 626 of 852 at 393×852. Tighter
+  than stop 1's 21-27px but real; PHONE_ZOOM 2.0 is still the lever
+  if anything else grows (§9ae).
+- **Desktop (DOM audit; the 1280 harness still does not paint the
+  sheet):** 20 lines, exactly the plan. The note runs past the frame
+  bottom at settle: **−320px at 1280×820, −377 at 1440×900, against
+  −181 / −206 for the old single block** — measured by swapping
+  HEAD's journey.js in and out. Stop 2 was never inside a desktop
+  frame at settle; the split costs ~140–170px more of the same
+  behaviour the section has always had (the top wins; the last lines
+  come up as the camera moves on). Stop 1's §9af numbers and levers
+  apply unchanged.
+- The copy reveal on the sheet was eyeballed at 393×852: three blocks
+  down the footsteps trail, paper gaps reading clearly between them.
+  (QA note for next time: the reveal mask advances one dashoffset per
+  FRAME, so under qa-frame's SYNC it needs draw frames pumped —
+  hundreds of GO() calls at the settle — before the copy is visible;
+  text.style.opacity is constant 0.78 under the mask and proves
+  nothing. And a frozen-then-recovered renderer can serve a STALE
+  compositor frame: the screenshot after the retry may show an older
+  state than the DOM. Trust the DOM audit; re-navigate before
+  re-shooting.)
+
+### Files (session 18)
+
+- `js/journey.js` — SPOTS[1].copy nested in three (words untouched),
+  its provenance comment, `MAPS.ink.clear[1]` re-pasted as the list
+- `tools/shape.json`, `tools/clearings.json` — regenerated (stop 2:
+  one loop → three overlapping clearings; stops 1/3/4 byte-identical)
+- both masters, `art/journey/map-ink.png` — re-cut, re-prepped
+- `HANDOFF.md` — this section; §9af's Open closed
+
+### Open
+
+- Stop 2 is 9.5 units — no longer the runt (stop 4 is 10, stop 1 11),
+  but still the smallest with stop 4. **The one lever left to 10+:
+  grow the loop north into the saddle below stop 1's second clearing**
+  — 0.2952 to 0.348 is ~95 units of mountains that §9af's move of
+  stop 1's blocks left free — at the cost of fading more terrain and
+  putting paper above the building's latitude. Not done without VEN.
+- The desktop over-run grew (~140–170px, numbers above). Same three
+  levers as stop 1: the loop, SIZE_CAP, the settle zoom.
+- 8px of phone slack at 360 is the tightest number on the sheet.
 
 ---
 
