@@ -6694,6 +6694,66 @@ never dropped in any live view.
 
 ---
 
+## 9aj. Session 19, part 2 (2026-09-01) — the notes are printed on the sheet
+
+VEN, with a screenshot of the approach to Changdeokgung — the
+cleared corridor plainly visible beside the footsteps, nothing
+written on it: *"look at how where the text should be, is visible,
+but the text itslef isnt visible, does this make sense? can you
+fix"*. It did make sense, and it was the deeper half of §9ai's
+complaint.
+
+### 1. The mismatch
+
+The CLEARINGS are baked into the sheet art — bare paper panels,
+shaped exactly like their text, visible from any distance the
+camera shows them. The NOTES were choreography — `gn` display-gated
+until the write window opened (`wv > 0`, the last ~quarter of a
+leg) and then revealed by the nmp mask over `wv 0.45..1`. So for
+most of every leg the sheet showed empty text-shaped panels; a
+visitor pausing anywhere on the approach (which is where Zico's and
+VEN's phone screenshots keep being taken) read them as missing
+text. §9ah's corridor band made it worse only in prominence: the
+empty panels now sit right beside the footsteps the eye follows.
+
+### 2. The fix — marginalia pre-exist; the calligraphy stays
+
+`NOTE_WRITE` (default OFF, `?notewrite=1` is the way back): the
+note groups display from build and their masks are pre-swept, so
+the notes are ink that was always on the map — like the mountains.
+The Korean name (and the caption, same hand, and the seal stamp)
+keep the arrival writing: the ceremony survives, the marginalia
+stop pretending to be part of it. Scrubbing back no longer un-inks
+a note (a printed map does not unprint); the name still un-writes,
+as it always did. Under `?fade=1` (the line-by-line alternative)
+the old arriving behaviour remains, unchanged.
+
+Perf note: the pre-swept mask is set once and never mutated, so it
+costs one static raster per note — the "only touched while a write
+is in progress" discipline holds.
+
+### 3. Checked (393×852, ?glide=0)
+
+- At VEN's exact screenshot state (stop 2's name 27% written):
+  19/19 lines of the three blocks inked and in frame.
+- Full sweep p 0.02–1.0: every DWELL clean as §9ai left them
+  (stops 2/4 clean, stop 3 −1..+6px). New mid-PAN edge clips exist
+  where printed notes cross the frame edge in motion (stop 3 up to
+  42px somewhere in transit) — the way any printed map shows cut
+  text at its edges while panning; at no stationary framing is an
+  arriving note clipped.
+- The journey's entry shows stop 1's note already printed under the
+  clearing it always had — the name writes over it on arrival.
+
+### Files (session 19, part 2)
+
+- `js/journey.js` — NOTE_WRITE knob; gn no longer display-gated by
+  default; nmp pre-swept in setBlock; the gate and the nmp drive
+  guarded on the knob
+- `HANDOFF.md` — this section
+
+---
+
 ## LAUNCH DAY — everything still outstanding
 
 VEN, 2026-08-16, wrapping the session: *"all adjustments will be made

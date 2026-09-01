@@ -1292,6 +1292,20 @@
     return h === "kalam" || h === "patrick" || h === "caveat" ? h : "0";
   })();
   var FADE = qs("fade", 0);
+  /* THE NOTES ARE PRINTED ON THE SHEET — 2026-09-01, VEN with a
+     screenshot of the approach to Changdeokgung: "look at how where
+     the text should be, is visible, but the text itself isnt
+     visible". The clearings are baked into the sheet art, so the
+     paper cut for a note shows the whole approach — but the note
+     only wrote over the last stretch before its stop (the nmp mask,
+     wv 0.45..1), so for most of a leg the sheet showed empty panels
+     shaped exactly like missing text. Now the notes are ink that was
+     always on the map: gn is displayed from build and its mask
+     pre-swept, and only the NAME (and the caption, on the same hand)
+     writes on arrival — the calligraphy stays the ceremony, the
+     marginalia pre-exist like the mountains do. `?notewrite=1` is
+     the way back to the arriving note. */
+  var NOTE_WRITE = /[?&]notewrite=1\b/.test(location.search);
   /* English caption under the Korean — ON since part 12 (VEN: "add
      the english names next to each korean name too please. Same font
      and same written animation"). Same display face, and it WRITES
@@ -1924,7 +1938,9 @@
           if (copy.length && HAS_BOXES){
             gn = document.createElementNS(NS, "g");
             gn.setAttribute("class", "jmap__label jmap__enlab jmap__block");
-            gn.style.display = "none";
+            /* hidden only when the note write is asked back — see
+               NOTE_WRITE: printed marginalia by default */
+            if (NOTE_WRITE) gn.style.display = "none";
           } else if (copy.length){
             var CF = F * 0.80, CLH = CF * 1.42, cg = "";
             copy.forEach(function(line, li){
@@ -2284,7 +2300,9 @@
         lb.nmp = host.querySelector("mask path");
         lb.nL = lb.nmp.getTotalLength();
         lb.nmp.style.strokeDasharray = lb.nL.toFixed(1) + " " + lb.nL.toFixed(1);
-        lb.nmp.style.strokeDashoffset = lb.nL.toFixed(1);
+        /* pre-swept unless the arriving note is asked back — the mask
+           stays (one static raster), only its offset differs */
+        lb.nmp.style.strokeDashoffset = NOTE_WRITE ? lb.nL.toFixed(1) : "0";
         lb.lines = [];   /* the mask does the arriving; nothing to fade */
       } else {
         lb.nmp = null;
@@ -2657,14 +2675,15 @@
                 labels[k].g.style.display = "none";
               if (labels[k].ge && labels[k].ge.style.display !== "none")
                 labels[k].ge.style.display = "none";
-              if (labels[k].gn && labels[k].gn.style.display !== "none")
+              /* the note stays printed (NOTE_WRITE) — see its knob */
+              if (NOTE_WRITE && labels[k].gn && labels[k].gn.style.display !== "none")
                 labels[k].gn.style.display = "none";
             } else {
               if (labels[k].g.style.display === "none")
                 labels[k].g.style.display = "";
               if (labels[k].ge && labels[k].ge.style.display === "none")
                 labels[k].ge.style.display = "";
-              if (labels[k].gn && labels[k].gn.style.display === "none")
+              if (NOTE_WRITE && labels[k].gn && labels[k].gn.style.display === "none")
                 labels[k].gn.style.display = "";
               labels[k].mp.style.strokeDashoffset =
                 (labels[k].L * (1 - wv)).toFixed(1);
@@ -2678,8 +2697,9 @@
                 labels[k].emp.style.strokeDashoffset =
                   (labels[k].eL * (1 - cl((wv - 0.6) / 0.4))).toFixed(1);
               /* the note writes on its own mask, from half-way through
-                 the name to the seal */
-              if (labels[k].nmp)
+                 the name to the seal — ONLY under ?notewrite=1; the
+                 default keeps it pre-swept (printed marginalia) */
+              if (NOTE_WRITE && labels[k].nmp)
                 labels[k].nmp.style.strokeDashoffset =
                   (labels[k].nL * (1 - cl((wv - 0.45) / 0.55))).toFixed(1);
               /* THE COPY ARRIVES A LINE AT A TIME. VEN asked for *"some
