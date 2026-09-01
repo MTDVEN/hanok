@@ -68,9 +68,9 @@ document.documentElement.classList.add("js");
 
 <!-- floating CA pill, appears after the hero -->
 <div class="ca-float" id="caFloat" aria-hidden="true">
-  <button class="ca-pill" id="caCopy" type="button" title="Copy contract address">
+  <button class="ca-pill" id="caCopy" type="button" title="Copy contract address" data-i18n-title="ca.title">
     <span class="ca-pill__label">CA</span>
-    <span class="ca-pill__value" id="caValue">coming at launch</span>
+    <span class="ca-pill__value" id="caValue" data-i18n="ca.value">coming at launch</span>
   </button>
 </div>
 
@@ -85,7 +85,7 @@ document.documentElement.classList.add("js");
        the top of the body — there is no hero-local backdrop. -->
 
   <div class="hero__inner">
-    <p class="hero__eyebrow" id="heroRoman">GIWA (<span lang="ko">기와</span>)</p>
+    <p class="hero__eyebrow" id="heroRoman" data-i18n="hero.eyebrow">GIWA (<span lang="ko">기와</span>)</p>
 
     <!-- The title is WRITTEN, stroke by stroke, from CONFIG.token.wordmark
          — js/hero.js owns the strokes. The aria-label and the fallback
@@ -101,20 +101,20 @@ document.documentElement.classList.add("js");
          line is the lore line (VEN, 2026-08-29). js/main.js deliberately
          does not target it — see the note there before wiring anything
          into #heroLore. -->
-    <p class="hero__lore reveal" id="heroLore">understand the narrative, understand the lore</p>
+    <p class="hero__lore reveal" id="heroLore" data-i18n="hero.lore">understand the narrative, understand the lore</p>
 
-    <p class="hero__tagline reveal" id="heroTagline">
+    <p class="hero__tagline reveal" id="heroTagline" data-i18n="hero.tagline">
       One tile at a time. Community-owned. Fair launch. Forever.
     </p>
 
     <div class="hero__actions reveal" id="heroActions">
       <a class="btn" id="btnDex" href="#" rel="noopener">DEX Screener</a>
-      <a class="btn btn--quiet" id="btnX" href="#" rel="noopener">Follow on X</a>
+      <a class="btn btn--quiet" id="btnX" href="#" rel="noopener" data-i18n="hero.btnx">Follow on X</a>
     </div>
   </div>
 
   <a class="hero__scroll" href="#journey" aria-label="Scroll to the journey">
-    <span>begin the journey</span>
+    <span data-i18n="hero.scroll">begin the journey</span>
     <svg viewBox="0 0 12 44" aria-hidden="true"><path d="M6 2 C5 14 7 26 6 40 M2 34 L6 41 L10 34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </a>
 </header>
@@ -137,8 +137,8 @@ document.documentElement.classList.add("js");
 <section class="journey" id="journey" aria-label="The journey through four places in Korea">
   <div class="journey__sticky">
     <div class="journey__head">
-      <p class="eyebrow"><span lang="ko">여정</span> · the journey</p>
-      <h2>Four places, one road</h2>
+      <p class="eyebrow" data-i18n="journey.eyebrow"><span lang="ko">여정</span> · the journey</p>
+      <h2 data-i18n="journey.h2">Four places, one road</h2>
     </div>
     <svg class="journey__stage" id="journeyStage" aria-hidden="true">
       <g id="jImgs"></g>
@@ -158,7 +158,7 @@ document.documentElement.classList.add("js");
 <section class="manifesto" aria-label="About">
   <div class="manifesto__inner reveal">
     <p class="manifesto__ko" lang="ko" aria-hidden="true">먹과 종이</p>
-    <p class="manifesto__text">
+    <p class="manifesto__text" data-i18n="manifesto.text">
       Long before charts, roofs were raised one tile at a time.
       <span class="js-ticker">$XXX</span> is laid the same way: fired clay from the
       old kilns, a winding path through the hanok valleys, and a house
@@ -176,15 +176,15 @@ document.documentElement.classList.add("js");
 ================================================================= -->
 <section class="ledger" id="ledger" aria-label="Price chart">
   <div class="section-head reveal">
-    <p class="eyebrow"><span lang="ko">장부</span> · the ledger</p>
-    <h2>Written in candlelight</h2>
-    <p class="section-note" id="ledgerNote">A preview, drawn in ink. The real ledger begins at launch.</p>
+    <p class="eyebrow" data-i18n="ledger.eyebrow"><span lang="ko">장부</span> · the ledger</p>
+    <h2 data-i18n="ledger.h2">Written in candlelight</h2>
+    <p class="section-note" id="ledgerNote" data-i18n="ledger.note">A preview, drawn in ink. The real ledger begins at launch.</p>
   </div>
   <figure class="ledger__frame reveal">
     <svg id="ledgerChart" viewBox="0 0 840 400" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Candlestick price chart"></svg>
     <figcaption class="ledger__legend">
-      <span class="ledger__key ledger__key--up" aria-hidden="true"></span> rise
-      <span class="ledger__key ledger__key--down" aria-hidden="true"></span> fall
+      <span class="ledger__key ledger__key--up" aria-hidden="true"></span> <span data-i18n="ledger.rise">rise</span>
+      <span class="ledger__key ledger__key--down" aria-hidden="true"></span> <span data-i18n="ledger.fall">fall</span>
     </figcaption>
   </figure>
 </section>
@@ -195,23 +195,23 @@ document.documentElement.classList.add("js");
 ================================================================= -->
 <section class="village" id="village" aria-label="The village">
   <div class="section-head reveal">
-    <p class="eyebrow"><span lang="ko">마을</span> · the village</p>
-    <h2>Every $100k raises a roof</h2>
-    <p class="section-note">The field fills as the market cap climbs. Come back and count the roofs.</p>
+    <p class="eyebrow" data-i18n="village.eyebrow"><span lang="ko">마을</span> · the village</p>
+    <h2 data-i18n="village.h2">Every $100k raises a roof</h2>
+    <p class="section-note" data-i18n="village.note">The field fills as the market cap climbs. Come back and count the roofs.</p>
   </div>
 
   <div class="village__stats reveal" role="group" aria-label="Village statistics">
     <div class="stat">
-      <span class="stat__label">market cap</span>
-      <span class="stat__value" id="statMc">at launch</span>
+      <span class="stat__label" data-i18n="village.mc">market cap</span>
+      <span class="stat__value" id="statMc" data-i18n="village.atlaunch">at launch</span>
     </div>
     <div class="stat">
-      <span class="stat__label">roofs raised</span>
-      <span class="stat__value" id="statRoofs">at launch</span>
+      <span class="stat__label" data-i18n="village.roofs">roofs raised</span>
+      <span class="stat__value" id="statRoofs" data-i18n="village.atlaunch">at launch</span>
     </div>
     <div class="stat">
-      <span class="stat__label">villager tally</span>
-      <span class="stat__value" id="statHolders">at launch</span>
+      <span class="stat__label" data-i18n="village.holders">villager tally</span>
+      <span class="stat__value" id="statHolders" data-i18n="village.atlaunch">at launch</span>
     </div>
   </div>
 
@@ -238,10 +238,14 @@ document.documentElement.classList.add("js");
     <a id="footDex" href="#" rel="noopener">Dexscreener</a>
     <a id="footTg" href="#" rel="noopener">Telegram</a>
   </nav>
-  <p class="footer__fine">A community token. Nothing here is financial advice; the road is the destination.</p>
+  <p class="footer__fine" data-i18n="footer.fine">A community token. Nothing here is financial advice; the road is the destination.</p>
 </footer>
 
 <script src="js/config.js"></script>
+<!-- i18n runs SECOND, synchronously: the DOM above is parsed, no other
+     module has run, so the Korean pass lands before first paint and
+     before journey.js reads SPOTS. See js/i18n.js. -->
+<script src="js/i18n.js"></script>
 <script src="js/hero.js"></script>
 <script src="js/journey.js"></script>
 <script src="js/chart.js"></script>

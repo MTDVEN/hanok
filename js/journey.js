@@ -134,15 +134,27 @@
      fallback that draws the lines exactly as written. Neither ever
      returns the nested array itself: a stray `.join(" ")` over that
      prints commas onto the sheet. */
+  /* KOREAN (2026-09-01, js/i18n.js): when the language is Korean a
+     stop's koCopy/koBlurb stand in for copy/blurb everywhere the page
+     reads them — the Korean notes REFLOW into the clearings cut for
+     the English (same box, same fs, same mw; hangul runs under every
+     box's line budget). The TOOLS (mapnote, maproute, widths.html)
+     keep reading `copy:` alone — the sheet is planned and cut for the
+     English, and koCopy's capital C keeps their bare /copy:/ lifts
+     from ever seeing it. */
+  var LANG_KO = window.HANOK_LANG === "ko";
   function copyBlocks(sp){
-    var c = (sp && sp.copy) || [];
+    var c = (sp && ((LANG_KO && sp.koCopy) || sp.copy)) || [];
     if (!c.length) return [];
     return (Array.isArray(c[0]) ? c : [c]).map(function(p){ return p.join(" "); });
   }
   function copyLines(sp){
-    var c = (sp && sp.copy) || [];
+    var c = (sp && ((LANG_KO && sp.koCopy) || sp.copy)) || [];
     if (!c.length) return [];
     return Array.isArray(c[0]) ? [].concat.apply([], c) : c;
+  }
+  function blurbOf(sp){
+    return (LANG_KO && sp.koBlurb) || sp.blurb;
   }
 
   function esc(s){
@@ -230,7 +242,19 @@
              ["Upbit already clears most of the crypto that moves",
               "through Korea. This chain is the floor they are",
               "laying underneath that market — ready to tap into",
-              "all that liquidity. This is where the road starts."]] },
+              "all that liquidity. This is where the road starts."]],
+      /* the Korean face (js/i18n.js) — an in-house translation of the
+         block above, same nesting, awaiting Zico's blessing. Reflows
+         into the same clearings; the tools never read it. */
+      koBlurb: "빛나는 복의 궁궐. 육백 년의 조정과 고요, 불타고 다시 세워져, 지금도 마주 보라고 지어진 산과 마주 서 있다.",
+      koCopy: [["GIWA는 업비트의 이더리움 레이어 2다. 한국 최대",
+                "거래소를 만든 두나무가 OP 스택 위에 세웠다.",
+                "1초 블록. 느껴지지도 않는 수수료. 가스는 ETH.",
+                "별도의 체인 토큰은 없다."],
+               ["한국을 오가는 암호화폐 대부분이 이미 업비트를",
+                "거친다. 이 체인은 그 시장 아래에 새로 까는",
+                "바닥이다 — 그 유동성 전부와 맞닿을 준비가 된.",
+                "길은 여기서 시작된다."]] },
     { d0: 1900, s:  1, name: "Changdeokgung Palace",   ko: "창덕궁",  img: "art/changdeokgung.png", art: hall(),
       blurb: "Built to follow the land rather than flatten it. Its rear garden was kept for the king alone, and the trees there are older than the hands that planted them.",
       /* THREE BLOCKS since 2026-08-31 — VEN: do to this one what was
@@ -259,18 +283,39 @@
              ["One tile is the token. Many tiles,",
               "interlocked, is the community. The whole",
               "roof is the chain. Giwa built the roof,",
-              "and $TILES is what it's made of."]] },
+              "and $TILES is what it's made of."]],
+      koBlurb: "땅을 밀지 않고 땅을 따라 지었다. 후원은 왕만의 것이었고, 그곳의 나무들은 심은 손보다 오래되었다.",
+      koCopy: [["모든 체인 위에는 밈코인이 생긴다. 대부분은",
+                "아무 데서나 마스코트를 빌려와 먹히길 바란다.",
+                "$TILES는 서사를 지어낼 필요가 없다 — Giwa가",
+                "이미 써 두었으니까. 기와는 하입을 타려고",
+                "아무렇게나 고른 상징이 아니다. 체인 그 자체의",
+                "브랜드이자 로고, 창립의 은유다. 팀의 메시지",
+                "그대로. 그것이 차이다."],
+               ["밈코인은 보통 체인 위에 얹혀 있다. $TILES는",
+                "체인의 이야기 안에 있다 — Giwa를 이루는",
+                "구조의 가장 작은 단위로."],
+               ["기와 한 장은 토큰. 맞물린 여러 장은 커뮤니티.",
+                "지붕 전체는 체인. Giwa가 지붕을 올렸고,",
+                "$TILES는 그 지붕을 이루는 조각이다."]] },
     { d0: 2650, s: -1, name: "Namsangol Hanok Village",ko: "남산골",  img: "art/namsangol.png",     art: hanoks(),
       blurb: "Five houses carried stone by stone from across the city and set down together beneath the south mountain, so the old way of living would have somewhere to stand.",
       copy: ["How to reach Giwa chain, and how to swap",
              "once you are on it. The steps are written",
-             "here at launch."] },
+             "here at launch."],
+      koBlurb: "도시 곳곳에서 돌 하나하나 옮겨 온 다섯 채가 남산 아래 나란히 놓였다. 오래된 삶의 방식이 설 자리를 갖도록.",
+      koCopy: ["Giwa 체인에 닿는 법, 그리고 그 위에서",
+               "스왑하는 법. 출시와 함께 이 자리에 적힌다."] },
     { d0: 3500, s:  1, name: "Jeonju Hanok Village",   ko: "전주",    img: "art/jeonju.png",        art: village(),
       blurb: "Eight hundred roofs held in one valley: the largest hanok village left, and the only one where someone still lives behind every door.",
       copy: ["Eight hundred roofs, and not one tile among",
              "them holds alone. Small pieces interlock",
              "into a roof that shelters the whole street.",
-             "Korea has built that way for six centuries."] }
+             "Korea has built that way for six centuries."],
+      koBlurb: "한 골짜기에 담긴 팔백 개의 지붕. 남은 것 중 가장 큰 한옥마을, 그리고 아직 모든 문 뒤에 사람이 사는 유일한 곳.",
+      koCopy: ["지붕 팔백, 그중 홀로 버티는 기와는 한 장도",
+               "없다. 작은 조각들이 맞물려 온 거리를 덮는",
+               "지붕이 된다. 한국은 육백 년을 그렇게 지어 왔다."] }
   ];
 
   /* The paintings are square 1:1, so the panel box is square too and
@@ -536,7 +581,7 @@
         '<svg viewBox="-10 -10 ' + (AW + 20) + " " + (AH + 20) +
         '" aria-hidden="true">' + artOf(sp) + "</svg>" +
         "<figcaption><b>" + sp.name + '</b> · <span lang="ko">' + sp.ko + "</span>" +
-        '<span class="journey__blurb">' + sp.blurb + "</span></figcaption>";
+        '<span class="journey__blurb">' + blurbOf(sp) + "</span></figcaption>";
       holder.appendChild(fig);
       settleArt(fig, sp);
     });
@@ -700,7 +745,7 @@
         '<p class="jsplit__idx">0' + (i + 1) + ' <span>/ 0' + N + "</span></p>" +
         "<h3>" + sp.name + "</h3>" +
         '<p class="jsplit__ko" lang="ko">' + sp.ko + "</p>" +
-        '<p class="jsplit__body">' + sp.blurb + "</p>";
+        '<p class="jsplit__body">' + blurbOf(sp) + "</p>";
       textHost.appendChild(t);
 
       var f = document.createElement("figure");
@@ -1607,7 +1652,7 @@
       var p = document.createElement("p");
       p.className = "jmap__note-p";
       p.style.opacity = "0";
-      p.innerHTML = "<b>" + esc(sp.name) + "</b>" + esc(body);
+      p.innerHTML = "<b>" + esc(LANG_KO ? sp.ko : sp.name) + "</b>" + esc(body);
       noteHost.appendChild(p);
       return p;
     });
@@ -1791,7 +1836,7 @@
             "<h3>" + sp.name + "</h3>" +
             '<p class="jmap__ko" lang="ko">' + sp.ko + "</p>" +
           "</div>" +
-          '<p class="jmap__body">' + sp.blurb + "</p>";
+          '<p class="jmap__body">' + blurbOf(sp) + "</p>";
         host.appendChild(card);
         settleArt(card, sp);
       }

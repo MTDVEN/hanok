@@ -46,6 +46,7 @@ var FILES = [
   "index.html",
   "css/site.css",
   "js/config.js",
+  "js/i18n.js",
   "js/hero.js",
   "js/journey.js",
   "js/chart.js",

@@ -1255,17 +1255,20 @@
         elRoofs = document.getElementById("statRoofs"),
         elHold = document.getElementById("statHolders"),
         elNext = document.getElementById("villageNext");
-    if (elMc)    elMc.textContent = mc > 0 ? fmtMoney(mc) : "at launch";
+    var T = window.HANOK_T || String;
+    if (elMc)    elMc.textContent = mc > 0 ? fmtMoney(mc) : T("at launch");
     if (elRoofs) elRoofs.textContent = String(count);
-    if (elHold)  elHold.textContent = holders > 0 ? holders.toLocaleString("en-US") : "at launch";
+    if (elHold)  elHold.textContent = holders > 0 ? holders.toLocaleString("en-US") : T("at launch");
     if (elNext){
       if (count >= maxRoofs){
-        elNext.textContent = "The field is full. The village endures.";
+        elNext.textContent = T("The field is full. The village endures.");
       } else {
         var toward = mc - count * perRoof,
             pct = Math.min(99, Math.floor(100 * toward / perRoof)),
             at = fmtMoney((count + 1) * perRoof);
-        elNext.textContent = "Next roof rises at " + at + ", " + pct + "% of the way there.";
+        elNext.textContent = window.HANOK_T
+          ? window.HANOK_T("Next roof rises at {at}, {pct}% of the way there.", { at: at, pct: pct })
+          : "Next roof rises at " + at + ", " + pct + "% of the way there.";
       }
     }
   }

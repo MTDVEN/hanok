@@ -100,22 +100,22 @@
   var bar = document.createElement("div");
   bar.id = "devbar";
   bar.innerHTML =
-    '<div class="r"><span class="tag">MARKET CAP</span>' +
-      '<span class="mini" id="dvMini">0 roofs</span>' +
+    '<div class="r"><span class="tag">' + (window.HANOK_T || String)("MARKET CAP") + '</span>' +
+      '<span class="mini" id="dvMini">0 ' + (window.HANOK_T || String)("roofs") + '</span>' +
       '<span class="sp"></span>' +
-      '<button id="dvHide" title="minimise" aria-expanded="true">–</button></div>' +
+      '<button id="dvHide" title="' + (window.HANOK_T || String)("minimise") + '" aria-expanded="true">–</button></div>' +
     '<div class="body">' +
       '<div class="r"><b id="dvMc">$0</b><span class="sp"></span>' +
-        '<span id="dvN">0 / ' + MAX + ' roofs</span></div>' +
+        '<span id="dvN">0 / ' + MAX + ' ' + (window.HANOK_T || String)("roofs") + '</span></div>' +
       '<div class="r"><input type="range" id="dvR" min="0" max="' + MAX + '" step="1" value="0" ' +
         'aria-label="market cap"></div>' +
       '<div class="r">' +
-        '<button id="dvPrev" title="one roof back">◀</button>' +
-        '<button id="dvPlay" title="grow the village">▶ play</button>' +
-        '<button id="dvNext" title="one roof on">▶</button>' +
+        '<button id="dvPrev" title="' + (window.HANOK_T || String)("one roof back") + '">◀</button>' +
+        '<button id="dvPlay" title="' + (window.HANOK_T || String)("grow the village") + '">▶ ' + (window.HANOK_T || String)("play") + '</button>' +
+        '<button id="dvNext" title="' + (window.HANOK_T || String)("one roof on") + '">▶</button>' +
         '<span class="sp"></span>' +
         (DEV ? '<button id="dvNum" title="show build order">#</button>' : '') +
-        '<button id="dvGo" title="scroll to the village">⤓</button>' +
+        '<button id="dvGo" title="' + (window.HANOK_T || String)("scroll to the village") + '">⤓</button>' +
       '</div>' +
     '</div>';
   document.body.appendChild(bar);
@@ -137,8 +137,8 @@
     var mc = n === 0 ? 0 : Math.round((n + 0.5) * PER);
     window.HANOK.setVillage({ marketCap: mc });
     outMc.textContent = fmt(n * PER);
-    outN.textContent = n + " / " + MAX + " roofs";
-    outMini.textContent = n + " roofs";
+    outN.textContent = n + " / " + MAX + " " + (window.HANOK_T || String)("roofs");
+    outMini.textContent = n + " " + (window.HANOK_T || String)("roofs");
     if (numbers) drawNumbers();
   }
 
@@ -169,13 +169,13 @@
   function stop(){
     if (!timer) return;
     clearInterval(timer); timer = null;
-    btnPlay.textContent = "▶ play";
+    btnPlay.textContent = "▶ " + (window.HANOK_T || String)("play");
     btnPlay.classList.remove("on");
   }
   function play(){
     if (timer) { stop(); return; }
     if (+range.value >= MAX){ range.value = 0; apply(0); }
-    btnPlay.textContent = "⏸ pause";
+    btnPlay.textContent = "⏸ " + (window.HANOK_T || String)("pause");
     btnPlay.classList.add("on");
     timer = setInterval(function(){
       if (+range.value >= MAX){ stop(); return; }
@@ -240,7 +240,7 @@
   function setMin(v){
     bar.classList.toggle("min", v);
     btnHide.textContent = v ? "+" : "–";
-    btnHide.title = v ? "expand" : "minimise";
+    btnHide.title = (window.HANOK_T || String)(v ? "expand" : "minimise");
     btnHide.setAttribute("aria-expanded", v ? "false" : "true");
     if (v) stop();          // don't leave a timer running behind a closed panel
   }

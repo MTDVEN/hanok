@@ -6754,6 +6754,112 @@ is in progress" discipline holds.
 
 ---
 
+## 9ak. Session 19, part 3 (2026-09-01) — the site speaks Korean
+
+VEN: *"can you add a button/toggle that translates the whole website
+into korean please?"* Built as `js/i18n.js` + a Korean layer through
+the modules; the toggle is a fixed pill, top right, "한국어" on the
+English site and "English" on the Korean one.
+
+### 1. How it works
+
+- **English is the markup; Korean is a dictionary.** `js/i18n.js`
+  runs SECOND in the body (right after config.js), synchronously —
+  the DOM above is parsed, no other module has run — so the Korean
+  pass lands before first paint and before journey.js reads SPOTS.
+  Three surfaces: static HTML via `data-i18n="key"` attributes;
+  runtime strings via `window.HANOK_T("phrase")` (identity in
+  English — the `(window.HANOK_T||String)(...)` inline form is used
+  where a module has no init to hook); and the journey's copy via
+  `SPOTS[i].koCopy` / `koBlurb`, chosen by `window.HANOK_LANG`.
+- **The Korean notes REFLOW INTO THE CLEARINGS CUT FOR THE ENGLISH**
+  — same box, same fs, same mw; setBlock wraps them with real
+  canvas measureText, so the widths table never enters into it.
+  Hangul runs well under every box's line budget (measured at the
+  dwells: 47 / 24 / 14 / 24px of right slack at 393w, all lines in
+  frame, no overrun warnings). Nothing on the sheet was re-cut and
+  the pipeline was NOT re-run.
+- **The tools never see the Korean.** mapnote, maproute and
+  widths.html lift the English with a bare `/copy:\s*\[/` after
+  `name:` — `koCopy`'s capital C keeps it invisible to them, and it
+  sits AFTER `copy` in each SPOT besides. mapnote re-run after the
+  change: byte-identical plan, no `!` line.
+- Language resolution: `?lang=ko|en` overrides, localStorage
+  `giwa-lang` persists the toggle, English default. The toggle
+  stores the other language and RELOADS — the journey rebuilds the
+  sheet text from scratch on load, which is simpler and safer than
+  re-flowing live SVG mid-scroll.
+- `tools/build.js` FILES carries `js/i18n.js` (the file would
+  silently miss the deploy otherwise — the build copies a list).
+
+### 2. What is deliberately not translated
+
+The drawn `$TILES` wordmark (strokes, not text); the Korean place
+names and the small-caps English captions under the buildings (map
+furniture); og/meta tags (SEO stays English); the noscript line;
+aria-labels (still English); "DEX Screener" and the footer link
+names (product names); and the SECTION EYEBROWS ("여정 · the
+journey", "장부 · the ledger", "마을 · the village") — the
+hangul-plus-english pair is decoration and stays identical in both
+languages, in every mode. (A "길을 걷다" Korean tail was tried on
+the journey's eyebrow and reverted the same hour: the review flagged
+that it made one section's eyebrow translate while the other two
+kept their English tails.)
+
+### 3b. The adversarial review, and what it caught
+
+Two agents — a native-register Korean copywriting pass and a wiring
+sweep. Seven Korean fixes were applied, the load-bearing one being
+the hero tagline: **"한 장의 기와씩" was an English-word-order
+calque; 씩 attaches to the numeral+counter — "기와 한 장씩"** (the
+manifesto already had it right). Also 산과 마주 서다 (particle),
+먹히길 바란다 for "hope it sticks", 생기기 오래전부터, 이어진다 for
+"endures", and "촛불로 쓰다" — which restores the English pun, the
+candlestick chart's candles being the writing. The wiring sweep
+caught: **the toggle was DEAD whenever the URL carried a #fragment**
+(the hero's own scroll cue adds #journey; assigning location.href a
+same-document URL is a fragment navigation, no reload — fixed with
+an explicit reload); the preview slider's play/pause and tooltips,
+the mock chart's "now" axis label, and the CA pill's title tooltip
+(now via data-i18n-title). One accepted residual, on the record:
+nothing MEASURES the Korean against the clearings — the sheet is
+planned for English and the only guard on a future longer Korean
+edit is setBlock's console.warn.
+
+### 3. THE KOREAN COPY IS AN IN-HOUSE TRANSLATION
+
+Made 2026-09-01, reviewed by an adversarial pass, and **not yet
+blessed by Zico** — he is the Korean speaker and the client, and
+every string is replaceable wholesale the moment he sends his own
+words. The notes keep his register: terse, declarative `~다`
+prose, crypto loan-words the Korean market actually uses (업비트,
+두나무, 밈코인, 하입).
+
+### Files (session 19, part 3)
+
+- `js/i18n.js` — **new**: the dictionary, the static pass, HANOK_T,
+  the toggle
+- `index.html` — `data-i18n` keys on every translatable element;
+  the i18n script tag (second, with the ordering note)
+- `js/journey.js` — `koCopy`/`koBlurb` on all four SPOTS; LANG_KO;
+  copyBlocks/copyLines/blurbOf read by language; the strip note's
+  bold lead and both built eyebrows
+- `js/main.js`, `js/chart.js`, `js/village.js`, `js/preview.js` —
+  runtime strings through HANOK_T
+- `css/site.css` — `.lang-toggle` (the CA pill's chrome, top right)
+- `tools/build.js` — FILES + js/i18n.js
+
+### Open
+
+- **Zico's blessing of the Korean.** Until then it is a good
+  translation, not his words.
+- aria-labels and the CA pill's title attribute stay English.
+- The `<title>` in Korean comes out as "기와 $TILES · 한 장의
+  기와씩" (main.js writes the ticker into the title after i18n
+  sets it) — read and accepted.
+
+---
+
 ## LAUNCH DAY — everything still outstanding
 
 VEN, 2026-08-16, wrapping the session: *"all adjustments will be made
