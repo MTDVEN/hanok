@@ -6608,6 +6608,92 @@ back, it exists at commit `886228a`'s loop with the 6px caveat.
 
 ---
 
+## 9ai. Session 19 (2026-09-01) — every stop settles at the zoom it can afford
+
+VEN, on the phone harness: *"at certain scroll thresholds the text
+isnt visible in the lower portions of the page."* Reproduced,
+measured, and it was three findings with one root.
+
+### 1. What was actually happening (393×852, ?glide=0, DOM-measured)
+
+- **The root: a stop's ensemble can outspan the phone frame.** At
+  PHONE_ZOOM 2.1 a 393px frame shows 476 sheet units. The framing
+  (measure(), FRAME_PULL block) must hold seal + name column +
+  caption + note; the bare extents span **461 units at Namsangol
+  (stop 3)** and **475 at Jeonju (stop 4)** — the caption boxes,
+  added to the framing after PHONE_ZOOM 2.1 was tuned to "Jeonju's
+  475 against 476", are what outgrew it. When the extents don't
+  fit, the split-the-difference branch parks the overflow on BOTH
+  edges — so through stop 3's whole dwell (p 0.575–0.675, the zoom
+  plateau) its note ran 4–19px past the right edge, and at stop 4
+  the deficit slid side to side (caption 21px off the left at one
+  threshold, note 8px off the right at another) as the continuous
+  walk carried the frame through the stop.
+- **The tail panned away at full zoom.** Past Jeonju, zoomOf keeps
+  the settle zoom and camAt kept following the road — which bends
+  south-west — so stops 3/4's notes slid out of the right edge and
+  hung there clipped (18–32px) for the whole end pan (p 0.91–1.0).
+- **A measurement trap found on the way** (why §9ae/§9ag audits
+  missed this): finding a stop's settle by marker-to-centre
+  distance lands on the WRONG p — the marker passes near the frame
+  centre mid-travel too, and at the true dwell the camera keeps
+  walking. **The settle is the ZOOM PLATEAU** (read
+  `.jmap__cam`'s computed transform scale); stop 3's is p
+  0.575–0.675, nothing like the 0.74 the distance heuristic gave.
+
+### 2. The fix (js/journey.js only — no pipeline re-run)
+
+- **`zInK[k]` — a per-stop settle zoom**, computed in measure()
+  right where the bare extents already exist: `min(zIn, 1000 /
+  (hi0 − lo0 + 30))`. The framing clamp uses that stop's own frame
+  (`visWK`/`visHK`), and zoomOf eases each half-leg from its
+  stop's zInK to zOut, meeting at zOut mid-leg. Stops 1/2 keep 2.1
+  (spans under 430); stop 3 settles at ~2.05, stop 4 at ~1.98. A
+  desktop's zIn 1.65 shows 606 units and never binds — desktop
+  framing is bit-identical.
+- **The tail pans straight down**: past the last stop camAt holds
+  Jeonju's road x and walks y alone (continuous at the stop, where
+  the road x IS that x). The pan's job was always vertical — paper
+  under Jeonju's caption (§9ab). Applies on desktop too.
+
+### 3. Measured after
+
+Full sweep p 0.02–1.0 at 0.005 steps, both directions of overflow,
+every stop: **stops 2 and 4 clean everywhere; stop 3's dwell now
+−1…+6px** (the +6 momentary, as the zoom starts releasing). What
+remains is departure transit only — an already-read note exiting
+through the right edge as the camera walks on (stop 1: 20px worst,
+p 0.085–0.11; stop 3: 12px worst on the leg toward Jeonju) — the
+note has to leave through some edge, and this is the pan doing it.
+The cost: stop 3's note reads ~10.9px on a 393 phone (was 11.1),
+stop 4's ~7.8 (was 8.25) — whole, instead of larger with its
+line-ends missing.
+
+Also observed in the harness, NOT addressed: the sheet image layer
+sometimes drops to bare parchment for a few seconds at mid-travel
+zooms (terrain gone, road/text/seals still drawn). Same family as
+the .jmap__sheet compositing notes (§7); seen only in tools/
+qa-frame.html captures and live harness views on this machine —
+whether a real phone ever shows it is unverified. The copy itself
+never dropped in any live view.
+
+### Files (session 19)
+
+- `js/journey.js` — `zInK` (declared beside frameOff, set in the
+  framing block, read by zoomOf), `visWK`/`visHK` in the clamp,
+  the tail x-freeze in camAt, and the provenance comments
+- `HANDOFF.md` — this section
+
+### Open
+
+- Stop 1's 20px departure exit and stop 3's 12px transit exit are
+  pan-out behaviour, judged acceptable; the lever if VEN disagrees
+  is starting the zoom-out earlier (ZHOLD) or holding the pull
+  longer past a stop.
+- The harness terrain dropout above — real-phone status unknown.
+
+---
+
 ## LAUNCH DAY — everything still outstanding
 
 VEN, 2026-08-16, wrapping the session: *"all adjustments will be made

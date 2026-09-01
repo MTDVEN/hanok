@@ -1645,6 +1645,11 @@
        the note is in the picture too — set by measure(), see
        FRAME_PULL. Map units. */
     var frameOff = [];
+    /* ...and the settle zoom each stop can afford: min(zIn, the zoom
+       whose frame holds that stop's bare extents plus margin). Set by
+       measure() beside frameOff; read by zoomOf. See the note at its
+       assignment (2026-09-01). */
+    var zInK = [];
     function camAt(len, u){
       /* pull onto the true road point on approach: 1 within 0.10 of a
          stop, released fully by 0.30 into the leg — and, since the
@@ -1655,15 +1660,28 @@
       var k = Math.round(Math.min(u, N - 1)), off = frameOff[k] || { x: 0, y: 0 };
       var dist = Math.abs(Math.min(u, N - 1) - k);
       var w = 1 - smooth(cl((dist - 0.10) / 0.20));
+      /* THE TAIL PANS STRAIGHT DOWN (2026-09-01). Past the last stop
+         the camera keeps the settle zoom (zoomOf) and used to keep
+         following the road too — which bends south-west toward the
+         sheet's foot, so Namsangol's and Jeonju's notes slid out of
+         the right edge at full zoom and hung there, clipped, for the
+         whole end pan (measured 18-32px at 393w). The pan's job is
+         only to put paper under Jeonju's caption (§9ab), which is a
+         move DOWN the sheet — so the tail holds the last stop's x
+         and walks y alone. Continuous at the stop: at len =
+         STOP_LEN[N-1] the road x IS this x. */
+      var tailX = null;
+      if (u > N - 1 && len > STOP_LEN[N - 1]) tailX = pointAt(STOP_LEN[N - 1]).x;
       if (CAMS <= 0){
         var tp = pointAt(len);
-        return { x: tp.x + off.x * w, y: tp.y + off.y * w };
+        return { x: (tailX != null ? tailX : tp.x) + off.x * w, y: tp.y + off.y * w };
       }
       var t = cl(len / TOTAL) * SAMP, i0 = Math.floor(t), f = t - i0;
       var a = camSamples[i0], b = camSamples[Math.min(SAMP, i0 + 1)];
       var sm = { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
       if (w <= 0) return sm;
       var tr = pointAt(len);
+      if (tailX != null) tr = { x: tailX, y: tr.y };
       return { x: sm.x + (tr.x + off.x - sm.x) * w, y: sm.y + (tr.y + off.y - sm.y) * w };
     }
     /* where each stop sits along the road, in length units */
@@ -2025,7 +2043,11 @@
     function zoomOf(u){
       if (u > N - 1) u = N - 1;                 /* the tail keeps the settle zoom */
       var dist = Math.abs(u - Math.round(u));   /* 0 at a stop, .5 mid-leg */
-      return zIn + (zOut - zIn) *
+      /* the NEAREST stop's own settle zoom (zInK) — each half-leg
+         eases from its stop's zoom to zOut, so both halves meet at
+         zOut mid-leg and the curve stays continuous */
+      var zK = zInK[Math.round(u)] || zIn;
+      return zK + (zOut - zK) *
         smooth(cl((dist - ZHOLD * 0.5) / (0.5 - ZHOLD * 0.5)));
     }
 
@@ -2435,8 +2457,25 @@
            clamping on the seal alone put the name off the left edge. */
         var nhw = lq * LSIZE * 0.5;   /* the name column's real half-width */
         var lo0 = Math.min(mx - 15, tx - nhw, blk ? blk.x0 : Infinity, cb ? cb.x0 : Infinity),
-            hi0 = Math.max(mx + 15, tx + nhw, blk ? blk.x1 : -Infinity, cb ? cb.x1 : -Infinity),
-            minC = hi0 - visW / 2 + 12, maxC = lo0 + visW / 2 - 12;
+            hi0 = Math.max(mx + 15, tx + nhw, blk ? blk.x1 : -Infinity, cb ? cb.x1 : -Infinity);
+        /* EACH STOP SETTLES AT ITS OWN ZOOM (2026-09-01, VEN on the
+           phone harness: "at certain scroll thresholds the text isnt
+           visible in the lower portions of the page"). At PHONE_ZOOM
+           2.1 a 393px frame shows 476 units, and the bare extents
+           here span 461 at Namsangol and 475 at Jeonju — so the
+           split-the-difference branch below ran through the WHOLE
+           dwell at those stops, the note's line-ends 8-19px past the
+           right edge (and Jeonju's caption off the left), sliding as
+           the continuous walk carried the frame through the stop.
+           The measure caps cannot fix it: the span is seal-to-note
+           POSITION, mostly, not note width. So the settle zoom gives
+           instead: the deepest that still shows this stop's extents
+           plus breathing room. Stops 1 and 2 stay at PHONE_ZOOM (their
+           spans are under 430); a desktop's zIn 1.65 shows 606 units
+           and never binds. zoomOf and camAt read zInK per stop. */
+        zInK[k] = Math.min(zIn, 1000 / (hi0 - lo0 + 30));
+        var visWK = 1000 / zInK[k], visHK = 1000 * H / (W * zInK[k]);
+        var minC = hi0 - visWK / 2 + 12, maxC = lo0 + visWK / 2 - 12;
         /* (the 6 units of bias toward the seal's side, when they cannot
            all fit, is the name's side bearing: Jeonju's 전 measured 2px
            past the left edge on a phone at an even split, and the
@@ -2454,7 +2493,7 @@
         var nhh = lq * ((lb.sp.ko.length - 1) / 2 * LSIZE * 1.14 + LSIZE * 0.55);
         var lo0Y = Math.min(my - LAND_H, ty - nhh, blk ? blk.y0 : Infinity, cb ? cb.y0 : Infinity),
             hi0Y = Math.max(my + LAND_H, ty + nhh, blk ? blk.y1 : -Infinity, cb ? cb.y1 : -Infinity),
-            minCy = hi0Y - visH / 2 + 12, maxCy = lo0Y + visH / 2 - 12;
+            minCy = hi0Y - visHK / 2 + 12, maxCy = lo0Y + visHK / 2 - 12;
         fyU = minCy <= maxCy ? Math.max(minCy, Math.min(maxCy, fyU)) : maxCy;
         frameOff[k] = { x: (fxU - mx) * FRAME_PULL, y: (fyU - my) * FRAME_PULL };
         /* for QA: the framing's inputs, readable off the DOM */
