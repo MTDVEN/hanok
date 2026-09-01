@@ -300,6 +300,27 @@ a{ color: var(--ink); }
   white-space: nowrap;
 }
 
+/* LANGUAGE TOGGLE (js/i18n.js) — the same pill chrome as the CA,
+   pinned top right where no fixed chrome lives. Always visible:
+   a first-time Korean visitor has to find it before scrolling. */
+.lang-toggle{
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 70;
+  border: 1.5px solid var(--ink);
+  background: var(--paper-light);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: .8rem;
+  letter-spacing: .06em;
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 2px 9px rgba(33,27,17,.22);
+}
+.lang-toggle:active{ transform: translateY(1px); box-shadow: 0 1px 4px rgba(33,27,17,.2); }
+
 /* HERO ---------------------------------------------------------- */
 
 .hero{

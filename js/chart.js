@@ -162,7 +162,7 @@
     var candles = mockCandles(72);
     render(candles, [
       { i: 6,  t: "-16h" }, { i: 24, t: "-12h" },
-      { i: 42, t: "-7h"  }, { i: 60, t: "-3h"  }, { i: 70, t: "now" }
+      { i: 42, t: "-7h"  }, { i: 60, t: "-3h"  }, { i: 70, t: (window.HANOK_T || String)("now") }
     ]);
   }
 
@@ -189,14 +189,14 @@
         }
         render(candles, labels);
         hasLive = true;
-        if (note) note.textContent = "Live from the ledger, redrawn every few minutes.";
+        if (note) note.textContent = (window.HANOK_T || String)("Live from the ledger, redrawn every few minutes.");
       })
       .catch(function(){
         if (hasLive){
           /* keep the last good live render; just say it's paused */
-          if (note) note.textContent = "Last known ledger. Refresh paused.";
+          if (note) note.textContent = (window.HANOK_T || String)("Last known ledger. Refresh paused.");
         } else {
-          if (note) note.textContent = "A preview, drawn in ink. The real ledger begins at launch.";
+          if (note) note.textContent = (window.HANOK_T || String)("A preview, drawn in ink. The real ledger begins at launch.");
           showMock();   // the sheet is never blank
         }
       });

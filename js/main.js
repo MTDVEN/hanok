@@ -100,14 +100,14 @@
   if (pill){
     pill.addEventListener("click", function(){
       if (!CFG.ca){
-        flash("at launch");
+        flash((window.HANOK_T || String)("at launch"));
         return;
       }
       var fail = function(){
-        flash(copyFallback(CFG.ca) ? "copied" : CFG.ca);   // show the real CA if all else fails
+        flash(copyFallback(CFG.ca) ? (window.HANOK_T || String)("copied") : CFG.ca);   // show the real CA if all else fails
       };
       if (navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(CFG.ca).then(function(){ flash("copied"); }, fail);
+        navigator.clipboard.writeText(CFG.ca).then(function(){ flash((window.HANOK_T || String)("copied")); }, fail);
       } else {
         fail();
       }
@@ -117,7 +117,7 @@
   var flashTimer = null;
   function flash(text){
     if (!pillValue) return;
-    var prev = CFG.ca ? CFG.ca.slice(0, 4) + "…" + CFG.ca.slice(-4) : "coming at launch";
+    var prev = CFG.ca ? CFG.ca.slice(0, 4) + "…" + CFG.ca.slice(-4) : (window.HANOK_T || String)("coming at launch");
     pillValue.textContent = text;
     clearTimeout(flashTimer);
     flashTimer = setTimeout(function(){ pillValue.textContent = prev; }, 1400);
