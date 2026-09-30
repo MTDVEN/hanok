@@ -1215,6 +1215,151 @@ a{ color: var(--ink); }
 }
 .manifesto__seal{ margin: 2.4rem auto 0; }
 
+/* HOW TO JOIN (index.html #join) — Namsangol's steps -------------
+   Zico's text, 2026-09-30. A paper card in the ledger's hand, three
+   steps across it (one column on phones). The settings are set in a
+   monospace so 0/O and l/1 can't be misread, and a click selects a
+   whole value (user-select: all) for copying — nothing else to it.
+   `?join=stop` moves the whole section onto the map (.join--stop). */
+.join{ padding: 120px 0 130px; }
+.join__card{
+  width: min(var(--w-wide), 94vw);
+  margin: 44px auto 0;
+  padding: clamp(18px, 3vw, 36px) clamp(16px, 3vw, 40px);
+  background: var(--paper-light);
+  border: 1.5px solid rgba(33,27,17,.55);
+  border-radius: 3px 14px 3px 16px;
+  box-shadow:
+    0 5px 20px rgba(33,27,17,.15),
+    inset 0 0 44px rgba(151,124,82,.16);
+}
+.join__steps{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(22px, 3.4vw, 44px);
+  counter-reset: join-step;
+}
+.join__step{ counter-increment: join-step; min-width: 0; }
+.join__head{
+  display: flex;
+  align-items: baseline;
+  gap: .55rem;
+  font-size: 1.2rem;
+  margin-bottom: .9rem;
+}
+.join__head::before{
+  content: counter(join-step);
+  font-size: 2.1rem;
+  line-height: 1;
+  color: var(--ink-soft);
+}
+/* label over value: a value gets the column's whole width, so a URL
+   stays on one line to be read and copied (side by side, the explorer
+   URL broke after "https://sepolia-" at every desktop width) */
+.join__kv{ margin: 0; }
+.join__kv > div + div{ margin-top: .6rem; }
+.join__kv dt{
+  font-family: var(--font-display);
+  font-size: .7rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.join__kv dd{
+  margin: .1rem 0 0;
+  font-size: .9rem;
+  overflow-wrap: anywhere;
+}
+.join__kv .join__v{
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: .84rem;
+  -webkit-user-select: all;
+          user-select: all;
+  /* a 42-character 0x address is wider than a desktop column: two even
+     halves rather than 41 characters and a lone last one */
+  word-break: break-all;
+  text-wrap: balance;
+}
+.join__step p{
+  font-size: .95rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+.join__step p + p{ margin-top: .45rem; }
+.join__step p + .join__kv, .join__kv + p{ margin-top: .9rem; }
+.join__k{
+  font-family: var(--font-display);
+  font-size: .74rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.join a{ color: var(--ink); text-underline-offset: 3px; }
+.join__step .join__warn{ font-style: italic; color: var(--ink); }
+/* the Korean page (js/i18n.js sets <html lang="ko">): hangul labels
+   without the latin small caps' tracking, and lines broken at spaces
+   only — by default a line broke inside "브리지”는", leaving "는" alone */
+:root[lang="ko"] .join{ word-break: keep-all; }
+:root[lang="ko"] .join__kv dt,
+:root[lang="ko"] .join__k{ letter-spacing: .04em; font-size: .78rem; }
+@media (max-width: 860px){
+  .join{ padding: 90px 0 100px; }
+  .join__steps{ grid-template-columns: 1fr; }
+}
+
+/* ?join=stop — the same section, ON the map at Namsangol (desktop):
+   js/journey.js moves it into .jmap inside .jmap__join and fades it by
+   the camera's distance from the stop, like the old ?info=1 cards. The
+   padding keeps it clear of the language pill (top) and the CA pill
+   (bottom); on a short window the card scrolls inside itself. */
+.jmap__join{
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 64px clamp(16px, 3vw, 44px) 76px;
+  pointer-events: none;
+  z-index: 3;
+}
+.join.join--stop{
+  width: min(400px, 34vw);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: clamp(14px, 1.8vw, 22px) clamp(14px, 2vw, 24px);
+  pointer-events: auto;
+  background: var(--paper-light);
+  border: 1.5px solid rgba(33,27,17,.55);
+  border-radius: 3px 14px 3px 16px;
+  box-shadow: 0 5px 20px rgba(33,27,17,.18), inset 0 0 44px rgba(151,124,82,.16);
+}
+.join--stop .section-head{ padding: 0; text-align: left; }
+.join--stop .eyebrow{ font-size: .7rem; margin-bottom: .35rem; }
+.join--stop h2{ font-size: 1.35rem; }
+.join--stop .section-head h2::after{ width: 64px; margin: .55rem 0 0; }
+.join--stop .join__card{ width: auto; margin: 14px 0 0; padding: 0; background: none; border: 0; box-shadow: none; }
+.join--stop .join__steps{ grid-template-columns: 1fr; gap: 16px; }
+.join--stop .join__head{ font-size: 1rem; margin-bottom: .5rem; }
+.join--stop .join__head::before{ font-size: 1.5rem; }
+.join--stop .join__step p{ font-size: .86rem; line-height: 1.5; }
+.join--stop .join__kv .join__v{ font-size: .76rem; }
+/* label beside value here — the card is a column of the screen, and
+   stacked it ran ~100px past a 900px window; at .76rem the explorer
+   URL still fits beside its label in the 400px card */
+.join--stop .join__kv{
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: .7rem;
+  row-gap: .3rem;
+}
+.join--stop .join__kv > div{ display: contents; }
+.join--stop .join__kv > div + div{ margin-top: 0; }
+.join--stop .join__kv dt{ padding-top: .2em; }
+.join--stop .join__kv dd{ margin: 0; }
+
 /* LEDGER --------------------------------------------------------- */
 
 .ledger{ padding: 40px 0 140px; }

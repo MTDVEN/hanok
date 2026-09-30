@@ -57,9 +57,12 @@ somewhere real.
    in `LETTERS` and is one word away. Render either without a browser
    with `node tools/heropng.js '$TILES'`, and set the SIZE in
    css/site.css `.hero__title` — `?mark=560` tries a width live.
-1. `ca` — the contract address. The floating pill starts copying it.
+1. `ca` — the contract address. The floating pill starts copying it, the
+   "How to join" block (#join) prints it in full, and that block's
+   "Until that line is filled, any other $TILES is not ours." goes away.
 2. `links` — buy / X / dexscreener / telegram. `null` hides footer links
-   and marks hero buttons "at launch".
+   and marks hero buttons "at launch"; `buy` is also the "How to join"
+   block's Buy line.
 3. `chart.pool` — the GeckoTerminal pool address. The ledger switches
    from the mock preview to live candles and refreshes every 2 min.
 4. `village.marketCap` + `village.holders` — until live wiring exists,

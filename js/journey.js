@@ -215,11 +215,20 @@
          about the token, and on the sheet it would read as a brand
          guideline rather than as a note in the margin of a map.
 
-     One gap remains, Zico's to fill and not invented here: Namsangol's
+     One gap remained, Zico's to fill and not invented here: Namsangol's
      steps. He gave the two headings ("How to access Giwa chain", "How
      to swap on Giwa chain") and no steps, and a guessed bridge or DEX
      on a token page is the one mistake that costs somebody money. It
-     says so instead. */
+     said so instead ("The steps are written here at launch.").
+
+     FILLED 2026-09-30 (session 21): Zico's "How to join the community"
+     — network settings, gas, the market. They cannot go ON the sheet:
+     twenty lines and two URLs to copy, against a clearing cut for four
+     lines of printed text. So they are their own section (#join in
+     index.html), and the note now points down the road to it — the
+     same three lines, the last one changed, so it reflows into the
+     clearing it always had. `?join=stop` puts the steps on the map at
+     this stop instead, as a card that replaces the note (JOIN below). */
   var SPOTS = [
     { d0: 1150, s: -1, name: "Gyeongbokgung Palace",   ko: "경복궁",  img: "art/gyeongbokgung.png", art: gate(),
       blurb: "The palace of shining happiness. Six centuries of court and quiet, burned and raised again, still facing the mountain it was built to answer.",
@@ -301,11 +310,11 @@
     { d0: 2650, s: -1, name: "Namsangol Hanok Village",ko: "남산골",  img: "art/namsangol.png",     art: hanoks(),
       blurb: "Five houses carried stone by stone from across the city and set down together beneath the south mountain, so the old way of living would have somewhere to stand.",
       copy: ["How to reach Giwa chain, and how to swap",
-             "once you are on it. The steps are written",
-             "here at launch."],
+             "once you are on it. The steps wait at the",
+             "end of the road."],
       koBlurb: "도시 곳곳에서 돌 하나하나 옮겨 온 다섯 채가 남산 아래 나란히 놓였다. 오래된 삶의 방식이 설 자리를 갖도록.",
       koCopy: ["Giwa 체인에 닿는 법, 그리고 그 위에서",
-               "스왑하는 법. 출시와 함께 이 자리에 적힌다."] },
+               "스왑하는 법. 그 방법은 길 끝에 적혀 있다."] },
     { d0: 3500, s:  1, name: "Jeonju Hanok Village",   ko: "전주",    img: "art/jeonju.png",        art: village(),
       blurb: "Eight hundred roofs held in one valley: the largest hanok village left, and the only one where someone still lives behind every door.",
       copy: ["Eight hundred roofs, and not one tile among",
@@ -1415,6 +1424,15 @@
      dissolve through each other, words may not. */
   var CARD_SPAN = qs("cardspan", 0.40);
   var CARD_RISE = qs("cardrise", 14);
+  /* WHERE NAMSANGOL'S STEPS LIVE (2026-09-30, Zico's "How to join the
+     community" — see the note above SPOTS). `section` (default): their
+     own section after the journey, #join in index.html, and the note on
+     the sheet points to it. `stop`: the same section is moved ONTO the
+     map as a card at Namsangol, fading in and out on the old info
+     cards' curve (CARD_SPAN), and the note it replaces is hidden. Stop
+     is desktop-only: on a phone the card would bury the map, so phones
+     keep the section either way. */
+  var JOIN_STOP = /[?&]join=stop\b/.test(location.search) && window.innerWidth > 860;
   /* a small ink dot at the head of the inked road — "you are here" */
   var WALKER = qs("walker", 1);
   /* the trail ahead: footsteps (default since part 10) or the dotted
@@ -1622,6 +1640,22 @@
       '<div class="jmap__note" aria-hidden="true"></div>' +
       (INFO ? '<div class="jmap__cards"><div class="jmap__stops"></div></div>' : "");
     sticky.appendChild(wrap);
+
+    /* ?join=stop — Namsangol's steps come onto the map (see JOIN_STOP).
+       The whole #join section moves, so the words, the i18n pass that
+       already ran over them and main.js's CA/ticker wiring all come
+       with it; it loses .reveal (its opacity is the camera's now). */
+    var joinBox = null, joinSec = document.getElementById("join"),
+        JOIN_K = SPOTS.map(function(sp){ return sp.name; }).indexOf("Namsangol Hanok Village");
+    if (JOIN_STOP && joinSec && JOIN_K >= 0){
+      joinBox = document.createElement("div");
+      joinBox.className = "jmap__join";
+      joinBox.style.display = "none";
+      joinSec.classList.add("join--stop");
+      Array.prototype.forEach.call(joinSec.querySelectorAll(".reveal"), function(el){ el.classList.remove("reveal"); });
+      joinBox.appendChild(joinSec);
+      wrap.appendChild(joinBox);
+    }
 
     var view   = wrap.querySelector(".jmap__view"),
         cam    = wrap.querySelector(".jmap__cam"),
@@ -2014,8 +2048,9 @@
             gn = document.createElementNS(NS, "g");
             gn.setAttribute("class", "jmap__label jmap__enlab jmap__block");
             /* hidden only when the note write is asked back — see
-               NOTE_WRITE: printed marginalia by default */
-            if (NOTE_WRITE) gn.style.display = "none";
+               NOTE_WRITE: printed marginalia by default — or, at
+               Namsangol under ?join=stop, because the card replaces it */
+            if (NOTE_WRITE || (joinBox && i2 === JOIN_K)) gn.style.display = "none";
           } else if (copy.length){
             var CF = F * 0.80, CLH = CF * 1.42, cg = "";
             copy.forEach(function(line, li){
@@ -2720,6 +2755,13 @@
         while (stepIdx > 0 && steps[stepIdx - 1].len > walked){
           stepIdx--; steps[stepIdx].el.style.display = "";
         }
+      }
+
+      /* ?join=stop: Namsangol's steps come and go on the cards' curve */
+      if (joinBox){
+        var jop = cl((CARD_SPAN - Math.abs(u - JOIN_K)) / (CARD_SPAN * 0.55));
+        setOp(joinBox, jop);
+        if (jop > 0.005) joinSec.style.transform = "translateY(" + ((1 - jop) * CARD_RISE).toFixed(1) + "px)";
       }
 
       var k;

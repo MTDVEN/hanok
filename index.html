@@ -151,6 +151,54 @@ document.documentElement.classList.add("js");
 </section>
 
 <!-- ================================================================
+     HOW TO JOIN — Namsangol's steps, in Zico's words (2026-09-30):
+     "(For Namsangol Hanok Village) How to join the community". Its own
+     section because network settings are for COPYING, and text printed
+     on the map sheet cannot be; the map's note at Namsangol points here
+     ("the steps wait at the end of the road"). `?join=stop` shows this
+     same block on the map at Namsangol instead (desktop; js/journey.js).
+     The settings match docs.giwa.io (checked 2026-09-30). The ticker is
+     CONFIG.token.ticker (.js-ticker: Zico wrote "$TILE"); the CA and the
+     buy link are filled by js/main.js from js/config.js, never typed in.
+================================================================= -->
+<section class="join" id="join" aria-labelledby="joinTitle">
+  <div class="section-head reveal">
+    <p class="eyebrow"><span lang="ko">남산골</span> · namsangol</p>
+    <h2 id="joinTitle" data-i18n="join.h2">How to join the community</h2>
+  </div>
+  <div class="join__card reveal">
+    <ol class="join__steps">
+      <li class="join__step">
+        <h3 class="join__head"><span data-i18n="join.s1">Add GIWA to your MetaMask wallet</span></h3>
+        <dl class="join__kv">
+          <div><dt data-i18n="join.netname">Network name</dt><dd class="join__v">GIWA Sepolia</dd></div>
+          <div><dt>RPC</dt><dd class="join__v">https://sepolia-rpc.giwa.io</dd></div>
+          <div><dt data-i18n="join.chainid">Chain ID</dt><dd class="join__v">91342</dd></div>
+          <div><dt data-i18n="join.symbol">Symbol</dt><dd class="join__v">ETH</dd></div>
+          <div><dt data-i18n="join.explorer">Explorer</dt><dd class="join__v">https://sepolia-explorer.giwa.io</dd></div>
+        </dl>
+        <p class="join__note" data-i18n="join.s1note">Take these from <a href="https://docs.giwa.io/giwa-chain/en/get-started/connect-to-giwa" target="_blank" rel="noopener">docs.giwa.io</a> only.</p>
+      </li>
+      <li class="join__step">
+        <h3 class="join__head"><span data-i18n="join.s2">Get gas</span></h3>
+        <p data-i18n="join.s2a">You need ETH on GIWA to move.</p>
+        <p data-i18n="join.s2b"><span class="join__k">Testnet:</span> faucet on the official GIWA site.</p>
+        <p data-i18n="join.s2c"><span class="join__k">Mainnet:</span> bridge only through the official GIWA / Upbit path we post here. No third-party &ldquo;GIWA bridges.&rdquo;</p>
+      </li>
+      <li class="join__step">
+        <h3 class="join__head"><span data-i18n="join.s3">Open the <span class="js-ticker">$XXX</span> market</span></h3>
+        <p data-i18n="join.s3a">When mainnet <span class="js-ticker">$XXX</span> is live, the buy link and contract address will sit here.</p>
+        <dl class="join__kv">
+          <div><dt>CA</dt><dd class="join__v" id="joinCa">at launch</dd></div>
+          <div><dt data-i18n="join.buy">Buy</dt><dd id="joinBuy">at launch</dd></div>
+        </dl>
+        <p class="join__warn" id="joinWarn" data-i18n="join.s3warn">Until that line is filled, any other <span class="js-ticker">$XXX</span> is not ours.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================================================================
      MANIFESTO — PLACEHOLDER COPY. Replace with Zico's text when it
      arrives; keep it to a few sentences, the section is meant to
      breathe.

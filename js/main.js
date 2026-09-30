@@ -153,4 +153,33 @@
   wire("footDex", links.dexscreener, true);
   wire("footTg", links.telegram, true);
 
+  /* ---- how to join (index.html #join) -----------------------------
+     Zico's step 3 has two lines that are blanks until launch: "CA:
+     [paste official mainnet CA]" and "Buy: [DEX / launchpad link]".
+     They are filled from here, never typed into the markup, so launch
+     day stays the one edit in js/config.js. His closing line — "Until
+     that line is filled, any other $TILES is not ours." — is only true
+     while it is empty, so it leaves when the CA arrives. */
+  var T = window.HANOK_T || String;
+  var joinCa = document.getElementById("joinCa"),
+      joinBuy = document.getElementById("joinBuy"),
+      joinWarn = document.getElementById("joinWarn");
+  if (joinCa){
+    joinCa.textContent = CFG.ca || T("at launch");
+    /* a value to copy is set in the monospace; a placeholder is not */
+    if (!CFG.ca) joinCa.classList.remove("join__v");
+  }
+  if (joinBuy){
+    joinBuy.textContent = "";
+    if (links.buy){
+      var ja = document.createElement("a");
+      ja.href = links.buy;
+      ja.target = "_blank";
+      ja.rel = "noopener";
+      ja.textContent = links.buy.replace(/^https?:\/\//, "");
+      joinBuy.appendChild(ja);
+    } else joinBuy.textContent = T("at launch");
+  }
+  if (joinWarn && CFG.ca) joinWarn.hidden = true;
+
 })();

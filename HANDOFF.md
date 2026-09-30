@@ -39,6 +39,9 @@ PAINTERS NOW, AND EVERY STROKE OF THE TITLE LANDS WHOLE.** Still all on
      1.35, then at VEN's word the same step again → 1.10) and **"여정 ·
      THE JOURNEY" carries its own clearing** (**§9as**;
      `?zoomin=1.65&notepx=0&lqdesk=9` and `?jhead=0` are the old ones).
+  5. Last, **Namsangol's "How to join the community"** — Zico's steps as
+     their own section after the journey, the map's note pointing to it
+     (**§9at**; `?join=stop` puts them on the map at Namsangol instead).
   1,120 credits spent this session, 1,674 left.
 
 **SESSION 20 (2026-09-30), READ FIRST: ALL CURRENT WORK IS ON BRANCH
@@ -333,8 +336,9 @@ history.)
 > show with `?crew=ink`; going live means switching them on by default
 > and merging to main, on my go-ahead.
 >
-> Also open: the X link, the Namsangol "How to join" block (Zico's text
-> is in §9ap.3), and putting the Korean toggle live.
+> Namsangol's "How to join" is built too (§9at): its own section after
+> the journey, `?join=stop` on the map instead. Also open: the X link
+> and putting the Korean toggle live.
 >
 > The village walkers (js/villagers.js, the routes, the vill strips)
 > belong to another developer now (VILLAGERS.md). Don't edit them
@@ -7132,7 +7136,7 @@ title.
 | characters smaller, lettering bigger | done (§9an); to be re-checked on the new title |
 | tiles placed ON something; carriers to the ladder, a pile at its foot, back off frame | the delivery works (§9an); the pile's site and the ladder man are part of the rebuild |
 | the X link | **not done**: `CONFIG.links.x` in js/config.js is still `null`. One line |
-| Namsangol "How to join" | **not done**: the text is in 3, and it needs a design decision first |
+| Namsangol "How to join" | **done in session 21** (§9at): its own section after the journey (`?join=stop` = on the map) |
 | a Korean button | exists since §9ak and is on the preview; **not live** until `main` is pushed |
 | villagers running round the village | built (§9am); **handed to another developer** (5) |
 | "just one is good" (his reply to VEN's video) | **meaning never confirmed**: one style? one carrier? one video? Ask VEN |
@@ -7682,6 +7686,59 @@ Switches: `?zoomin=1.35&notepx=15.5` = step 1 exactly;
 go with this one please."* Pushed to `crew-test` for Zico. **Open**:
 Zico's look.
 
+## 9at. Session 21, part 4 (2026-09-30) — Namsangol's "How to join", at last
+
+VEN re-pasted Zico's text (§9ap.3 has it verbatim; this time the three
+headings are numbered): *"Just one last thing, i pasted this in but we
+forgot to do it last session. can we do this please?"*
+
+**Built — its own section, `#join`, right after the journey** (index.html,
+css `.join`, the CA/Buy wiring in js/main.js, Korean in js/i18n.js):
+eyebrow 남산골 · namsangol, "How to join the community", a paper card in
+the ledger's hand with Zico's three steps side by side (stacked on
+phones). Why not on the map: twenty lines and two URLs to copy, against
+a clearing cut for four lines of printed text that cannot be selected.
+The journey's exit now dissolves into it — the road ends and the steps
+begin.
+
+- **The map's note at Namsangol** was our placeholder ("…The steps are
+  written here at launch.") and now points down the road: *"How to reach
+  Giwa chain, and how to swap once you are on it. The steps wait at the
+  end of the road."* (Korean: "…그 방법은 길 끝에 적혀 있다."). Same
+  clearing; it reflows to four lines with no overflow warning, desktop
+  and phone.
+- **Settings checked against docs.giwa.io** (2026-09-30): GIWA Sepolia,
+  RPC https://sepolia-rpc.giwa.io, chain ID 91342, ETH, explorer
+  https://sepolia-explorer.giwa.io — all match; the docs say mainnet is
+  still under development. Values in a monospace, a click selects a whole
+  value, URLs on one line at every width checked.
+- **`$TILE` → `$TILES`**: Zico wrote the singular; the block writes the
+  ticker from `CONFIG.token.ticker`, so it says $TILES — flagged to VEN,
+  one config word if Zico meant otherwise.
+- **CA and Buy come from js/config.js**, not typed in: "at launch" today;
+  with a CA the address prints in full (a 42-character 0x address splits
+  into two even halves) and *"Until that line is filled, any other $TILES
+  is not ours"* disappears — it is only true while the line is empty.
+  Tested with a fake CA and link injected at load.
+- **`?join=stop`** — the alternative: the same section moved onto the map
+  as a card at Namsangol (right side), fading on the old info cards'
+  curve (CARD_SPAN), replacing the note. Desktop only; a phone keeps the
+  section. It fits a 1440×900 window whole; **on a short 1280×551 window
+  the card scrolls inside itself.**
+- **Korean**: in-house translation like the rest, awaiting Zico. Hangul
+  labels drop the small caps' tracking, and lines break at spaces
+  (`keep-all`, plus a word joiner after the closing quote in "“GIWA
+  브리지”는", where Chrome still broke).
+- Checked from disk (`file://` — the dev server had been stopped for low
+  memory and was not restarted): desktop 1440×900 and 1280×551, a 390px
+  phone, Korean, reduced motion, split and road modes, the stop card
+  hidden at stops 1 and 3 and whole at 2, the build.
+
+**VEN chose the section** (*"push the section one … to the preview url so
+i can show zico and ask"*); pushed to `crew-test`. `?join=stop` stays as
+the alternative. **Open**: Zico's word on it, on the wording (MetaMask
+capitalised, "your" added, $TILES) and on the Korean.
+
 ## LAUNCH DAY — everything still outstanding
 
 VEN, 2026-08-16, wrapping the session: *"all adjustments will be made
@@ -7695,7 +7752,10 @@ token-specific and waits on Zico.
 ### 1. `js/config.js` — the whole launch checklist lives here
 
 - **`ca`** — the contract address. `null` today, which makes the hero
-  pill read "coming at launch". Setting it turns on copy-to-clipboard.
+  pill read "coming at launch". Setting it turns on copy-to-clipboard,
+  prints it in the "How to join" block (§9at) and removes that block's
+  "Until that line is filled…" line. **`links.buy`** is that block's
+  Buy line.
   **It also re-seeds the village** (`assign()` hashes it), so the
   building layout will change the moment the real CA lands. That is by
   design — but if VEN ever falls in love with a particular arrangement,

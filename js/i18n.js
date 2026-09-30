@@ -86,6 +86,25 @@
       "village.roofs": "올린 지붕",
       "village.holders": "마을 사람",
       "village.atlaunch": "출시 때",
+      /* how to join (#join) — Zico's steps, 2026-09-30. The settings
+         themselves (GIWA Sepolia, the URLs, 91342, ETH) stay as they are:
+         a wallet wants them exactly so. .js-ticker spans are kept so
+         main.js still writes the ticker in. */
+      "join.h2": "커뮤니티에 합류하는 법",
+      "join.s1": "메타마스크 지갑에 GIWA 추가하기",
+      "join.netname": "네트워크 이름",
+      "join.chainid": "체인 ID",
+      "join.symbol": "통화 기호",
+      "join.explorer": "블록 탐색기",
+      "join.s1note": '이 값은 <a href="https://docs.giwa.io/giwa-chain/en/get-started/connect-to-giwa" target="_blank" rel="noopener">docs.giwa.io</a>에서만 가져올 것.',
+      "join.s2": "가스 마련하기",
+      "join.s2a": "GIWA에서 움직이려면 ETH가 필요하다.",
+      "join.s2b": '<span class="join__k">테스트넷:</span> 공식 GIWA 사이트의 파우셋.',
+      "join.s2c": '<span class="join__k">메인넷:</span> 브리지는 우리가 이곳에 올리는 공식 GIWA / 업비트 경로로만. 제3자 &ldquo;GIWA 브리지&rdquo;&#8288;는 쓰지 말 것.',
+      "join.s3": '<span class="js-ticker">$XXX</span> 마켓 열기',
+      "join.s3a": '메인넷 <span class="js-ticker">$XXX</span>가 열리면, 구매 링크와 컨트랙트 주소가 이 자리에 놓인다.',
+      "join.buy": "구매",
+      "join.s3warn": '이 줄이 채워지기 전까지, 다른 모든 <span class="js-ticker">$XXX</span>는 우리 것이 아니다.',
       "footer.fine": "커뮤니티 토큰. 어떤 것도 투자 조언이 아니다. 길이 곧 목적지다."
     },
     t: {
