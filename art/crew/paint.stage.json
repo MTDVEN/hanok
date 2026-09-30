@@ -1,0 +1,14 @@
+{
+  "name": "paint",
+  "note": "the svg-unit rectangle [x0, y0, w, h] of $TiLES that the still's frame covers (tools/paintstage.js)",
+  "view": [
+    -64,
+    -45,
+    949.583,
+    530
+  ],
+  "frame": [
+    2752,
+    1536
+  ]
+}
