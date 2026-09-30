@@ -171,6 +171,12 @@ function decodeAll(buf, wantFps){
          any keying) → art/crew/_work/<name>-f<k>.png, to see what the video
          model actually did */
       DUMP = (Q.get("dump") || "").split(",").filter(Boolean).map(Number),
+      /* pace=1: for WALKERS (a walk-in-place clip), measure each figure's
+         ground speed: the planted foot slides backward at exactly the
+         speed the figure would travel, so the median backward step of the
+         lowest foot, frame to frame, in figure-heights per second, is the
+         `pace` js/villagers.js wants (written per figure, `pace`) */
+      PACE = Q.get("pace") === "1",
       SAVE = Q.get("save") !== "0";
   var logEl = document.getElementById("log");
   function log(s){ logEl.textContent += s + "\n"; }
@@ -371,7 +377,10 @@ function decodeAll(buf, wantFps){
   });
   /* a column counts as occupied if at least a few pixels are, summed
      over the clip — a lone speck of compression noise is not a figure */
-  var segs = [], inSeg = false, s0 = 0, MINCOL = 3;
+  /* mincol=: raise it when figures in a row brush each other in passing
+     (a hand swinging past a skirt): a figure fills its columns every frame,
+     a passing touch only for a few (vill2, 2026-09-30: mincol=150) */
+  var segs = [], inSeg = false, s0 = 0, MINCOL = +(Q.get("mincol") || 3);
   for (var x = 0; x <= W; x++){
     var on = x < W && colHit[x] >= MINCOL;
     if (on && !inSeg){ inSeg = true; s0 = x; }
@@ -443,6 +452,36 @@ function decodeAll(buf, wantFps){
     }
     comps = comps.filter(function(c){ return c.n > 0; }).sort(function(a, b){ return b.n - a.n; });
     comps.slice(FIGS).forEach(function(c){ log("  dropped shape at " + c.x0 + "," + c.y0 + " " + (c.x1 - c.x0 + 1) + "x" + (c.y1 - c.y0 + 1) + " (" + c.n + " px over the clip)"); });
+    comps = comps.slice(0, FIGS);
+    /* fewer shapes than figures: two walkers in a row brushed each other
+       somewhere in the clip (vill2: the A-frame man's back foot and the
+       woman's skirt). Cut the widest shape at its emptiest column, away
+       from its edges, until there are enough — a sliver of foot may land
+       on the wrong side; nothing else does */
+    var nextId = comps.reduce(function(m, c){ return Math.max(m, c.id); }, 0);
+    function rebox(id){
+      var c = { id: id, n: 0, x0: W, y0: VH, x1: -1, y1: -1 };
+      for (var q5 = 0; q5 < W * VH; q5++) if (lab[q5] === id && U[q5]){
+        var x6 = q5 % W, y6 = (q5 / W) | 0; c.n++;
+        if (x6 < c.x0) c.x0 = x6; if (x6 > c.x1) c.x1 = x6; if (y6 < c.y0) c.y0 = y6; if (y6 > c.y1) c.y1 = y6;
+      }
+      return c;
+    }
+    while (comps.length && comps.length < FIGS){
+      var wi = 0;
+      comps.forEach(function(c, i){ if (c.x1 - c.x0 > comps[wi].x1 - comps[wi].x0) wi = i; });
+      var cw = comps[wi], xa = cw.x0 + Math.round((cw.x1 - cw.x0) * 0.2), xb = cw.x1 - Math.round((cw.x1 - cw.x0) * 0.2);
+      var cut = xa, cutN = Infinity;
+      for (var x7 = xa; x7 <= xb; x7++){
+        var nn = 0;
+        for (var y7 = cw.y0; y7 <= cw.y1; y7++){ var q7 = y7 * W + x7; if (U[q7] && lab[q7] === cw.id) nn++; }
+        if (nn < cutN){ cutN = nn; cut = x7; }
+      }
+      nextId++;
+      for (var y8 = 0; y8 < VH; y8++) for (var x8 = cut + 1; x8 < W; x8++){ var q8 = y8 * W + x8; if (lab[q8] === cw.id) lab[q8] = nextId; }
+      log("  split the shape at " + cw.x0 + "-" + cw.x1 + " at column " + cut + " (" + cutN + " px over the clip there)");
+      comps.splice(wi, 1, rebox(cw.id), rebox(nextId));
+    }
     comps = comps.slice(0, FIGS).sort(function(a, b){ return (a.x0 + a.x1) - (b.x0 + b.x1); });
     log("found " + comps.length + " figure shape(s): " + comps.map(function(c){ return c.x0 + "," + c.y0 + " " + (c.x1 - c.x0 + 1) + "x" + (c.y1 - c.y0 + 1); }).join(" | "));
     if (comps.length !== FIGS) log("!! expected " + FIGS + " figures — check the key, the stage mask or the clip");
@@ -492,6 +531,49 @@ function decodeAll(buf, wantFps){
   }
   var qaCells = [];
 
+  /* pace=1 — the walker's ground speed off its own feet. In each frame the
+     figure's feet are the columns whose lowest opaque pixel is within 6% of
+     its box's height of the lowest of all; runs of such columns are feet.
+     Frame to frame, each foot is matched to the nearest one; a foot that is
+     planted slides BACKWARD (−x for a figure walking right) while the other
+     swings forward, so the median of the backward moves is the ground
+     speed. Its facing is read off the sign: walkers face right in these
+     stills. */
+  function measurePace(b){
+    var bw = b.x1 - b.x0 + 1, bh = b.y1 - b.y0 + 1, feetPrev = null, back = [];
+    for (var k = 0; k < frames.length; k++){
+      var d = frames[k].data, low = new Int32Array(bw).fill(-1), maxY = -1;
+      for (var x = 0; x < bw; x++){
+        for (var y = b.y1; y >= b.y0; y--){
+          var q = (y * W + b.x0 + x);
+          if ((!b.label || lab[q] === b.label) && d[q * 4 + 3] > 120){ low[x] = y; break; }
+        }
+        if (low[x] > maxY) maxY = low[x];
+      }
+      var feet = [], run = null;
+      for (x = 0; x <= bw; x++){
+        var on = x < bw && low[x] >= 0 && low[x] >= maxY - 0.06 * bh;
+        if (on && !run) run = [x, x];
+        else if (on) run[1] = x;
+        else if (!on && run){ feet.push((run[0] + run[1]) / 2); run = null; }
+      }
+      if (feetPrev) feet.forEach(function(fx){
+        var best = null;
+        feetPrev.forEach(function(px){ if (best === null || Math.abs(px - fx) < Math.abs(best - fx)) best = px; });
+        if (best !== null && Math.abs(fx - best) < 0.25 * bh && fx - best < -0.2) back.push(best - fx);
+      });
+      feetPrev = feet;
+    }
+    if (back.length < 6){ log("  pace: too few planted-foot moves for the figure at " + b.x0 + " (" + back.length + ")"); return undefined; }
+    back.sort(function(p1, p2){ return p1 - p2; });
+    /* the mean of the middle half: a lone median sits on whole pixels */
+    var mid = back.slice(Math.floor(back.length / 4), Math.ceil(back.length * 3 / 4));
+    var v = mid.reduce(function(s, a){ return s + a; }, 0) / mid.length;   // px per sampled frame
+    var p = +(v * OUT_FPS / bh).toFixed(3);
+    log("  pace of the figure at " + b.x0 + ": " + v.toFixed(2) + "px/frame over " + back.length + " moves = " + p + " body-heights/s");
+    return p;
+  }
+
   for (var f = 0; f < figs.length; f++){
     var b = figs[f], bw = b.x1 - b.x0 + 1, bh = b.y1 - b.y0 + 1;
     var FH = KSC ? Math.round(bh * KSC) : H;
@@ -519,7 +601,8 @@ function decodeAll(buf, wantFps){
       sx.drawImage(keyed, b.x0, b.y0, bw, bh, k * fw, 0, fw, FH);
     }
     var file = NAME + "-" + (f + 1) + ".webp";
-    manifest.figures.push({ file: file, w: fw, h: FH,
+    var pace = PACE ? measurePace(b) : undefined;
+    manifest.figures.push({ file: file, w: fw, h: FH, pace: pace,
       seat: STAGE ? undefined : +((SEATY * VH - b.y0) / bh).toFixed(4),
       blue: blueBox(b) || undefined,
       /* where the figure sits in the clip, as fractions of the frame —
