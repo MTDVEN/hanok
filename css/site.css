@@ -396,7 +396,11 @@ a{ color: var(--ink); }
    line, seal on screen, no sideways scroll. A new FONT sets its own
    number here from a cap-height target (~130px on desktop). */
 .hero__title{
-  width: min(var(--mark-w, 760px), 92vw);
+  /* the third term keeps a TALL mark inside the first screen: Zico's
+     lettering (with the S's long tail) is ~1.7:1 where the old letters
+     were ~3.8:1, so at 760px wide it would stand ~450px tall. js/hero.js
+     writes --mark-ar (the box's width/height) from the viewBox. */
+  width: min(var(--mark-w, 760px), 92vw, calc(52svh * var(--mark-ar, 4)));
   margin: 0 auto;
 }
 .hero__title svg{ display: block; width: 100%; height: auto; overflow: visible; }

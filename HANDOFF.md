@@ -6979,6 +6979,27 @@ art/crew/README.md. What changed, all on `crew-test`:
   reference image still has not reached Claude (it arrives as the text
   "[Image #3]" only) — VEN to save it into the project folder.
 
+## 9ao. Session 20, part 4 (2026-09-30) — the title becomes Zico's own brush lettering
+
+Zico's reference finally arrived (art/title/zico-ref.png): a fast, dry
+brush "$TiLES" — two-barred $, lowercase i, streaky E, an S with a long
+dry tail. VEN rejected the Google fonts tried (*"it needs to look
+handwritten and as if it was written with a brush … I need the brush
+strokes"*) and set the order: **the font first, perfected; the
+characters built around it after.** His character brief, for then: two
+laptop-sitters on two letters, legs swinging OUT of sync; two carriers
+walk tiles to the foot of a ladder, leave them, walk back; the man on
+the ladder places a tile on top of the letter it leans on, the tile
+fades, the loop restarts.
+
+Built: the title IS Zico's lettering — traced from the reference
+(tools/title.js → js/title-zico.js) and cut into its 13 brush strokes,
+each uncovered by its own pen in writing order with the nib riding it.
+Default on crew-test; `?title=hand` keeps the earlier brush letters.
+Details: art/title/README.md. The crew still loads on it (`?crew=ink`)
+but was not re-fitted — by VEN's order, that comes after the lettering
+is signed off.
+
 ## LAUNCH DAY — everything still outstanding
 
 VEN, 2026-08-16, wrapping the session: *"all adjustments will be made

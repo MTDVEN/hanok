@@ -308,6 +308,23 @@
     FONT_W = String(TOKEN.titleFont.weight || "");
   }
   var SONG = !!FONT;                        // (the name is historical: "a webfont title")
+
+  /* ZICO'S LETTERING — THE DEFAULT (2026-09-30). Zico sent the $TiLES he
+     wants (art/title/zico-ref.png): a fast, dry brush. VEN: *"it needs
+     to look handwritten and as if it was written with a brush … I need
+     the brush strokes"* — and the title still writes itself. The
+     lettering is Zico's own, traced (tools/title.js → js/title-zico.js)
+     and cut into its 13 brush strokes; each stroke's ink sits behind a
+     mask that its own pen uncovers, in writing order, the nib riding the
+     pen. Every inked pixel belongs to exactly one stroke, so a stroke
+     never uncovers its neighbours' ink early.
+       ?title=hand   the earlier hand-authored brush letters
+       ?titlefont=…  / ?title=song   a webfont, written through a mask */
+  var ZT = window.HANOK_TITLE;
+  var ZICO = !!(ZT && ZT.pens && !SONG && !/[?&]title=hand\b/.test(location.search));
+  /* this lettering is drawn ~2x the old letters' units: the seal, the
+     nib and the pen's pace scale with it */
+  var ZK = ZICO ? 1.45 : 1, VB_H = ZICO ? ZT.h : 176, SEAL_Y = ZICO ? Math.round(ZT.h * 0.47) : 108;
   var songText = null, SONG_BASE = 148, SONG_CAP = 112;
   /* the CSS font shorthand for this face at px size n */
   function fontAt(n){ return (FONT_W ? FONT_W + " " : "") + n + "px '" + FONT + "'"; }
@@ -325,7 +342,7 @@
      ink can be measured on its own (window.HANOK_HERO, below) */
   var letterGroups = [];
   var strokeIdx = 0;
-  if (!SONG) WORD.split("").forEach(function(ch, i){
+  if (!SONG && !ZICO) WORD.split("").forEach(function(ch, i){
     var paths = LETTERS[ch];
     if (!paths) return;
     var x = X0 + i * ADVANCE;
@@ -340,6 +357,38 @@
     });
     letterGroups.push({ ch: ch, i: i, g: lg, half: wMax * SWELL_W / 2 });
   });
+  if (ZICO){
+    /* each stroke: a mask holding its pen, and its own ink behind it;
+       a letter's strokes share a group so the letter can be measured */
+    var zByCh = {}, zOrder = [];
+    ZT.pens.forEach(function(p, n){
+      var ch = p.id.split("-")[0];
+      if (!zByCh[ch]){ zByCh[ch] = el("g", {}, inkGroup); zOrder.push(ch); }
+      var m = el("mask", { id: "zpen" + n, maskUnits: "userSpaceOnUse",
+                           x: "-60", y: "-60", width: String(ZT.w + 120), height: String(ZT.h + 120) }, defs);
+      var pen = el("path", { d: p.c, fill: "none", stroke: "#fff", "stroke-width": String(p.w),
+                             "stroke-linecap": "round", "stroke-linejoin": "round" }, m);
+      var len = pen.getTotalLength();
+      pen.style.strokeDasharray = len + " " + (len + 4);   // see addStroke's note on the gap
+      pen.style.strokeDashoffset = len;
+      var ink = el("path", { d: p.ink, fill: "#211B11", "fill-rule": "evenodd", mask: "url(#zpen" + n + ")" }, zByCh[ch]);
+      /* a quick hand: long strokes do not crawl — the S and its tail
+         land in about half a second */
+      strokes.push({ main: pen, over: null, len: len, swell: null, sLen: 0, userSpace: true, ink: ink,
+                     dur: Math.max(170, Math.min(560, len * 0.95)) });
+    });
+    zOrder.forEach(function(ch, i){ letterGroups.push({ ch: ch, i: i, g: zByCh[ch], half: 0 }); });
+    /* the finished word as ONE outline: 13 shapes that touch leave faint
+       anti-aliasing seams where they meet, so once the pens lift this
+       takes their place (and under reduced motion it is all there is) */
+    var zAll = ZT.all ? el("path", { d: ZT.all, fill: "#211B11", "fill-rule": "evenodd", visibility: "hidden" }, inkGroup) : null;
+  }
+  function zFinish(){
+    if (!ZICO || !zAll) return;
+    zAll.setAttribute("visibility", "visible");
+    /* hidden, not removed: the letters are still measured off them */
+    Object.keys(zByCh).forEach(function(ch){ zByCh[ch].setAttribute("visibility", "hidden"); });
+  }
   if (SONG){
     songText = el("text", {
       x: X0, y: SONG_BASE, fill: "#211B11", filter: "url(#inkRough)",
@@ -371,13 +420,17 @@
      baseline and curls down and back, so it is not what the seal has
      to stand clear of. If getBBox is unavailable — a hidden ancestor
      throws in Firefox — the provisional arithmetic above stands. */
-  var SEAL_AIR = 37, inkRight = 0;
+  var SEAL_AIR = 37 * ZK, inkRight = 0;
   function fitBox(){
     try { var bb = inkGroup.getBBox(); inkRight = bb.x + bb.width; } catch(e){}
     if (inkRight > 0){
       sealX = Math.round(inkRight + SEAL_AIR);
       svg.setAttribute("viewBox",
-        "0 0 " + (STAMP ? sealX + 46 : Math.round(inkRight) + 6) + " 176");
+        "0 0 " + (STAMP ? Math.round(sealX + 46 * ZK) : Math.round(inkRight) + 6) + " " + VB_H);
+      /* the box's aspect, for the CSS that keeps a tall mark inside the
+         first screen (.hero__title in css/site.css) */
+      var vbb = svg.viewBox.baseVal;
+      if (vbb && vbb.height) mount.style.setProperty("--mark-ar", (vbb.width / vbb.height).toFixed(3));
     }
   }
   fitBox();
@@ -556,7 +609,7 @@
     var capR = cx.measureText(capCh).actualBoundingBoxAscent / 200;
     if (capR > 0.3 && capR < 1.2) songText.setAttribute("font-size", (SONG_CAP / capR).toFixed(1));
     fitBox();
-    if (seal) seal.setAttribute("transform", "translate(" + sealX + " 108)" +
+    if (seal) seal.setAttribute("transform", "translate(" + sealX + " " + SEAL_Y + ")" + (ZK !== 1 ? " scale(" + ZK + ")" : "") +
       (seal.getAttribute("opacity") === "1" ? " rotate(-3)" : ""));
   }
   if (!SONG) publish();
@@ -587,13 +640,13 @@
   }
 
   /* nib */
-  var nib = el("circle", { r: "4", fill: "#211B11", opacity: "0" }, svg);
+  var nib = el("circle", { r: String(4 * ZK), fill: "#211B11", opacity: "0" }, svg);
 
   /* seal, stamped after the writing (sealX is set with the viewBox).
      Only built under `?stamp=1` — see STAMP above. */
   var seal = null;
   if (STAMP){
-    seal = el("g", { opacity: "0", transform: "translate(" + sealX + " 108)" }, svg);
+    seal = el("g", { opacity: "0", transform: "translate(" + sealX + " " + SEAL_Y + ")" }, svg);
     el("rect", { x: "-17", y: "-17", width: "34", height: "34", rx: "6", fill: "#8E4A38" }, seal);
     // One source for the glyph: CONFIG.token.seal, resolved (and
     // `?seal=`-overridden) in js/config.js so the stamp here, the map
@@ -627,7 +680,7 @@
     if (!seal) return;                    // `?stamp=1` off — nothing to stamp
     if (instant){
       seal.setAttribute("opacity", "1");
-      seal.setAttribute("transform", "translate(" + sealX + " 108) rotate(-3)");
+      seal.setAttribute("transform", "translate(" + sealX + " " + SEAL_Y + ") rotate(-3) scale(" + ZK + ")");
       return;
     }
     var t0 = null;
@@ -638,7 +691,7 @@
       var s = 1.7 - 0.7 * e;
       seal.setAttribute("opacity", String(Math.min(1, p * 1.6)));
       seal.setAttribute("transform",
-        "translate(" + sealX + " 108) rotate(" + (-8 + 5 * e) + ") scale(" + s + ")");
+        "translate(" + sealX + " " + SEAL_Y + ") rotate(" + (-8 + 5 * e) + ") scale(" + (s * ZK) + ")");
       if (p < 1) requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
@@ -734,7 +787,7 @@
   function plan(){
     var t = START_DELAY;
     timeline = strokes.map(function(s){
-      var dur = Math.max(150, Math.min(460, s.len * 1.7));
+      var dur = s.dur || Math.max(150, Math.min(460, s.len * 1.7));
       var item = { s: s, start: t, dur: dur };
       t += dur + STROKE_GAP;
       return item;
@@ -766,9 +819,10 @@
       requestAnimationFrame(tick);
     });
   } else if (reduced){
+    zFinish();
     strokes.forEach(function(s){
       s.main.style.strokeDashoffset = 0;
-      s.over.style.strokeDashoffset = 0;
+      if (s.over) s.over.style.strokeDashoffset = 0;
       if (s.swell) s.swell.style.strokeDashoffset = 0;
     });
     stampSeal(true);
@@ -830,6 +884,10 @@
       sealDone = true;
       /* the pen has lifted: whatever it did not quite reach is the font's */
       if (penMask) inkGroup.removeAttribute("mask");
+      /* Zico's strokes: every pen has fully uncovered its own ink; the
+         masks come off so the finished title is plain paths */
+      strokes.forEach(function(st){ if (st.ink) st.ink.removeAttribute("mask"); });
+      zFinish();
       stampSeal(false);
       setTimeout(finishHero, 220);
     }

@@ -47,6 +47,7 @@ var FILES = [
   "css/site.css",
   "js/config.js",
   "js/i18n.js",
+  "js/title-zico.js",   // Zico's lettering — without it the hero falls back to the old letters
   "js/hero.js",
   "js/journey.js",
   "js/chart.js",
