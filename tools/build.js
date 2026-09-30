@@ -110,7 +110,7 @@ Object.keys(maps).forEach(function(k){ FILES.push(maps[k].img); });
    directory listing, so a strip no manifest points at (a re-cut left
    behind) never ships — and art/crew/src and _work (Zico's original,
    the stills, the clips) never do. */
-FILES.push("js/crew.js");
+FILES.push("js/crew.js", "js/villagers.js", "art/village/routes.json");
 var CREW = path.join(ROOT, "art", "crew");
 if (fs.existsSync(CREW)) fs.readdirSync(CREW).forEach(function(f){
   if (!/\.json$/.test(f)) return;

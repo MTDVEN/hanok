@@ -69,3 +69,6 @@ art/journey/*-route.png
 # 4MB each and regenerable — their OpenArt URLs are in art/crew/README.md.
 # Zico's original and the two chosen clips live in art/crew/src/ and ARE kept.
 art/crew/_work/
+
+# tools/routes.js --debug output (regenerable)
+art/village/_work/

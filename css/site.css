@@ -1306,6 +1306,31 @@ a{ color: var(--ink); }
 }
 .v-house[hidden]{ display: none; }
 
+/* VILLAGERS (js/villagers.js, crew-test branch). Placed by a per-frame
+   translate from the plate's top-left; the frame box is the crew's own
+   (.v-walker__win shares the .crew__inner rules and crew-frames, further
+   down). They walk only while the plate is on screen (.v-walking) and
+   stand still at a route's end (.is-idle). */
+.v-walker{
+  position: absolute;
+  left: 0; top: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+/* a soft pool of ink under the feet: tan figures on a tan path had
+   nothing to separate them from the ground, and the painted houses
+   all stand on a shadow of their own */
+.v-walker::before{
+  content: "";
+  position: absolute;
+  left: 8%; right: 8%;
+  bottom: -4%;
+  height: 16%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(52, 40, 22, .38), rgba(52, 40, 22, 0));
+}
+.motion-ok .v-walking .v-walker:not(.is-idle) .v-walker__win{ animation-play-state: running; }
+
 /* a roof raised since the last render rises into place */
 .motion-ok .v-house.is-rising{
   opacity: 0;
@@ -1424,32 +1449,42 @@ a{ color: var(--ink); }
 /* THE CREW (js/crew.js, crew-test branch) ------------------------
    Zico's villagers sat on the tops of the letters. The layer is laid
    exactly over the title svg and every figure is placed in % of it,
-   so the crew scales with the title. Each figure is a window one frame
-   wide onto a strip of --n frames; the strip slides by whole frames
-   (steps(n, jump-none) lands on frame 0 and on frame n-1 exactly), and
-   a transform keeps it on the compositor. */
-.hero__title.has-crew{ position: relative; }
-.crew{ position: absolute; inset: 0; pointer-events: none; }
-.crew__fig{
+   so the crew scales with the title. Each figure is a box one frame
+   wide whose BACKGROUND is a strip of --n frames, sized n boxes wide
+   and stepped across by background-position: at p% the offset is
+   -p·(n-1) frames, so steps(n, jump-none) from 0% to 100% lands on
+   frame 0 and on frame n-1 exactly. */
+/* three planes: the walkers behind the ink, the ink, everyone else in
+   front of it */
+.hero__title.has-crew{ position: relative; isolation: isolate; }
+.hero__title.has-crew svg{ position: relative; z-index: 1; }
+.crew{ position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.crew--behind{ z-index: 0; }
+.crew__fig{ position: absolute; }
+/* The frame box. NOT an <img> sliding inside a clipped window: that
+   was the first build, and Chrome dropped the mirrored figures
+   entirely (a 7920px strip hanging thousands of px off-screen, painted
+   or not depending on where it sat). A background never lays out
+   beyond its box, so a mirror is just scaleX(-1) on this small box. */
+.crew__inner,
+.v-walker__win{
   position: absolute;
-  overflow: hidden;
+  inset: 0;
+  background-repeat: no-repeat;
+  background-size: calc(var(--n) * 100%) 100%;
+  background-position: 0% 0;
 }
-.crew__strip{
-  position: absolute;
-  left: 0; top: 0;
-  height: 100%;
-  width: calc(var(--n) * 100%);
-  max-width: none;
-  display: block;
-}
-.motion-ok .crew__strip{
-  animation: crew-play var(--dur) steps(var(--n), jump-none) infinite;
+.crew__inner.is-flipped,
+.v-walker__win.is-flipped{ transform: scaleX(-1); }
+.motion-ok .crew__inner,
+.motion-ok .v-walker__win{
+  animation: crew-frames var(--dur) steps(var(--n), jump-none) infinite;
   animation-play-state: paused;
 }
-.motion-ok .crew--live .crew__strip{ animation-play-state: running; }
-@keyframes crew-play{
-  from{ transform: translateX(0); }
-  to  { transform: translateX(calc(-100% + 100% / var(--n))); }
+.motion-ok .crew--live .crew__inner{ animation-play-state: running; }
+@keyframes crew-frames{
+  from{ background-position: 0% 0; }
+  to  { background-position: 100% 0; }
 }
 /* they climb on after the title is written: a short drop onto the
    letter, as if hopping up onto it. Without motion they are simply
@@ -1460,6 +1495,26 @@ a{ color: var(--ink); }
   transition: opacity .5s ease, transform .6s cubic-bezier(.3, 1.5, .5, 1);
 }
 .motion-ok .crew.is-in .crew__fig{ opacity: 1; transform: none; }
+
+/* CARRIERS travel: the window slides along the ground line by --trip
+   (in its own widths), fading in as they come out of the mist beyond
+   the $ and out as they reach the ladder. `backwards` holds them
+   invisible through their start delay. Without motion they stand part
+   way along with their load. */
+.crew__fig--walk{ transform: translateX(calc(var(--trip) * var(--rest, 0.4))); }
+.motion-ok .crew.is-in .crew__fig--walk{
+  animation: crew-walk var(--walkdur) linear var(--walkdelay) infinite backwards;
+  animation-play-state: paused;
+}
+.motion-ok .crew--live.is-in .crew__fig--walk{ animation-play-state: running; }
+/* 0-70% is the trip (js/crew.js WALK_SHARE), 70-100% the pause */
+@keyframes crew-walk{
+  0%  { transform: translateX(0);           opacity: 0; }
+  6%  { opacity: 1; }
+  63% { opacity: 1; }
+  70% { transform: translateX(var(--trip)); opacity: 0; }
+  100%{ transform: translateX(var(--trip)); opacity: 0; }
+}
 
 /* small screens -------------------------------------------------- */
 

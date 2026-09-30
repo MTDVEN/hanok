@@ -6908,6 +6908,36 @@ Nothing changes without them.
 brush or Song Myung. Then the builders, the carriers and the village
 walkers (art/crew/README.md "Next").
 
+## 9am. Session 20, part 2 (2026-09-30) — the builders, the carriers, and the villagers
+
+**VEN chose ink** (`?crew=ink`): *"Repainting in the site's ink is a
+must, then we can adjust the position and quantity of them later on.
+Lets move onto the next pieces like the builders and the tile carriers
+and villagers."* All three are built, still on `crew-test`:
+
+- **`?crew=ink` is now the whole cast.** Sitters moved to $ T I S; the
+  L is a building site (a ladder leaning on its stem, mirrored, a
+  worker lifting a tile to its top) and a tile-layer kneels on the E;
+  two carriers walk tiles from beyond the $ to the ladder, BEHIND the
+  ink so $TILES stays legible; villagers walk the valley's paths.
+  `?cast=sit,build,carry,village` picks groups. Every placement is one
+  line (`SCENE` in js/crew.js, `WALKERS` in js/villagers.js) — VEN
+  said positions and numbers come later.
+- **Walkers walk in place** (tracking-shot prompt) and travel at the
+  pace MEASURED off their strips (steps × stride), so feet don't slide.
+- **Village routes are found on the painting**: `tools/routes.js`
+  follows the dirt paths by colour → `art/village/routes.json`.
+  Walkers share a ground-line z-order with the houses.
+- **The strip is now a background stepped by background-position**, not
+  an `<img>` sliding in a clipped window: Chrome dropped the mirrored
+  ladder outright (a 7920px image hanging off-screen), depending on
+  where it sat. Recorded in art/crew/README.md "Traps".
+- Verified by real-time CDP captures (headless `--screenshot` fires
+  before big images decode): brush and Song Myung titles, desktop and a
+  true 390px phone, frame-to-frame motion measured per figure, village
+  at 2× density; default page and `?crew=x` unchanged; no new errors.
+- 480 credits this part (860 total, 3,140 left). Heading cast ~2.4MB.
+
 ## LAUNCH DAY — everything still outstanding
 
 VEN, 2026-08-16, wrapping the session: *"all adjustments will be made

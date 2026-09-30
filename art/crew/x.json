@@ -3,6 +3,9 @@
   "fps": 12,
   "frames": 60,
   "h": 120,
+  "k": null,
+  "frameW": 1280,
+  "frameH": 720,
   "figures": [
     {
       "file": "x-1.webp",

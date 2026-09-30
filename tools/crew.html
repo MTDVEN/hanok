@@ -120,6 +120,13 @@ function decodeAll(buf, wantFps){
       FIGS = +(Q.get("figs") || 4),
       FPS  = +(Q.get("fps") || 12),
       H    = +(Q.get("h") || 120),
+      /* k: instead of one height for every figure, keep them at ONE
+         SCALE — strip px per clip px — so a ladder stays taller than
+         the kneeling worker beside it. Overrides h when given. */
+      KSC  = Q.get("k") ? +Q.get("k") : 0,
+      /* q: WebP quality. 0.8 is ~40% lighter than 0.9 and at strip
+         sizes the difference does not show; 0.9 was the first cut. */
+      QUAL = Q.get("q") ? +Q.get("q") : 0.8,
       LO   = +(Q.get("lo") || 24),
       HI   = +(Q.get("hi") || 70),
       /* where the invisible ledge they sit on is, as a fraction of the
@@ -241,32 +248,34 @@ function decodeAll(buf, wantFps){
   var keyed = document.createElement("canvas");
   keyed.width = W; keyed.height = VH;
   var kx = keyed.getContext("2d");
-  var manifest = { clip: SRC, fps: +OUT_FPS.toFixed(3), frames: N, h: H, figures: [] };
+  var manifest = { clip: SRC, fps: +OUT_FPS.toFixed(3), frames: N, h: KSC ? null : H, k: KSC || null,
+                   frameW: W, frameH: VH, figures: [] };
   var qaCells = [];
 
   for (var f = 0; f < figs.length; f++){
     var b = figs[f], bw = b.x1 - b.x0 + 1, bh = b.y1 - b.y0 + 1;
-    var fw = Math.round(bw * H / bh);
+    var FH = KSC ? Math.round(bh * KSC) : H;
+    var fw = Math.round(bw * FH / bh);
     var strip = document.createElement("canvas");
-    strip.width = fw * N; strip.height = H;
+    strip.width = fw * N; strip.height = FH;
     var sx = strip.getContext("2d");
     sx.imageSmoothingEnabled = true; sx.imageSmoothingQuality = "high";
     for (var k = 0; k < N; k++){
       kx.putImageData(frames[k], 0, 0);
-      sx.drawImage(keyed, b.x0, b.y0, bw, bh, k * fw, 0, fw, H);
+      sx.drawImage(keyed, b.x0, b.y0, bw, bh, k * fw, 0, fw, FH);
     }
     var file = NAME + "-" + (f + 1) + ".webp";
-    manifest.figures.push({ file: file, w: fw, h: H,
+    manifest.figures.push({ file: file, w: fw, h: FH,
       seat: +((SEATY * VH - b.y0) / bh).toFixed(4),
       /* where the figure sits in the clip, as fractions of the frame —
          crew.js does not need it, but it records the row's spacing */
       box: [b.x0 / W, b.y0 / VH, bw / W, bh / VH].map(function(n){ return +n.toFixed(4); }) });
     if (SAVE){
-      var blob = await new Promise(function(ok){ strip.toBlob(ok, "image/webp", 0.9); });
+      var blob = await new Promise(function(ok){ strip.toBlob(ok, "image/webp", QUAL); });
       await fetch("/art/crew/" + file, { method: "POST", body: blob });
-      log("saved art/crew/" + file + "  " + strip.width + "x" + H + "  " + Math.round(blob.size / 1024) + "KB");
+      log("saved art/crew/" + file + "  " + strip.width + "x" + FH + "  " + Math.round(blob.size / 1024) + "KB");
     }
-    qaCells.push({ strip: strip, fw: fw });
+    qaCells.push({ strip: strip, fw: fw, fh: FH });
 
     /* live preview on paper and on magenta (a hole shows on magenta) */
     ["paper", "magenta"].forEach(function(bg){
@@ -274,7 +283,7 @@ function decodeAll(buf, wantFps){
       cell.className = "cell cell--" + bg;
       var el = document.createElement("div");
       el.className = "fig";
-      el.style.width = fw + "px"; el.style.height = H + "px";
+      el.style.width = fw + "px"; el.style.height = FH + "px";
       el.style.backgroundImage = "url(" + strip.toDataURL("image/png") + ")";
       el.animate([{ backgroundPosition: "0 0" }, { backgroundPosition: (-fw * N) + "px 0" }],
                  { duration: N / OUT_FPS * 1000, iterations: Infinity, easing: "steps(" + N + ")" });
@@ -285,10 +294,11 @@ function decodeAll(buf, wantFps){
 
   /* QA contact sheet: 6 evenly spaced frames of every figure, on paper
      and on magenta, one figure per row — a still you can judge */
-  var PICK = 6, pad = 8, cw = 0;
+  var PICK = 6, pad = 8, cw = 0, chh = 0;
+  qaCells.forEach(function(c){ chh = Math.max(chh, c.fh); });
   qaCells.forEach(function(c){ cw = Math.max(cw, c.fw); });
   var qa = document.createElement("canvas");
-  qa.width = (cw + pad) * PICK * 2 + pad; qa.height = (H + pad) * qaCells.length + pad;
+  qa.width = (cw + pad) * PICK * 2 + pad; qa.height = (chh + pad) * qaCells.length + pad;
   var qx = qa.getContext("2d");
   qx.fillStyle = "#DFCEA5"; qx.fillRect(0, 0, qa.width / 2, qa.height);
   qx.fillStyle = "#ff00ff"; qx.fillRect(qa.width / 2, 0, qa.width / 2, qa.height);
@@ -296,8 +306,8 @@ function decodeAll(buf, wantFps){
     for (var j = 0; j < PICK; j++){
       var k = Math.round(j * (N - 1) / (PICK - 1));
       for (var side = 0; side < 2; side++){
-        qx.drawImage(c.strip, k * c.fw, 0, c.fw, H,
-          side * qa.width / 2 + pad + j * (cw + pad), pad + r * (H + pad), c.fw, H);
+        qx.drawImage(c.strip, k * c.fw, 0, c.fw, c.fh,
+          side * qa.width / 2 + pad + j * (cw + pad), pad + r * (chh + pad), c.fw, c.fh);
       }
     }
   });
