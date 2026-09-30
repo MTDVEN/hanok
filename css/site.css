@@ -386,9 +386,17 @@ a{ color: var(--ink); }
    painting without an edit — `?mark=460`, `?mark=660`.
 
    The vw ceiling is 84 rather than 74 because six letters need the
-   phone's full measure where two hangul blocks did not. */
+   phone's full measure where two hangul blocks did not.
+
+   2026-09-30, Zico, the other way now that the crew stands on it:
+   *"try again with the lettering being bigger also"* — 760px (caps
+   ~134px, up from ~99) and 92vw on phones (+9.5% there: a phone is
+   width-bound, so the gain is mostly desktop). Measured with the brush
+   letters at 320-1440px wide: still under the eyebrow, over the lore
+   line, seal on screen, no sideways scroll. A new FONT sets its own
+   number here from a cap-height target (~130px on desktop). */
 .hero__title{
-  width: min(var(--mark-w, 560px), 84vw);
+  width: min(var(--mark-w, 760px), 92vw);
   margin: 0 auto;
 }
 .hero__title svg{ display: block; width: 100%; height: auto; overflow: visible; }
@@ -397,7 +405,7 @@ a{ color: var(--ink); }
    two, so the size comes down to match the box above. */
 .hero__title-fallback{
   font-family: var(--font-display);
-  font-size: clamp(2.2rem, 8vw, 3.6rem);
+  font-size: clamp(2.6rem, 11vw, 5rem);
   letter-spacing: .1em;
 }
 .js .hero__title-fallback{ display: none; }
@@ -1496,25 +1504,14 @@ a{ color: var(--ink); }
 }
 .motion-ok .crew.is-in .crew__fig{ opacity: 1; transform: none; }
 
-/* CARRIERS travel: the window slides along the ground line by --trip
-   (in its own widths), fading in as they come out of the mist beyond
-   the $ and out as they reach the ladder. `backwards` holds them
-   invisible through their start delay. Without motion they stand part
-   way along with their load. */
-.crew__fig--walk{ transform: translateX(calc(var(--trip) * var(--rest, 0.4))); }
-.motion-ok .crew.is-in .crew__fig--walk{
-  animation: crew-walk var(--walkdur) linear var(--walkdelay) infinite backwards;
-  animation-play-state: paused;
-}
-.motion-ok .crew--live.is-in .crew__fig--walk{ animation-play-state: running; }
-/* 0-70% is the trip (js/crew.js WALK_SHARE), 70-100% the pause */
-@keyframes crew-walk{
-  0%  { transform: translateX(0);           opacity: 0; }
-  6%  { opacity: 1; }
-  63% { opacity: 1; }
-  70% { transform: translateX(var(--trip)); opacity: 0; }
-  100%{ transform: translateX(var(--trip)); opacity: 0; }
-}
+/* CARRIERS (js/crew.js deliver()) are driven frame by frame from one
+   clock: position, frame and fade are inline styles, so these boxes
+   take no stepping animation, no entrance drop and no transitions —
+   and they stay out of sight until the crew has climbed on. */
+.crew__inner.is-js{ animation: none !important; }
+.crew__fig--js{ transition: none !important; transform: none !important; }
+.motion-ok .crew__fig--js{ opacity: 1; }
+.motion-ok .crew:not(.is-in) .crew__fig--js{ visibility: hidden; }
 
 /* small screens -------------------------------------------------- */
 

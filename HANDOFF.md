@@ -6938,6 +6938,38 @@ and villagers."* All three are built, still on `crew-test`:
   at 2× density; default page and `?crew=x` unchanged; no new errors.
 - 480 credits this part (860 total, 3,140 left). Heading cast ~2.4MB.
 
+## 9an. Session 20, part 3 (2026-09-30) — Zico's second round: smaller people, bigger letters, a real delivery
+
+Zico: characters too big, lettering bigger, $TILES in *"a better font"*
+(his example image did NOT come through — VEN is re-sending it), tiles
+laid ON something, and the carriers to walk up to the ladder, add to a
+pile at its foot and walk back off frame. Three independent plan
+reviews ran first (workflow, 2026-09-30); their findings are folded into
+art/crew/README.md. What changed, all on `crew-test`:
+
+- **Sizes**: title `min(var(--mark-w, 760px), 92vw)`; people 0.42 of
+  the letters' median height, 0.55 on phones (`?crewsize` overrides).
+- **Nothing floats on boxes any more**: js/hero.js rasterises the ink
+  and publishes `topAt/profile/inkIn`; figures rest on the real ink (the
+  $ sitter had floated 15 units). Webfonts that load late re-publish
+  (`hanok:relayout`) and the crew rebuilds.
+- **The delivery** is built end to end: loaded walk in → one-shot
+  drop-off clip (he stacks his A-frame's tiles on the pile; she sets her
+  armful down and pats it) → instant about-face → unloaded walk out.
+  New tool `tools/crewstage.js` makes each drop clip's start/end stills
+  from the walk strips' own frames, so every hand-over is pixel-matched;
+  the schedule is kept in integer ticks (a seconds-based version lost the
+  pile for one frame). `?relay=1`, `?carryplane=front`, `?crewt=`.
+- **The pile's site is measured**: the clear stretch of ground line with
+  the least ink over the crouching carrier — under the T's right arm for
+  the brush letters (the L/E site the plan assumed has 17 units of
+  ground and the L's foot would have hidden the pile).
+- **Builders are out of the default cast** (`?cast=…,build` shows the
+  first ones): they need new art for the new font — a CYAN stand-in cut
+  from the real glyph, a ladder longer than any cap, clipped at the
+  baseline. Waiting on the font.
+- 346 credits this part (1,206 total, 2,794 left).
+
 ## LAUNCH DAY — everything still outstanding
 
 VEN, 2026-08-16, wrapping the session: *"all adjustments will be made

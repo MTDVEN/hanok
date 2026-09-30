@@ -357,9 +357,97 @@
      included); Song Myung glyphs off canvas measureText in the loaded
      face, which is the only place a glyph's ink (not its em box) can
      be read. It resolves once, when the letters are final: at once
-     for the brush, after the face has loaded for `?title=song`. */
+     for the brush, after the face has loaded for `?title=song`.
+
+     A BOX IS NOT A SURFACE. Zico, 2026-09-30, on the crew: *"make sure
+     the ladder guy is placing the tile on the top of something rather
+     than leaving it floating"* — and the laptop-sitter on the $ was
+     floating ~12px, because the $'s box top is the tip of its stem
+     while the curve under her is far lower. So the title's INK is also
+     published: the letters are rasterised once (the brush strokes
+     fully written, rough-edge filter and all; a webfont drawn with
+     fillText in the loaded face) and three questions can be asked of
+     it, all in svg units:
+       topAt(xa, xb)          the highest ink over that span
+       profile(xa, xb)        the top of the ink in each 1-unit column
+       inkIn(x0, y0, x1, y1)  the share of that rect that is ink
+     If the raster fails the helpers fall back to the letter boxes.
+     A late webfont (loaded after the 4s wait) re-publishes and fires
+     `hanok:relayout` on #hero with the new geometry. */
   var readyResolve;
   window.HANOK_HERO = { svg: svg, ready: new Promise(function(r){ readyResolve = r; }) };
+  var INK_S = 2;                       // raster px per svg unit
+  function rasterInk(cb){
+    var vb = svg.viewBox.baseVal, W = Math.ceil(vb.width * INK_S), Hh = Math.ceil(vb.height * INK_S);
+    var cv = document.createElement("canvas"); cv.width = W; cv.height = Hh;
+    var cx = cv.getContext("2d", { willReadFrequently: true });
+    function done(ok){
+      if (!ok) return cb(null);
+      var d = cx.getImageData(0, 0, W, Hh).data, m = new Uint8Array(W * Hh);
+      for (var i = 0; i < m.length; i++) m[i] = d[i * 4 + 3] > 110 ? 1 : 0;
+      cb({ w: W, h: Hh, s: INK_S, m: m });
+    }
+    if (SONG){
+      cx.scale(INK_S, INK_S);
+      cx.font = songText.getAttribute("font-size") + "px 'Song Myung'";
+      for (var i = 0; i < WORD.length; i++){
+        var p; try { p = songText.getStartPositionOfChar(i); } catch(e){ continue; }
+        cx.fillText(WORD.charAt(i), p.x, SONG_BASE);
+      }
+      return done(true);
+    }
+    /* the strokes as they will be once written: a clone with every dash
+       pattern cleared, drawn as an image (SVG-in-<img> keeps the filter) */
+    var clone = svg.cloneNode(true);
+    clone.setAttribute("xmlns", NS);
+    clone.setAttribute("width", W); clone.setAttribute("height", Hh);
+    Array.prototype.forEach.call(clone.querySelectorAll("path"), function(p){
+      p.style.strokeDasharray = "none"; p.style.strokeDashoffset = "0";
+    });
+    Array.prototype.forEach.call(clone.querySelectorAll("circle, text, rect"), function(n){
+      if (!n.closest || !n.closest("defs")) n.parentNode.removeChild(n);
+    });
+    var url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)], { type: "image/svg+xml" }));
+    var img = new Image();
+    img.onload = function(){ cx.drawImage(img, 0, 0, W, Hh); URL.revokeObjectURL(url); done(true); };
+    img.onerror = function(){ URL.revokeObjectURL(url); done(false); };
+    img.src = url;
+  }
+  function inkApi(R, L){
+    function col(x){ return Math.max(0, Math.min(R.w - 1, Math.round(x * R.s))); }
+    function topCol(c){
+      for (var y = 0; y < R.h; y++) if (R.m[y * R.w + c]) return y / R.s;
+      return Infinity;
+    }
+    return {
+      topAt: function(xa, xb){
+        var t = Infinity;
+        for (var c = col(Math.min(xa, xb)); c <= col(Math.max(xa, xb)); c++) t = Math.min(t, topCol(c));
+        return t;
+      },
+      profile: function(xa, xb){
+        var out = [];
+        for (var x = Math.floor(xa); x <= Math.ceil(xb); x++) out.push(topCol(col(x)));
+        return out;
+      },
+      inkIn: function(x0, y0, x1, y1){
+        var a = col(x0), b = col(x1), c0 = Math.max(0, Math.round(y0 * R.s)), c1 = Math.min(R.h - 1, Math.round(y1 * R.s)), n = 0, hit = 0;
+        for (var y = c0; y <= c1; y++) for (var c = a; c <= b; c++){ n++; hit += R.m[y * R.w + c]; }
+        return n ? hit / n : 0;
+      },
+      raster: true
+    };
+  }
+  function boxApi(L){
+    /* no raster: answer from the letter boxes (the old behaviour) */
+    function over(xa, xb){ return L.filter(function(l){ return l.x1 >= xa && l.x0 <= xb; }); }
+    return {
+      topAt: function(xa, xb){ var t = Infinity; over(xa, xb).forEach(function(l){ t = Math.min(t, l.top); }); return t; },
+      profile: function(xa, xb){ var out = []; for (var x = Math.floor(xa); x <= Math.ceil(xb); x++) out.push(this.topAt(x, x)); return out; },
+      inkIn: function(){ return 0; },
+      raster: false
+    };
+  }
   function letterBoxes(){
     var out = [];
     if (SONG){
@@ -385,11 +473,23 @@
     }
     return out;
   }
+  var published = false;
   function publish(){
     var vb = svg.viewBox.baseVal, L = letterBoxes();
-    var t = L.filter(function(l){ return l.ch === "T"; })[0] || L[0];
-    readyResolve({ vbW: vb.width, vbH: vb.height, letters: L,
-                   cap: t ? t.bottom - t.top : 110 });
+    /* the crew's scale comes off the letters' MEDIAN height (not the
+       $, which overshoots): one swash on a new font's T must not grow
+       every figure on the page */
+    var hs = L.filter(function(l){ return l.ch !== "$"; })
+              .map(function(l){ return l.bottom - l.top; }).sort(function(a, b){ return a - b; });
+    var cap = hs.length ? hs[hs.length >> 1] : 110;
+    rasterInk(function(R){
+      var G = { vbW: vb.width, vbH: vb.height, letters: L, cap: cap };
+      var api = R ? inkApi(R, L) : boxApi(L);
+      for (var k in api) G[k] = api[k];
+      window.HANOK_HERO.geom = G;
+      if (!published){ published = true; readyResolve(G); }
+      else { try { hero.dispatchEvent(new CustomEvent("hanok:relayout", { detail: G })); } catch(e){} }
+    });
   }
 
   /* Song Myung arrives by an ASYNC stylesheet (media=print, swapped on
@@ -518,7 +618,10 @@
     if (reduced){
       stampSeal(true);
       finishHero();
-      whenSong(function(){ songFit(); publish(); });
+      whenSong(function(ok){
+        songFit(); publish();
+        if (!ok) document.fonts.load("200px 'Song Myung'", WORD).then(function(){ songFit(); publish(); });
+      });
       return;
     }
     var soft = el("filter", { id: "songSoft", x: "-20%", y: "-20%", width: "140%", height: "140%" }, defs);
@@ -528,8 +631,11 @@
     var wipeR = el("rect", { x: "-40", y: "-40", width: "0", height: "260",
                              fill: "#fff", filter: "url(#songSoft)" }, wipe);
     inkGroup.setAttribute("mask", "url(#songWipe)");
-    whenSong(function(){
+    whenSong(function(ok){
       songFit(); publish();
+      if (!ok) document.fonts.load("200px 'Song Myung'", WORD).then(function(){
+        if (document.fonts.check("200px 'Song Myung'", WORD)){ songFit(); publish(); }
+      });
       var span = svg.viewBox.baseVal.width + 80, t0 = null, DUR = 1500;
       function frame(ts){
         if (t0 === null) t0 = ts;

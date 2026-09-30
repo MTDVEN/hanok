@@ -1,0 +1,24 @@
+{
+  "clip": "art/crew/src/drop-w.mp4",
+  "fps": 12,
+  "frames": 49,
+  "h": null,
+  "k": 0.32,
+  "frameW": 1280,
+  "frameH": 720,
+  "oneshot": true,
+  "figures": [
+    {
+      "file": "drop-w-1.webp",
+      "w": 171,
+      "h": 178,
+      "seat": 0.5486,
+      "box": [
+        0.2375,
+        0.1583,
+        0.418,
+        0.7722
+      ]
+    }
+  ]
+}
