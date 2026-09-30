@@ -1,0 +1,21 @@
+{
+  "note": "The painters' mannequins (tools/paintstage.js guides): flat grey stand-ins drawn over Zico's lettering at the crew's approved size, in the title's svg units — a standing adult 117 tall with a head of r 8 (js/crew.js: SIZE 0.42 x cap x 67/467 = 15.6), the boy 100. Nano Banana 2 was asked to turn each into a villager exactly as big as it; told the size in words it drew everyone ~1.5x (2026-09-30, three tries). Shapes: [\"c\", x, y, r, fill?] a disc; [\"l\", [[x, y], ...], width] a round-capped line; [\"b\", [x, y], [x, y], width, head?] a brush from hand to tip, the last `head` units black bristle; [\"e\", x, y, rx, ry, fill] an ellipse; [\"p\", d, fill] a path.",
+  "mannequins": [
+    { "who": "the boy with the ink pot, painting the foot of the $'s left bar",
+      "shapes": [["c", 62, 360, 7.5], ["l", [[62, 368], [62, 404]], 14], ["l", [[62, 402], [56, 452]], 9], ["l", [[62, 402], [70, 452]], 9],
+                 ["l", [[66, 372], [78, 360], [88, 350]], 6], ["l", [[58, 372], [52, 393]], 6], ["c", 50, 397, 4.5, "#555"], ["b", [88, 350], [100, 337], 2]] },
+    { "who": "the man kneeling on the T's bar, brushing its top, his ink bowl beside him",
+      "shapes": [["c", 214, 18, 8], ["l", [[222, 28], [240, 50]], 14], ["l", [[240, 50], [231, 74], [254, 70]], 9], ["l", [[240, 50], [224, 52], [222, 78]], 9],
+                 ["l", [[222, 30], [206, 48], [198, 62]], 6], ["b", [198, 62], [188, 80], 2.2], ["e", 264, 67, 7, 4, "#555"]] },
+    { "who": "the woman sitting on the E's top arm, legs hanging in front of it, touching up the S",
+      "shapes": [["c", 507, 58, 8], ["l", [[506, 67], [505, 100]], 14], ["l", [[505, 100], [521, 100], [523, 140]], 9], ["l", [[505, 100], [515, 101], [513, 141]], 9],
+                 ["l", [[510, 72], [530, 86], [548, 97]], 6], ["b", [548, 97], [567, 113], 2]] },
+    { "who": "the man with the giant brush, its bristles on the tip of the S's tail",
+      "shapes": [["c", 318, 343, 8], ["l", [[318, 352], [318, 392]], 15], ["l", [[318, 392], [311, 452]], 10], ["l", [[318, 392], [327, 452]], 10],
+                 ["l", [[322, 358], [312, 368], [306, 376]], 6.5], ["l", [[314, 358], [330, 388]], 6.5],
+                 ["l", [[288, 318], [348, 420]], 4.5, "#b08a5a"], ["p", "M344 412 C 360 418 374 438 370 452 C 356 452 342 440 338 424 Z", "#222"]] },
+    { "who": "the woman under the S, a long-handled brush up to its lower curve",
+      "shapes": [["c", 732, 343, 8], ["l", [[732, 352], [732, 392]], 14], ["l", [[732, 392], [725, 452]], 9], ["l", [[732, 392], [741, 452]], 9],
+                 ["l", [[728, 356], [718, 342], [712, 332]], 6], ["l", [[736, 358], [726, 372], [720, 364]], 6], ["b", [722, 368], [692, 254], 2.4, 7]] }
+  ]
+}

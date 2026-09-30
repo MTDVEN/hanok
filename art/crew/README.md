@@ -11,11 +11,26 @@ line of data** (`SCENE` / `DELIVERY` in `js/crew.js`, `WALKERS` in
 `js/villagers.js`).
 
 Zico's second round (2026-09-30): characters smaller, lettering bigger,
-$TILES in *"a better font"* (example image not yet received), tiles laid
-ON something (never mid-air), and the carriers to *"walk up to the guy
-on the ladder, add to a pile of tiles at the bottom of the ladder and
-then walk back off frame (where they rendered in from)"*. Done except the
-font and the builders, which wait for the font (see Next).
+$TILES in *"a better font"*, tiles laid ON something (never mid-air),
+and the carriers to *"walk up to the guy on the ladder, add to a pile of
+tiles at the bottom of the ladder and then walk back off frame (where
+they rendered in from)"*. The sizes and the delivery are done. The font
+became **Zico's own lettering**: his reference arrived the same day
+(`art/title/README.md`), and it is the default title now.
+
+**THE PAINTERS (session 21, 2026-09-30) — the cast now.** VEN: *"change
+the characters in the main hero section to look like they are painting
+the ticker "$TILES" rather than being on a laptop like they are or moving
+tiles around."* Five villagers paint Zico's lettering: a boy with an ink
+pot dabs the foot of the $'s bar; a young man crouched on the T's bar
+brushes its top, his ink bowl beside him; a young woman sits on the E's
+arm touching up the S; a young man sweeps a GIANT brush along the tip of
+the S's tail; a woman reaches up with a long-handled brush to the S's
+lower curve. One still, one loop, painted ONTO the real lettering so
+every brush meets real ink (below: "The painters"). Each arrives the
+moment the stroke he works on has been written. The laptop-sitters, the
+tile delivery and the first builders are all kept (`?cast=sit,carry`,
+`build`); VEN's ladder brief (HANDOFF §9ap.4) is superseded by this one.
 
 ## Look at it
 
@@ -23,16 +38,19 @@ font and the builders, which wait for the font (see Next).
 
 | URL | what |
 |---|---|
-| `index.html?crew=ink` | laptop-sitters on $ T I S, and two carriers delivering tiles to a pile, plus villagers on the village paths |
-| `&cast=sit,carry,build,village` | pick groups. `build` = the FIRST builders, out of the default until redrawn for the new font |
+| `index.html?crew=ink` | **the painters** on the heading (each arrives as his stroke is written), plus villagers on the village paths |
+| `&paintin=end` | the painters arrive together once the title is written (the alternative) |
+| `&cast=paint,sit,carry,build,village` | pick groups. `sit,carry` = the laptop-sitters and the tile delivery (the cast before the painters), `build` = the first builders |
+| `?titlet=770` | freeze the title's writing at 770ms (here: the $'s S down, its bars to come) |
 | `&relay=1` | carriers take turns instead of passing each other |
 | `&carryplane=front` | carriers and pile in front of the letters (default behind, so $TILES stays whole) |
 | `&titlefont=Black+Han+Sans` | $TILES in ANY Google font (`Family:wght@900` for a weight), still written by hand: the glyphs are uncovered through a mask by the brush letters' pen strokes stretched onto each glyph, the nib riding along |
 | `&title=song` | $TILES in Song Myung |
-| `&crewsize=0.5` | people's size (default 0.42; 0.55 on phones ≤560px) |
-| `&crewt=12.5` | freeze the scene at 12.5 s (QA: every hand-over can be screenshotted exactly) |
-| `&motion=0` | one still moment: the first carrier crouched at the pile |
+| `&crewsize=0.5` | the sitters' and carriers' size (default 0.42; 0.55 on phones ≤560px). Not the painters: their size is the size they were painted at |
+| `&crewt=12.5` | freeze the scene at 12.5 s — the carriers' clock and, since session 21, every looping figure's frame (QA) |
+| `&motion=0` | one still moment: the painters on frame 0 (the old cast: the first carrier crouched at the pile) |
 | `index.html?crew=x` | the laptop-sitters as painted on X — the comparison VEN rejected, kept |
+| `index.html?crew=ink&cast=sit,carry&title=hand` | the old cast on the earlier brush letters it was fitted to (on Zico's lettering its pile search fails, a console warning). The painters are never shown on `title=hand` |
 
 Nothing shows without `?crew=`. The live site is untouched.
 
@@ -40,6 +58,7 @@ Nothing shows without `?crew=`. The live site is untouched.
 
 | set | from | clip | strips | on the page |
 |---|---|---|---|---|
+| `paint` | Zico's real lettering + grey mannequins, edited into five painters (`src/still-paint.png`) | `src/paint.mp4` (take 3 of 3) | 5 strips, 243–522KB, 1.75MB in all | the default cast: each painter back on the spot he was painted against |
 | `ink` | Zico's roof post (laptops), repainted | `src/ink-laptops.mp4` | 4 × ~170KB | sit on $, T, I, S |
 | `x` | the same, as painted | `src/x-laptops.mp4` | 4 × ~165KB | `?crew=x` only |
 | `build` | Zico's tiling post, repainted | `src/builders.mp4` | 640 + 390KB | `?cast=…,build` only (to be redrawn) |
@@ -101,14 +120,76 @@ Nothing shows without `?crew=`. The live site is untouched.
 | villagers, ink (3) | `5uuTkHlk1h1NWqEcC1Ig` | A `0gxZDWw68g85h6xcPDfD` |
 | loop clips | `oU96zJhdPwq2vmhxRqjB` x · `iNkqFW58surUEXtC9Kqb` ink · `O7Pn3jujZCCd0DLBdsBd` builders · `ns5qdOVk0yS8WjwlRxEj` carriers · `rTq29WKhgrQpqH9OwJC9` carriers unloaded · `ufOWjxG9EUB1JWnaNbMa` villagers | |
 | drop-offs | `wewepZDqdfIctc7Xr55b` man (5s) · `Mf1EOSBQvWonclnJemym` woman (4s) | |
+| painters, 4K, told the size in words (2) | `s1jM0soOAleJaj0RwCfb` | none: 4K tiling, people ~1.5x |
+| painters, 2K, a yardstick in the words (3) | `rrPn0LRyw8QKddPMBIr4` | A `6Vj4fT58xIYRhMorSmWk`: the staging kept, still ~1.5x |
+| "make them smaller" edit of A (2) | `05M0Crr7d2JnfOB0tr2v` | none: came back unchanged |
+| mannequins + A as a reference (3) | `jEbnsJrNtxD9tMEG4YUf` | none: all three copied A, size and all |
+| **mannequins only** (3) | `98kMn9lyz8DSOLiGAR2w` | **C `ZystbFqPVHfLqM6CgsUu` → `src/still-paint.png`** |
+| painters' loop, 1080p 5s | `ZM6V7jRU03jatB4J1GnR` take 1 · `JRsDJeAtDzHGDmIYmKQ0` takes 2 + 3 | **take 3 `z77HVMkMgSyr8G3qw5jO` → `src/paint.mp4`** |
 
-1,206 credits in all; 2,794 left. One generation at a time.
+1,206 credits in sessions 1–20; 880 in session 21 (the painters: 430 on
+stills, 450 on three 1080p loops); **1,914 left**. One generation at a
+time.
+
+## The painters — how they were made (session 21)
+
+A painter reads as painting only if his brush meets the letter, and a
+figure drawn against a stand-in misses Zico's slanted, ragged strokes. So
+the painters were painted ONTO the real lettering, all five in one still
+and one loop, and each goes back on the page exactly where he was painted:
+
+1. `node tools/paintstage.js make` — the traced title (`js/title-zico.js`
+   `all`) in the site's ink on flat `#00FF00`, 2752×1536, and
+   `art/crew/paint.stage.json`: the rectangle of the title's svg units
+   the frame covers (`view` [-64, -45, 949.6, 530]; 2.9px a unit).
+2. `node tools/paintstage.js guides` — the same plus five flat grey
+   MANNEQUINS from `art/crew/paint.spec.json`, at the crew's approved
+   size (a standing adult 117 units, head r 8; the boy 100), placed and
+   posed, brush tips on the letters. **The mannequins are what set the
+   size** — see Traps.
+3. Nano Banana 2 image2image, 2K, 16:9: `_work/paint-guides.png` + the
+   ink cast's `_work/build-c.png` and `src/still-carry.png` as the style.
+   The prompt: turn each mannequin into a villager EXACTLY as big as it,
+   head where its head is, brush tip where its brush touches; keep every
+   letter exactly; flat green. (Full prompt in the generation record's
+   history on OpenArt.)
+4. `node tools/paintstage.js check <still>` — registers the letters in the
+   returned still against the outlines (the chosen one: scale 1.000,
+   shift 0,0, IoU 0.93 — the painters' own dark hair and outlines are the
+   rest). A still whose letters moved is rejected here.
+5. PixVerse V6 image2video, 1080p, 5s, the still as start AND end frame.
+   PixVerse kept the still's 43:24 exactly (1920×1072), so the clip is a
+   plain scale of the still.
+6. `tools/crew.html?v=art/crew/src/paint.mp4&name=paint&figs=5&k=0.65&stage=paint&dil=6`
+   — finds the lettering in frame 0 by its outlines (scale and shift per
+   axis, searched), lifts it out of every frame (everything darker than
+   `ink`=100 inside the outlines grown `dil` px: the letters are ink like
+   the painters' linework, so they cannot be keyed), separates the
+   figures as connected shapes (`sep=cc`, default with `stage=`), and
+   writes the frame's `view` into `paint.json`.
+7. `js/crew.js` kind `"paint"`: a figure's box in the frame × `view` = its
+   place on the title. `on` is the pen whose stroke brings him in.
+
+Figures, left to right (the strips' numbering): 1 the boy (on `$-left`),
+2 the kneeler (`T-bar`), 3 the giant brush (`S`), 4 the sitter on the E
+(`S` — she touches up the S), 5 the long brush (`S`).
 
 ## How the page does it
 
 - **Frame box**: each figure is a box one frame wide whose *background*
   is the strip, stepped by `background-position`; a mirror is
   `scaleX(-1)` on that box.
+- **Painters are placed by their picture, not by data**: box × `view`.
+  `dx`/`dy` in SCENE nudge one; a new spot means a new still (his brush
+  was painted against THAT ink). They fade in on the spot, never hop (a
+  hop lifts the brush off the ink): `hero.js` records each pen as it
+  lands (`HANOK_HERO.done`, event `hanok:stroke`) and a painter arrives
+  with his `on` pen — the boy as the $'s first bar lands (~1.1s), the
+  kneeler with the T's bar (~1.8s), the other three with the S (~4.4s).
+  `?paintin=end` brings all five in with the finished title instead. They
+  are shown only on Zico's lettering (`HANOK_HERO.zico`): on `?title=hand`
+  they would stand on nothing. The loop is the sitters' CSS stepping;
+  `?crewt=S` now freezes it too.
 - **Standing on the ink, not on boxes**: `js/hero.js` rasterises the
   title once (the brush strokes fully written, filter and all; a
   webfont with fillText) and publishes `topAt / profile / inkIn`.
@@ -127,8 +208,10 @@ Nothing shows without `?crew=`. The live site is untouched.
   pile-widths away. The site: every clear stretch of the ground line
   (on the raster) that fits the pile; winner = least ink over the
   crouching carrier (brush: under the T's right arm).
-- **Sizes**: title `min(760px, 92vw)` (was 560 / 84vw); people 0.42 of
-  the letters' median height, 0.55 on phones.
+- **Sizes**: title `min(var(--mark-w, 760px), 92vw, calc(52svh *
+  var(--mark-ar, 4)))` (was 560 / 84vw; the svh cap keeps the tall
+  lettering on the first screen); people 0.42 of the letters' median
+  height, 0.55 on phones.
 
 ## Traps found on the way
 
@@ -149,17 +232,74 @@ Nothing shows without `?crew=`. The live site is untouched.
   over CDP in real time; **the extension's screenshots are unusable
   here** (see memory `hanok-qa-headless`).
 
+Found making the painters (session 21):
+
+- **Nano Banana 2 at 4K is upscaled in tiles**: the green came back in
+  visibly different patches and one tile (the S's top) blurred, in both
+  variants. Generate at 2K.
+- **The model does not take a size from words.** Told the painters were
+  small (then given a yardstick in the picture, "a standing villager's
+  head no higher than the tips of the $'s bars"), it drew them ~1.5x the
+  approved crew every time. Asked to shrink its own result, it returned
+  it unchanged. Given that result as a character reference beside grey
+  mannequins, it copied the reference wholesale. **Grey mannequins drawn
+  at the right size, with no finished still among the references, is
+  what worked** (all five within ~15% of the target).
+- **A big brush touching a letter makes the video model PAINT it.** In
+  all three loops the giant brush's bristles repainted the S's tail tip as
+  wet strands — and the still already had its bristles widening the tip.
+  That ink is not in the outlines, so it survives the cut and lies over
+  the real tail on the page: it reads as his fresh stroke, and it moves
+  as he works. Asking for "no new ink … he never lifts the brush" calmed
+  the other four, not him. The small brushes added no ink.
+- **WebP is limited to 16383px a side**, and a strip is frames × width:
+  the giant brush at `k=0.8` was 21780px wide. `k=0.65` fits (15480).
+- **PixVerse keeps the still's aspect**: 2752×1536 in, 1920×1072 out (not
+  1080), so `view` needs no crop correction; the cut measures it anyway.
+
 ## Next
 
-- **The font** — Zico's example image hasn't come through yet. Once it
-  is chosen: set the title size from a ~130px desktop cap, check case
-  (Zico wrote "$Tiles"; lookups are case-insensitive, but lowercase
-  tops change every contact), re-check the pile site.
-- **Builders v2, after the font** (review of 2026-09-30): the ladder is
-  only ~0.55 of the letter at the new size, and both builders lay tiles
-  on air. Composite a flat CYAN (not blue: H.264 leaves a teal hairline
-  between blue and green) stand-in cut from the real glyph's edge into
-  the edit input, one builder per still, 9:16 for the ladder man with
-  the ladder drawn longer than any cap (clip it at the baseline on the
-  page); the ladder stands just right of the pile.
-- Weight: 8fps for the slow sets; drop `x` when no longer wanted.
+**The painters are VEN's to judge** (session 21, not yet seen by him):
+
+- the painters themselves, and the arrival: each as his stroke lands
+  (default) or all at the end (`?paintin=end`);
+- size, spots and number. A spot is baked into the still: moving a
+  painter means moving his mannequin in `paint.spec.json` and running the
+  pipeline again (steps 2–6 above); dropping one is deleting his SCENE
+  line; `dx`/`dy` nudge;
+- the giant brush's wet ink over the tail's tip (Traps) — his fresh
+  stroke, or a calmer figure;
+- the seal sits just above the long-brush woman's brush (`?stamp=0`
+  drops it);
+- weight: 1.75MB of strips; `q=0.7` or 8fps would cut it.
+
+**Superseded the same day, kept for the record:** VEN's earlier brief —
+two laptop-sitters out of sync, carriers delivering to the foot of a
+ladder, a ladder man placing a tile that fades (HANDOFF §9ap.4). Its
+recipes, in case it comes back:
+
+- **Two laptop-sitters on two letters, legs NOT in sync.** Keep two of
+  `ink-1..4`. They come from one clip and start together, so today they
+  swing in lockstep; give one a negative `animation-delay` of a whole
+  number of frames (e.g. 23 of 60). Zico's tops are slanted brush ends,
+  so measure them on the raster and show VEN options.
+- **Two carriers walk tiles to the foot of the ladder, leave them and
+  walk back.** `deliver()` does all of this already. The pile's site
+  becomes *the ladder's foot* instead of the searched bay, which fails on
+  the new lettering (`[crew] no clear ground wide enough for the pile`).
+- **The man on the ladder places a tile on top of the letter it leans
+  on; the tile fades; the loop restarts.** This needs new art: the old
+  builders are too small (the ladder is ~0.55 of a letter) and lay tiles
+  on air. The review of 2026-09-30:
+  - composite a flat CYAN stand-in cut from the real glyph's edge into
+    the edit input (not blue: H.264 leaves a teal hairline between blue
+    and green);
+  - one builder per still, 9:16 for the ladder man, with the ladder
+    drawn longer than any cap (clip it at the baseline on the page);
+  - he takes his tile from the carriers' pile;
+  - the placed tile is its own sprite, faded on the carriers' clock so
+    the whole scene stays one loop.
+- **Case**: Zico's lettering has a lowercase i (`ch` "i"). `SCENE`
+  lookups are case-insensitive, but every contact on a lowercase letter
+  differs from the old caps.
+- **Weight**: 8fps for the slow sets; drop `x` when no longer wanted.

@@ -146,6 +146,31 @@ function decodeAll(buf, wantFps){
          (a carrier setting tiles down). Keep every frame, the last one
          included: it is what the next strip has to match. */
       ONESHOT = Q.get("oneshot") === "1",
+      /* stage=<name>: the PAINTERS (tools/paintstage.js). Their clip is
+         Zico's real lettering with the crew painted onto it, so the
+         letters have to come OUT — and they cannot be keyed: they are
+         ink, and so is every painter's linework. They are lifted by their
+         own outlines instead: js/title-zico.js's `all`, laid over frame 0
+         where art/crew/<name>.stage.json says the still's frame put it,
+         nudged (shift and scale, per axis) until it sits on the frame's
+         dark pixels, grown by `dil` px — and inside it, anything darker
+         than `ink` goes. A painter's tan clothes, skin and wooden brush
+         stay, in front of the letter; the brush's black tip on the letter
+         goes, and the page's own letter shows there. The frame's place in
+         the title (`view`, svg units) goes into the manifest. */
+      STAGE = Q.get("stage"),
+      DIL  = +(Q.get("dil") || 4),
+      INKL = +(Q.get("ink") || 100),
+      /* sep=cc: figures are the connected shapes left over (grown by `grp`
+         px so a brush tip parted from its hand stays with it), not the
+         column groups — a painter on a letter and one on the ground below
+         can share columns. The default with stage= */
+      SEP  = Q.get("sep") || (STAGE ? "cc" : "cols"),
+      GRP  = +(Q.get("grp") || 8),
+      /* dump=0,15,30: those frames as they came out of the decoder (before
+         any keying) → art/crew/_work/<name>-f<k>.png, to see what the video
+         model actually did */
+      DUMP = (Q.get("dump") || "").split(",").filter(Boolean).map(Number),
       SAVE = Q.get("save") !== "0";
   var logEl = document.getElementById("log");
   function log(s){ logEl.textContent += s + "\n"; }
@@ -174,6 +199,89 @@ function decodeAll(buf, wantFps){
   work.width = W; work.height = VH;
   var wx = work.getContext("2d", { willReadFrequently: true });
 
+  /* ---- stage=: find the lettering in frame 0, and the mask that lifts it */
+  var LETTERS = null, VIEW = null, REG = null;
+  if (STAGE){
+    var stg = await (await fetch("../art/crew/" + STAGE + ".stage.json")).json();
+    var zsrc = await (await fetch("../js/title-zico.js")).text(), zw = {};
+    new Function("window", zsrc)(zw);
+    var ALL = new Path2D(zw.HANOK_TITLE.all);
+    wx.drawImage(picks[0].bitmap, 0, 0, W, VH);
+    var f0 = wx.getImageData(0, 0, W, VH).data;
+    /* frame 0's dark pixels, at full size and at 1/4 */
+    var D4 = 4, w4 = Math.floor(W / D4), h4 = Math.floor(VH / D4), dark = new Uint8Array(W * VH), dark4 = new Uint8Array(w4 * h4), nd = 0, nd4 = 0;
+    for (var q0 = 0; q0 < W * VH; q0++){
+      var lu = 0.299 * f0[q0 * 4] + 0.587 * f0[q0 * 4 + 1] + 0.114 * f0[q0 * 4 + 2];
+      if (lu < 90){ dark[q0] = 1; nd++; }
+    }
+    for (var y4 = 0; y4 < h4; y4++) for (var x4 = 0; x4 < w4; x4++){
+      var c4 = 0; for (var dy4 = 0; dy4 < D4; dy4++) for (var dx4 = 0; dx4 < D4; dx4++) c4 += dark[(y4 * D4 + dy4) * W + x4 * D4 + dx4];
+      if (c4 * 2 >= D4 * D4){ dark4[y4 * w4 + x4] = 1; nd4++; }
+    }
+    /* the outlines as a pixel list at transform x' = x·sx + ox (px of a
+       canvas `k` times the clip's size) */
+    var cvL = document.createElement("canvas"), cxL = cvL.getContext("2d", { willReadFrequently: true });
+    function letterPx(k, sx, sy){
+      var w = Math.floor(W * k), h = Math.floor(VH * k);
+      cvL.width = w; cvL.height = h;
+      cxL.setTransform(sx * k, 0, 0, sy * k, -stg.view[0] * sx * k, -stg.view[1] * sy * k);
+      cxL.fillStyle = "#000"; cxL.fill(ALL, "evenodd");
+      var dd = cxL.getImageData(0, 0, w, h).data, out = [];
+      for (var q1 = 0; q1 < w * h; q1++) if (dd[q1 * 4 + 3] > 127) out.push(q1 % w, (q1 / w) | 0);
+      return out;
+    }
+    function iou(list, dm, dw, dh, ndk, ox, oy){
+      var inter = 0;
+      for (var j = 0; j < list.length; j += 2){
+        var xx = list[j] + ox, yy = list[j + 1] + oy;
+        if (xx >= 0 && yy >= 0 && xx < dw && yy < dh) inter += dm[yy * dw + xx];
+      }
+      return inter / Math.max(1, list.length / 2 + ndk - inter);
+    }
+    /* coarse: scale ±1% per axis, shift ±16px, at 1/4; then fine at full
+       size around the best. The still's 43:24 frame becomes 16:9 video by
+       a stretch or a crop — this finds whichever it was */
+    var SX0 = W / stg.view[2], SY0 = VH / stg.view[3], best = { v: -1 };
+    for (var fx = -4; fx <= 4; fx++) for (var fy = -4; fy <= 4; fy++){
+      var sx1 = SX0 * (1 + fx * 0.0025), sy1 = SY0 * (1 + fy * 0.0025), L4 = letterPx(1 / D4, sx1, sy1);
+      for (var oy1 = -4; oy1 <= 4; oy1++) for (var ox1 = -4; ox1 <= 4; ox1++){
+        var v1 = iou(L4, dark4, w4, h4, nd4, ox1, oy1);
+        if (v1 > best.v) best = { v: v1, fx: fx, fy: fy, ox: ox1 * D4, oy: oy1 * D4 };
+      }
+    }
+    var fine = { v: -1 };
+    for (var gx = best.fx - 1; gx <= best.fx + 1; gx++) for (var gy = best.fy - 1; gy <= best.fy + 1; gy++){
+      var sx2 = SX0 * (1 + gx * 0.0025), sy2 = SY0 * (1 + gy * 0.0025), L1 = letterPx(1, sx2, sy2);
+      for (var oy2 = best.oy - 3; oy2 <= best.oy + 3; oy2++) for (var ox2 = best.ox - 3; ox2 <= best.ox + 3; ox2++){
+        var v2 = iou(L1, dark, W, VH, nd, ox2, oy2);
+        if (v2 > fine.v) fine = { v: v2, sx: sx2, sy: sy2, ox: ox2, oy: oy2 };
+      }
+    }
+    REG = fine;
+    /* the frame's rectangle of the title, in svg units: pixel x is svg
+       view[0] + x / sx, with the shift folded in */
+    VIEW = [stg.view[0] - fine.ox / fine.sx, stg.view[1] - fine.oy / fine.sy, W / fine.sx, VH / fine.sy];
+    log("letters found in frame 0: IoU " + fine.v.toFixed(3) + ", scale " + (fine.sx / SX0).toFixed(4) + " x " + (fine.sy / SY0).toFixed(4) +
+        ", shift " + fine.ox + "," + fine.oy + " px  -> view " + VIEW.map(function(n){ return n.toFixed(2); }).join(", "));
+    if (fine.v < 0.7) log("!! the letters do not sit where the stage says — check the clip");
+    /* the mask: the outlines at that transform, grown DIL px */
+    cvL.width = W; cvL.height = VH;
+    cxL.setTransform(fine.sx, 0, 0, fine.sy, -VIEW[0] * fine.sx, -VIEW[1] * fine.sy);
+    cxL.fillStyle = "#000"; cxL.fill(ALL, "evenodd");
+    var ml = cxL.getImageData(0, 0, W, VH).data;
+    LETTERS = new Uint8Array(W * VH);
+    for (var q2 = 0; q2 < W * VH; q2++) LETTERS[q2] = ml[q2 * 4 + 3] > 60 ? 1 : 0;
+    for (var pass = 0; pass < DIL; pass++){
+      var grown = LETTERS.slice();
+      for (var yy2 = 1; yy2 < VH - 1; yy2++) for (var xx2 = 1; xx2 < W - 1; xx2++){
+        var o2 = yy2 * W + xx2;
+        if (!LETTERS[o2] && (LETTERS[o2 - 1] || LETTERS[o2 + 1] || LETTERS[o2 - W] || LETTERS[o2 + W] ||
+            (pass % 2 && (LETTERS[o2 - W - 1] || LETTERS[o2 - W + 1] || LETTERS[o2 + W - 1] || LETTERS[o2 + W + 1])))) grown[o2] = 1;
+      }
+      LETTERS = grown;
+    }
+  }
+
   /* ---- 1+2: pull and key every frame ---------------------------- */
   var frames = [], colHit = new Uint32Array(W), prevSum = -1, same = 0;
   /* frame 0's strongly-blue pixels, before keying: where the surface is */
@@ -182,6 +290,11 @@ function decodeAll(buf, wantFps){
     wx.clearRect(0, 0, W, VH);
     wx.drawImage(picks[i].bitmap, 0, 0, W, VH);
     picks[i].bitmap.close();
+    if (DUMP.indexOf(i) >= 0){
+      var raw = await new Promise(function(ok){ work.toBlob(ok, "image/png"); });
+      await fetch("/art/crew/_work/" + NAME + "-f" + i + ".png", { method: "POST", body: raw });
+      log("  dumped frame " + i);
+    }
     var img = wx.getImageData(0, 0, W, VH), d = img.data, sum = 0;
     for (var p = 0; p < d.length; p += 4){
       var r = d[p], g = d[p + 1], b = d[p + 2];
@@ -216,6 +329,9 @@ function decodeAll(buf, wantFps){
         d[p + 1] = Math.max(0, Math.min(255, Math.round(Y - 3)));
         d[p + 2] = Math.max(0, Math.min(255, Math.round(Y - 28)));
       }
+      /* stage=: the lettering goes (after the despill, so its dark-green
+         anti-aliased edge reads as the ink it is) */
+      if (LETTERS && LETTERS[p >> 2] && 0.299 * d[p] + 0.587 * d[p + 1] + 0.114 * d[p + 2] < INKL) a = 0;
       d[p + 3] = Math.round(a * 255);
       sum += d[p + 3];
     }
@@ -293,12 +409,61 @@ function decodeAll(buf, wantFps){
              y0: Math.max(0, y0 - pad), y1: Math.min(VH - 1, y1 + pad) };
   });
 
+  /* sep=cc: the figures are the connected shapes of the clip instead —
+     every pixel seen in any frame, grown GRP px, labelled; the FIGS
+     biggest are the figures, left to right. Each strip then keeps only
+     its own shape's pixels, so a neighbour never bleeds into its box. */
+  var lab = null;
+  if (SEP === "cc"){
+    var U = new Uint8Array(W * VH), G1 = new Uint8Array(W * VH), G2 = new Uint8Array(W * VH);
+    frames.forEach(function(img){ var d = img.data; for (var q3 = 0; q3 < W * VH; q3++) if (d[q3 * 4 + 3] > 40) U[q3] = 1; });
+    for (var y3 = 0; y3 < VH; y3++){
+      for (var x3 = 0, lastOn = -1e9; x3 < W; x3++){ if (U[y3 * W + x3]) lastOn = x3; if (x3 - lastOn <= GRP) G1[y3 * W + x3] = 1; }
+      for (x3 = W - 1, lastOn = 1e9; x3 >= 0; x3--){ if (U[y3 * W + x3]) lastOn = x3; if (lastOn - x3 <= GRP) G1[y3 * W + x3] = 1; }
+    }
+    for (var x5 = 0; x5 < W; x5++){
+      for (var y5 = 0, lastOn2 = -1e9; y5 < VH; y5++){ if (G1[y5 * W + x5]) lastOn2 = y5; if (y5 - lastOn2 <= GRP) G2[y5 * W + x5] = 1; }
+      for (y5 = VH - 1, lastOn2 = 1e9; y5 >= 0; y5--){ if (G1[y5 * W + x5]) lastOn2 = y5; if (lastOn2 - y5 <= GRP) G2[y5 * W + x5] = 1; }
+    }
+    lab = new Int32Array(W * VH);
+    var comps = [];
+    for (var q4 = 0; q4 < W * VH; q4++){
+      if (!G2[q4] || lab[q4]) continue;
+      var cid = comps.length + 1, stack = [q4], cc = { id: cid, n: 0, x0: W, y0: VH, x1: -1, y1: -1 };
+      lab[q4] = cid;
+      while (stack.length){
+        var p4 = stack.pop(), px4 = p4 % W, py4 = (p4 / W) | 0;
+        if (U[p4]){ cc.n++; if (px4 < cc.x0) cc.x0 = px4; if (px4 > cc.x1) cc.x1 = px4; if (py4 < cc.y0) cc.y0 = py4; if (py4 > cc.y1) cc.y1 = py4; }
+        if (px4 > 0 && G2[p4 - 1] && !lab[p4 - 1]){ lab[p4 - 1] = cid; stack.push(p4 - 1); }
+        if (px4 < W - 1 && G2[p4 + 1] && !lab[p4 + 1]){ lab[p4 + 1] = cid; stack.push(p4 + 1); }
+        if (py4 > 0 && G2[p4 - W] && !lab[p4 - W]){ lab[p4 - W] = cid; stack.push(p4 - W); }
+        if (py4 < VH - 1 && G2[p4 + W] && !lab[p4 + W]){ lab[p4 + W] = cid; stack.push(p4 + W); }
+      }
+      comps.push(cc);
+    }
+    comps = comps.filter(function(c){ return c.n > 0; }).sort(function(a, b){ return b.n - a.n; });
+    comps.slice(FIGS).forEach(function(c){ log("  dropped shape at " + c.x0 + "," + c.y0 + " " + (c.x1 - c.x0 + 1) + "x" + (c.y1 - c.y0 + 1) + " (" + c.n + " px over the clip)"); });
+    comps = comps.slice(0, FIGS).sort(function(a, b){ return (a.x0 + a.x1) - (b.x0 + b.x1); });
+    log("found " + comps.length + " figure shape(s): " + comps.map(function(c){ return c.x0 + "," + c.y0 + " " + (c.x1 - c.x0 + 1) + "x" + (c.y1 - c.y0 + 1); }).join(" | "));
+    if (comps.length !== FIGS) log("!! expected " + FIGS + " figures — check the key, the stage mask or the clip");
+    figs = comps.map(function(c){
+      var pad = 2;
+      return { x0: Math.max(0, c.x0 - pad), x1: Math.min(W - 1, c.x1 + pad), y0: Math.max(0, c.y0 - pad), y1: Math.min(VH - 1, c.y1 + pad), label: c.id };
+    });
+  }
+
   /* ---- 4: pack one strip per figure ----------------------------- */
   var keyed = document.createElement("canvas");
   keyed.width = W; keyed.height = VH;
   var kx = keyed.getContext("2d");
   var manifest = { clip: SRC, fps: +OUT_FPS.toFixed(3), frames: N, h: KSC ? null : H, k: KSC || null,
                    frameW: W, frameH: VH, oneshot: ONESHOT || undefined, figures: [] };
+  /* stage=: the frame's rectangle of the title (svg units) — js/crew.js
+     puts every figure back where it was painted: view[0] + box[0]·view[2] … */
+  if (VIEW){
+    manifest.view = VIEW.map(function(n){ return +n.toFixed(3); });
+    manifest.stage = { name: STAGE, iou: +REG.v.toFixed(3), dil: DIL, ink: INKL };
+  }
 
   /* the blue block(s) of frame 0, as one bounding box per figure: the
      strongly-blue pixels in the columns of that figure's segment plus a
@@ -335,13 +500,27 @@ function decodeAll(buf, wantFps){
     strip.width = fw * N; strip.height = FH;
     var sx = strip.getContext("2d");
     sx.imageSmoothingEnabled = true; sx.imageSmoothingQuality = "high";
-    for (var k = 0; k < N; k++){
+    if (b.label){
+      /* sep=cc: only this figure's own shape */
+      var tmp = document.createElement("canvas"); tmp.width = bw; tmp.height = bh;
+      var tmx = tmp.getContext("2d"), tid = tmx.createImageData(bw, bh), td = tid.data;
+      for (var k = 0; k < N; k++){
+        var fd = frames[k].data;
+        for (var yy = 0; yy < bh; yy++) for (var xx = 0; xx < bw; xx++){
+          var so = (b.y0 + yy) * W + b.x0 + xx, dO = (yy * bw + xx) * 4;
+          if (lab[so] === b.label){ td[dO] = fd[so * 4]; td[dO + 1] = fd[so * 4 + 1]; td[dO + 2] = fd[so * 4 + 2]; td[dO + 3] = fd[so * 4 + 3]; }
+          else td[dO + 3] = 0;
+        }
+        tmx.putImageData(tid, 0, 0);
+        sx.drawImage(tmp, 0, 0, bw, bh, k * fw, 0, fw, FH);
+      }
+    } else for (var k = 0; k < N; k++){
       kx.putImageData(frames[k], 0, 0);
       sx.drawImage(keyed, b.x0, b.y0, bw, bh, k * fw, 0, fw, FH);
     }
     var file = NAME + "-" + (f + 1) + ".webp";
     manifest.figures.push({ file: file, w: fw, h: FH,
-      seat: +((SEATY * VH - b.y0) / bh).toFixed(4),
+      seat: STAGE ? undefined : +((SEATY * VH - b.y0) / bh).toFixed(4),
       blue: blueBox(b) || undefined,
       /* where the figure sits in the clip, as fractions of the frame —
          crew.js does not need it, but it records the row's spacing */

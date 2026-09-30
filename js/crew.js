@@ -12,13 +12,14 @@
    pile of tiles at the bottom of the ladder and then walk back off
    frame (where they rendered in from)"*.
 
-     ?crew=ink     the crew, in ink: four laptop-sitters and two tile
-                   carriers who deliver to a pile at the foot of the
-                   building site
+     ?crew=ink     the crew, in ink: the PAINTERS (below)
      ?crew=x       the laptop-sitters only, as painted on @tilesonGIWA
-     ?cast=sit,carry,build   which groups (default sit,carry — the
-                   builders wait to be redrawn for the new font; `build`
-                   still shows the first ones)
+     ?cast=paint,sit,carry,build   which groups (default paint; `sit,carry`
+                   is the laptop-sitters and the tile delivery that came
+                   before, `build` the first builders — all kept)
+     ?paintin=end  the painters arrive together once the title is
+                   written (default `stroke`: each arrives the moment the
+                   stroke he works on has been written)
      ?crewsize=N   people's size as the seated height's fraction of the
                    letters' height (default 0.42; 0.55 on phones, where
                    0.42 leaves a head ~3.5px)
@@ -49,6 +50,19 @@
    SCALE. Every set is drawn at ONE human scale: a figure's height in
    svg units is its height in the clip × HEAD / (head height in that
    clip). HEAD_PX was measured off each set's still.
+
+   THE PAINTERS (VEN, 2026-09-30: *"change the characters … to look like
+   they are painting the ticker "$TILES" rather than being on a laptop
+   like they are or moving tiles around"*). A painter reads as painting
+   only if his brush meets the letter, so they were painted ONTO Zico's
+   real lettering (tools/paintstage.js → one still, one clip, the whole
+   cast) and each comes back to exactly the spot he was painted against:
+   the manifest carries the clip frame's rectangle of the title (`view`,
+   svg units), and a figure's box in that frame maps straight onto the
+   title. So a painter is NOT moved by data the way a sitter is — his
+   place is his picture; `dx`/`dy` nudge, and a new place is a new
+   still. His size follows from the same fact (it is the size he was
+   painted at), not from SIZE.
 ================================================================= */
 
 (function(){
@@ -59,8 +73,9 @@
   if (!m) return;
   var STYLE = m[1];
   var castQ = /[?&]cast=([a-z,]+)/.exec(q);
-  var CAST  = castQ ? castQ[1].split(",") : ["sit", "carry"];
+  var CAST  = castQ ? castQ[1].split(",") : ["paint"];
   if (STYLE === "x") CAST = ["sit"];
+  var PAINT_AT_END = /[?&]paintin=end\b/.test(q);
   var PHONE = !!(window.matchMedia && window.matchMedia("(max-width: 560px)").matches);
   var sizeQ = /[?&]crewsize=([0-9.]+)/.exec(q);
   var SIZE  = sizeQ ? Math.min(1.5, Math.max(0.2, +sizeQ[1])) : (PHONE ? 0.55 : 0.42);
@@ -97,9 +112,22 @@
                     of the frame, after `flip`) to a point of the letter
                     (lx, ly: fractions of its box) + dx, dy; with
                     `rest: true` the point rests on the ink under it.
+     kind "paint" — a painter: back on the spot of the title he was
+                    painted against (his set's `view`), + dx, dy svg
+                    units. `on` is the pen (js/title-zico.js ids) that
+                    must be written before he arrives: the stroke he
+                    stands on AND the one his brush touches.
      `ch` is matched case-insensitively.
   ------------------------------------------------------------------ */
   var SCENE = [
+    /* THE PAINTERS — one clip (art/crew/paint.json), figures numbered
+       left to right as tools/crew.html found them */
+    { group: "paint", set: "paint", fig: 1, kind: "paint", on: "$-left" },  // the boy with the ink pot, at the foot of the $
+    { group: "paint", set: "paint", fig: 2, kind: "paint", on: "T-bar" },   // kneeling on the T's bar, brushing its top
+    { group: "paint", set: "paint", fig: 3, kind: "paint", on: "S" },       // the giant brush, on the tip of the S's tail
+    { group: "paint", set: "paint", fig: 4, kind: "paint", on: "S" },       // sitting on the E's arm, touching up the S
+    { group: "paint", set: "paint", fig: 5, kind: "paint", on: "S" },       // the long brush, up to the S's belly
+
     { group: "sit", set: STYLE, fig: 4, kind: "sit", ch: "$", at: 0.72 },
     { group: "sit", set: STYLE, fig: 1, kind: "sit", ch: "T", at: 0.5 },
     { group: "sit", set: STYLE, fig: 2, kind: "sit", ch: "I", at: 0.5 },
@@ -219,19 +247,31 @@
       return { dx: best, top: G.topAt(xa + best, xb + best) };
     }
 
-    var n = 0;
+    var n = 0, arrivals = [], warnedTitle = false;
     SCENE.forEach(function(a){
       if (CAST.indexOf(a.group) < 0) return;
       var M = man[a.set], f = M && M.figures[a.fig - 1];
       if (!f) return;
-      var L = letter(a.ch);
-      if (!L) return;
-      var clipH = M.frameH || 720;
-      var hU = f.box[3] * clipH * HEAD / HEAD_PX[a.set];
-      var wU = hU * f.w / f.h;
-      var left, top;
+      var left, top, hU, wU, L;
 
-      if (a.kind === "sit"){
+      if (a.kind === "paint"){
+        /* painted against Zico's lettering: meaningless on any other title */
+        if (!H.zico){ if (!warnedTitle) warn("painters are painted onto Zico's lettering — not shown on this title"); warnedTitle = true; return; }
+        if (!M.view){ warn(a.set + ".json has no view: cut it with tools/crew.html ?stage="); return; }
+        var v = M.view, bx = f.box;
+        left = v[0] + bx[0] * v[2] + (a.dx || 0);
+        top  = v[1] + bx[1] * v[3] + (a.dy || 0);
+        wU = bx[2] * v[2]; hU = bx[3] * v[3];
+      } else if (!(L = letter(a.ch))) return;
+      else {
+        var clipH = M.frameH || 720;
+        hU = f.box[3] * clipH * HEAD / HEAD_PX[a.set];
+        wU = hU * f.w / f.h;
+      }
+
+      if (a.kind === "paint"){
+        /* placed above */
+      } else if (a.kind === "sit"){
         var cx = L.x0 + (L.x1 - L.x0) * a.at;
         var r = restOn(cx - 0.3 * wU, cx + 0.3 * wU, Math.round((L.x1 - L.x0) * 0.2));
         if (!isFinite(r.top)){ warn("no ink under the sitter on '" + a.ch + "'"); return; }
@@ -249,12 +289,12 @@
       } else return;
 
       var fig = document.createElement("div");
-      fig.className = "crew__fig";
+      fig.className = "crew__fig" + (a.kind === "paint" ? " crew__fig--paint" : "");
       fig.style.left   = pct(left, G.vbW);
       fig.style.top    = pct(top,  G.vbH);
       fig.style.width  = pct(wU,   G.vbW);
       fig.style.height = pct(hU,   G.vbH);
-      fig.style.transitionDelay = (n++ * 140) + "ms";
+      if (a.kind !== "paint") fig.style.transitionDelay = (n++ * 140) + "ms";
 
       /* the frame box: the strip is its background, stepped across it.
          A flipped figure (the ladder leaning left) mirrors this box. */
@@ -263,9 +303,23 @@
       inner.style.backgroundImage = "url(" + DIR + f.file + ")";
       inner.style.setProperty("--n", M.frames);
       inner.style.setProperty("--dur", (M.frames / M.fps).toFixed(3) + "s");
+      /* ?crewt= freezes the looping figures too, on the frame of that moment */
+      if (FIXED_T != null){ inner.style.animationDelay = (-FIXED_T) + "s"; inner.style.animationPlayState = "paused"; }
       fig.appendChild(inner);
       layer.appendChild(fig);
+
+      /* a painter arrives as soon as the stroke he works on is down (or,
+         ?paintin=end, with everyone once the title is written: the
+         layer's is-in shows him then either way) */
+      if (a.kind === "paint" && !PAINT_AT_END && a.on){
+        if (H.done && H.done[a.on]) fig.classList.add("is-in");
+        else arrivals.push({ on: a.on, fig: fig });
+      }
     });
+    function onStroke(e){
+      arrivals.forEach(function(r){ if (e.detail && e.detail.id === r.on) r.fig.classList.add("is-in"); });
+    }
+    if (arrivals.length) hero.addEventListener("hanok:stroke", onStroke);
 
     var run = DELIVER ? deliver(G, ground, HEAD, FRONT ? layer : back, t0 || 0) : null;
 
@@ -306,6 +360,7 @@
            this build must never wake up again */
         dead = true;
         hero.removeEventListener("hanok:written", enter);
+        hero.removeEventListener("hanok:stroke", onStroke);
         var t = run ? run.clock() : 0;
         if (run) run.live(false);
         if (io) io.disconnect();

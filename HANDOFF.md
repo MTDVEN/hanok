@@ -6,6 +6,54 @@ assets, what was already reviewed/fixed (and what was deliberately NOT
 fixed), and the exact next steps. `README.md` is the short ops sheet;
 this file is the deep context.
 
+**SESSION 21 (2026-09-30, evening), READ FIRST: THE CHARACTERS ARE
+PAINTERS NOW, AND EVERY STROKE OF THE TITLE LANDS WHOLE.** Still all on
+`crew-test`, still none of it live. VEN asked for two things, and
+**§9aq** is the record of both:
+
+  1. *"change the characters in the main hero section to look like they
+     are painting the ticker "$TILES" rather than being on a laptop like
+     they are or moving tiles around."* Five villagers now paint Zico's
+     lettering, each arriving the moment the stroke he works on is
+     written (`?paintin=end`: together at the end). They were painted
+     ONTO the real lettering — one still, one loop — so every brush meets
+     real ink, and each is put back exactly where he was painted. **This
+     supersedes VEN's ladder brief of §9ap.4**; the laptop-sitters and
+     the tile delivery are kept (`?cast=sit,carry`).
+  2. *"during its animation parts of the strokes are missing … I want
+     each stroke to be full with no gaps."* A crossing now belongs to the
+     stroke written first, within that stroke's own measured brush
+     width. `?titlet=770` shows the $'s S whole before its bars.
+
+  The pipeline for new figures is `tools/paintstage.js` (make → guides →
+  check) and `tools/crew.html ?stage=`, in art/crew/README.md "The
+  painters". **The one lesson worth carrying: OpenArt will not take a
+  figure's SIZE from words — draw grey mannequins at the size.** 880
+  credits spent, 1,914 left.
+
+**SESSION 20 (2026-09-30), READ FIRST: ALL CURRENT WORK IS ON BRANCH
+`crew-test`, AND NONE OF IT IS LIVE.** In one day, Zico's characters were
+animated on the $TILES heading (the crew, §9al–§9an) and villagers began
+walking the village (§9am). Then the title became **Zico's own brush
+lettering, traced from his reference and written stroke by stroke**
+(§9ao, art/title/README.md). The live site is `origin/main` at
+`ecb65c2`. Local `main` holds the unpushed Korean toggle (`607b3c2`),
+and `crew-test` is built on top of it. Three things before touching
+anything:
+
+  1. **The title waits for VEN's sign-off, and the characters wait for
+     the title.** That order is VEN's. The brief for the characters is
+     in §9ap.4, word for word: two laptop-sitters out of sync; two
+     carriers delivering tiles to the foot of a ladder and walking back;
+     a man on the ladder placing a tile on the letter, which then fades
+     and the loop restarts.
+  2. **The village walkers belong to another developer now**
+     (VILLAGERS.md, §9ap.5). `git pull` first, and don't edit his files
+     without asking VEN.
+  3. **§9ap is the whole board**: branches, Zico's asks verbatim with
+     their status, his "How to join" text for Namsangol, the title's
+     numbers, and the QA scripts (now in `tools/`).
+
 **THE TOKEN IS 기와 / GIWA** (Zico, 2026-08-21) — Korean for roof
 tile, and the name of the Upbit L2 it launches on — **AND THE TICKER
 IS `$TILES`** (VEN, 2026-08-29). The journey's four stops carry Zico's
@@ -113,7 +161,10 @@ x 0.63 sent the Namsangol road to x 0.27 and the seal with it, so the
 patch is clipped at `--limit ...,0.598,...`, which is the widest it
 goes. The clearing is now full; bigger is not available.
 
-Last updated: 2026-08-27 (session 15 — the clearings, §9ab. Before
+Last updated: 2026-09-30 (session 21 — the painters and whole strokes,
+§9aq; before that session 20 — the crew, the villagers and Zico's
+lettering on branch `crew-test`, §9al–§9ap; the live site is still
+session 19's). Earlier: 2026-08-27 (session 15 — the clearings, §9ab. Before
 that: session 14 — the journey's copy on a phone, §9aa; session 12,
 fourteen parts, all LIVE —
 **THE JOURNEY IS NOW A MAP YOU WALK, deployed at
@@ -235,77 +286,76 @@ tried, rejected and why.
 - **Do not redesign the rest of the page** — the parchment/ink direction
   is client-approved. The manifesto and ledger are still untouched since
   session 3 and are the next design target after the village lands.
-- Preview at `http://localhost:8137/index.html?motion=1` after starting
-  `node tools/serve.js`. `?motion=1` is mandatory on this machine (§7).
+- Preview at `http://localhost:8137/index.html` after starting
+  `node tools/serve.js` (add `?crew=ink` for session 20's work). Since
+  §9q.3, motion is on by default whatever the OS says, so `?motion=1`
+  is no longer needed; `?motion=0` serves the reduced build.
 
 ---
 
 ## 0. Startup prompt
 
-Copy-paste this to begin a session, filling in the one blank:
+Copy-paste this to begin a session, filling in the one blank. (Rewritten
+2026-09-30 at the end of session 21; the previous version is in git
+history.)
 
-> Read HANDOFF.md in this folder start to finish before doing anything.
-> It is the authoritative context: client brief, design system, how
-> every module works, the art wiring and its tuning knobs, environment
-> gotchas, and twelve sessions of review decisions (including things
-> deliberately rejected — don't re-flag those, §9u part 5 especially).
+> Read HANDOFF.md in this folder before doing anything. Start with the
+> SESSION 21 block at the top, then §9aq (the painters and the stroke
+> fix), then §9ap (the board as session 20 left it), then
+> art/title/README.md and art/crew/README.md. The rest of HANDOFF is the
+> deep context: the client brief, the design system, every module, and
+> twenty-one sessions of decisions, including what was rejected (don't
+> re-propose those). Then run `git status` and `git pull` on
+> `crew-test`; another developer works on that branch too.
 >
-> State: the site is LIVE at https://tilesongiwa.com (repo
-> MTDVEN/hanok, push to main deploys). The journey is a pirate-map
-> sheet you walk (`?journey=map`, default; split and road kept): the
-> four places are painted INTO the sheet as vignettes, the camera
-> glides a smoothed track between them, footsteps mark the trail, the
-> Korean names handwrite themselves beside their buildings with the
-> English captions under them. ALL of the map's wiring is generated by
-> `tools/maproute.js` (with `--base` for a vignette sheet) — never
-> hand-place a stop, label or caption; re-run the tool and paste. The
-> village composites painted sprites over a plate; `PLOTS` is
-> generated by tools/plots.js the same way. Nothing is half-finished.
+> State: the LIVE site, https://tilesongiwa.com, is `origin/main`,
+> untouched since session 19; pushing main deploys. Local main has one
+> unpushed commit, the Korean toggle (607b3c2). All current work is on
+> branch `crew-test`, previewed at
+> https://hanok-git-crew-test-mtdvens-projects.vercel.app/?crew=ink.
+> There, the $TILES title is Zico's own brush lettering, written stroke
+> by stroke (13 strokes, ~4.4 s), and every stroke now lands whole. Five
+> villagers paint it (session 21): a boy at the $, a man kneeling on the
+> T's bar, a woman on the E's arm, a man with a giant brush on the S's
+> tail, a woman with a long brush under the S. Each arrives as the
+> stroke he works on is written (`?paintin=end`: all at the end). I
+> approved the painters as they are ("this is perfect"). They still only
+> show with `?crew=ink`; going live means switching them on by default
+> and merging to main, on my go-ahead.
 >
-> **I make the art in OpenArt (nano-banana-2, image2image), not you** —
-> and landmark art is EDITED into existing sheets with references, not
-> generated fresh (§6b, §9v). Don't hand-author pictorial SVG — write
-> the prompt and build the machinery.
+> Also open: the X link, the Namsangol "How to join" block (Zico's text
+> is in §9ap.3), and putting the Korean toggle live.
 >
-> Environment, or you will waste an hour:
-> - Start the preview server yourself: `node tools/serve.js`
->   (background), then confirm it returns 200 before trusting it. It
->   does not survive between sessions.
-> - Preview at `http://localhost:8137/index.html?motion=1` (with
->   `?preview=0` to hide the market-cap slider while judging).
-> - Chrome MCP tabs on this machine are often BACKGROUND-CREATED with
->   ZERO layout: clientWidth 0, no paint, frozen rAF — measurements
->   there are garbage and screenshots are stale. The map self-heals on
->   first real paint. For placement questions use the route debug
->   render (`node tools/maproute.js art/journey/map-ink.png --base
->   <plain-prep> --debug`) — it draws road, stops, names and captions
->   on the sheet itself and is the authoritative check. §7 + §9q + §9w
->   have every workaround.
+> The village walkers (js/villagers.js, the routes, the vill strips)
+> belong to another developer now (VILLAGERS.md). Don't edit them
+> without asking me.
+>
+> Rules:
+> - Every character is repainted in the site's ink before it is
+>   animated: stills edited in OpenArt (nano-banana-2, image2image),
+>   loops from PixVerse V6 image2video with the same still as first and
+>   last frame. Never hand-drawn SVG.
+> - Placements are data (SCENE and DELIVERY in js/crew.js) — except a
+>   painter's spot, which is baked into his still: he was painted
+>   against that ink (art/crew/paint.spec.json → tools/paintstage.js).
+> - Don't push to or merge into main without my go-ahead.
+> - When something has more than one plausible treatment, build them
+>   behind a URL switch and show me, and keep the loser in the code.
+>
+> Environment:
+> - Start the dev server yourself: `node tools/serve.js` in the
+>   background with a long timeout, then confirm http://localhost:8137
+>   returns 200. It doesn't survive between sessions.
+> - Preview: http://localhost:8137/index.html?crew=ink. Motion is on by
+>   default; `?motion=0` is the reduced build and `?title=hand` the old
+>   title.
+> - The Chrome extension's tab is hidden (no rAF, no
+>   IntersectionObserver), so its screenshots are useless here. Check
+>   with headless Chrome using `tools/cdp-eval.js` and
+>   `tools/cdp-shots.js`; freeze the crew with `?crewt=<seconds>` and the
+>   title's writing with `?titlet=<ms>`.
 >
 > What I want done this session: ______
->
-> Likely candidates, in priority order:
-> 1. The open judgement calls on the journey: ink vs pirate sheet
->    (`?map=pirate` — needs its own vignette pass first, recipe in
->    §9v), footsteps vs dots (`?trail=dots`), glide feel (`?glide=`,
->    `?camsmooth=`).
-> 2. Polish the manifesto and the ledger — untouched since session 3,
->    now clearly the weakest part of the page.
-> 3. Zico's deliverables landing — token name/ticker (hero strokes +
->    WORD in js/hero.js), manifesto copy, OG meta. The journey no
->    longer needs blurbs on the default path (map mode carries no
->    copy), but split/road/static still use `SPOTS[i].blurb`.
-> 4. Launch day: js/config.js (CA, links, chart pool, perRoof — still
->    undecided), og.png, favicon.ico, absolutize og:image, og:url.
-> 5. Weight: art/ is ~22.6MB deployed now (two map sheets ship until
->    the ink/pirate call — picking one saves ~2.3MB; §9r "Open" has
->    the sizing levers).
->
-> Ask me before changing design direction. Everything else, use your
-> judgement and verify with the tools first, Chrome second. When
-> something has more than one plausible treatment, build them behind a
-> URL switch and show me both rather than picking for me — and keep
-> the loser in the code.
 
 ---
 
@@ -7000,6 +7050,491 @@ Details: art/title/README.md. The crew still loads on it (`?crew=ink`)
 but was not re-fitted — by VEN's order, that comes after the lettering
 is signed off.
 
+## 9ap. Session 20, part 5 (2026-09-30) — end of session: where everything stands
+
+§9al–§9ao are the record as it happened. This part is the state it
+ended in: every branch, every ask with its status, Zico's and VEN's
+words verbatim, every number, what is open, and the plan for the next
+job. A fresh session should be able to start from here plus
+`art/title/README.md` and `art/crew/README.md`.
+
+### 1. Where the code is
+
+| ref | commit | what it is |
+|---|---|---|
+| `origin/main` — **the live site**, tilesongiwa.com | `ecb65c2` | session 19 part 2: no Korean toggle, the old brush title, no crew |
+| local `main` | `607b3c2` | + the Korean toggle (§9ak). **Never pushed**: `git push origin main` would put Korean live, and nothing else |
+| `crew-test` (local = GitHub) | `32bde76` | `607b3c2` + all of session 20 |
+| the preview of `crew-test` | https://hanok-git-crew-test-mtdvens-projects.vercel.app/ | rebuilt on each push to the branch; public, no Vercel login (checked) |
+
+Session 20's commits on `crew-test`, oldest first: `ec57b16` the crew
+sits on the heading, two styles · `0ae0f9c` the whole crew in ink ·
+`c236721` Zico's second round · `2a8f5b0` any webfont, written by hand
+· `5e7f97d` the title is Zico's lettering · `d43e031` + `32bde76`
+VILLAGERS.md, the villager hand-off.
+
+**Merging `crew-test` into `main` changes the LIVE title**: Zico's
+lettering is the default on the branch, and bigger (§9an), and the
+merge also ships the Korean toggle. The crew and the walkers stay
+invisible without `?crew=ink`, but `js/title-zico.js` (88KB) and the
+crew scripts load for everyone. Do not merge before VEN signs off the
+title.
+
+### 2. Zico's asks, verbatim, and where each stands
+
+29/09, pasted by VEN:
+
+> first thing, $TILES on website, add some of the same characters on X
+> around the heading. some building the header, some sitting at the top
+> with laptops, some transporting tiles around. can also change font of
+> $TILES to 'Song myung font'
+> make the link to the X on website https://x.com/tilesonGIWA
+>
+> (For Namsangol Hanok Village) How to join the community … *(the full
+> text is 3 below)*
+>
+> one more thing is, when you open the site could we add that button on
+> the top right corner to translate the page into korean pls
+>
+> also, are you able to add animations? like a couple villagers running
+> around the village at the bottom
+
+30/09, replying to VEN's video of the first crew:
+
+> Yeah bro just one is good, but the characters are too big, maybe try
+> again with the lettering being bigger also / And the characters being
+> smaller / Also can we put $Tiles is a better font?
+>
+> Maybe something like this *(the reference, now art/title/zico-ref.png)*.
+> Also once we adjust the font can we make sure that the characters are
+> adjusted too? For example, make sure the ladder guy is placing the tile
+> on the top of something rather than leaving it floating. make sure the
+> lady placing tiles down is the same, placing it on something rather
+> than just the air. Also the two characters walking, can we make it so
+> that they walk up to the guy on the ladder, add to a pile of tiles at
+> the bottom of the ladder and then walk back off frame (where they
+> rendered in from) before the animation starts again.
+
+| ask | status |
+|---|---|
+| characters around the heading: building, laptops on top, carrying tiles | built once, in ink (§9al–§9an). **To be rebuilt around Zico's lettering to VEN's brief (4 below), after the title is signed off** |
+| Song Myung for $TILES | built (`?title=song`), then superseded: Zico sent his own lettering and VEN rejected webfonts |
+| characters smaller, lettering bigger | done (§9an); to be re-checked on the new title |
+| tiles placed ON something; carriers to the ladder, a pile at its foot, back off frame | the delivery works (§9an); the pile's site and the ladder man are part of the rebuild |
+| the X link | **not done**: `CONFIG.links.x` in js/config.js is still `null`. One line |
+| Namsangol "How to join" | **not done**: the text is in 3, and it needs a design decision first |
+| a Korean button | exists since §9ak and is on the preview; **not live** until `main` is pushed |
+| villagers running round the village | built (§9am); **handed to another developer** (5) |
+| "just one is good" (his reply to VEN's video) | **meaning never confirmed**: one style? one carrier? one video? Ask VEN |
+
+### 3. Zico's "How to join" text for Namsangol, verbatim
+
+```
+How to join the community
+Add GIWA to Metamask wallet
+Network name: GIWA Sepolia
+RPC: https://sepolia-rpc.giwa.io
+Chain ID: 91342
+Symbol: ETH
+Explorer: https://sepolia-explorer.giwa.io
+Take these from docs.giwa.io (https://docs.giwa.io/giwa-chain/en/get-started/connect-to-giwa) only.
+Get gas
+You need ETH on GIWA to move.
+Testnet: faucet on the official GIWA site.
+Mainnet: bridge only through the official GIWA / Upbit path we post here. No third-party "GIWA bridges."
+Open the TILE market
+When mainnet $TILE is live, the buy link and contract address will sit here.
+CA: [paste official mainnet CA]
+Buy: [DEX / launchpad link]
+Until that line is filled, any other $TILE is not ours.
+```
+
+He writes `$TILE`, singular, against the `$TILES` ticker; ask before
+shipping it. The CA and Buy lines are placeholders and should be driven
+by `CONFIG.ca` / `CONFIG.links.buy`, not typed in. **Where it goes is a
+design decision, not a paste.** A stop's words are drawn ON the map
+sheet with paper cleared to fit them (§9ab–§9ag), and changing a stop's
+copy means re-running THE CLEARINGS from `tools/widths.html`. Network
+settings (an RPC URL to copy, a chain ID) want real, selectable HTML: a
+card under the Namsangol stop, or a "How to join" block of its own. Show
+VEN both behind a switch.
+
+### 4. The next job: the characters, rebuilt around the lettering
+
+**The order is VEN's (30/09): "lets prioritise the font, then build and
+place the characters around it once it is perfected."** The title is
+built; VEN has not signed it off. Do not re-fit characters before that.
+VEN's brief, verbatim:
+
+> … on and around that image there should be characters on their
+> laptops, characters stacking tiles, and 1 character on a ladder
+> working with the stack of tiles that is being stacked, at the bottom
+> of his ladder. … I want 2 characters with the laptops on top of two
+> letters with their leg swinging animation NOT in sync, i want the two
+> characters that carry tiles to walk them over to the base of the
+> ladder and leave them there and walk back to where they came from,
+> then I want the guy on the ladder to be working up there, to place a
+> tile on top of a letter its leaning on and then for that placed tile
+> to fade, so that the animation can start again.
+
+What exists, and what each line of the brief needs:
+
+1. **Two laptop-sitters, legs out of sync.** Four ink sitters exist
+   (`ink-1..4.webp`, 60 frames at 12 fps, a 5 s loop). They were cut
+   from ONE clip and js/crew.js starts every strip together, so today
+   they swing in lockstep. Keep two, and give one its own phase: a
+   negative `animation-delay` of a whole number of frames that is not
+   close to half the cycle (e.g. 23 of 60 frames = −1.917 s). Which two
+   letters is VEN's call. Zico's tops are slanted brush ends, not flat
+   serifs: `restOn()` slides each contact to the flattest ink nearby,
+   so measure on the raster (`HANOK_HERO.geom.topAt` / `profile`) and
+   show options before promising a letter.
+2. **Two carriers deliver to the foot of the ladder and walk back.**
+   Built: `deliver()` in js/crew.js runs a loaded walk in, a one-shot
+   drop clip, then a mirrored unloaded walk out. It keeps one clock in
+   integer ticks at 12 fps, and the pile props come from the drop clips'
+   own frames. **What changes is the pile's site.** Today it is searched
+   (the clear stretch of ground line with the least ink over the
+   crouching carrier), and on Zico's lettering the search FAILS; the
+   console says `[crew] no clear ground wide enough for the pile — using
+   the gap after the first letter`. In the brief the site is given, not
+   searched: the foot of the ladder. Place the ladder first, then the
+   pile beside its foot, then check the carriers stay legible. They walk
+   BEHIND the ink by default; `?carryplane=front` is the alternative.
+3. **The man on the ladder places a tile on top of the letter it leans
+   on; the tile fades; the loop restarts.** This needs NEW art. The
+   first builders (`build-1/2.webp`, `?cast=…,build`) don't fit: the
+   ladder is only ~0.55 of a letter at the current size, and both
+   builders lay tiles on air. art/crew/README.md "Next" has the recipe
+   from the plan review:
+   - composite a flat CYAN stand-in of the real letter's edge into the
+     edit input (not blue: H.264 leaves a teal hairline between blue and
+     green);
+   - one builder per still, 9:16 for the ladder man;
+   - draw the ladder longer than any cap and clip it at the baseline on
+     the page.
+
+   Make the placed tile its own small sprite (cut from the clip's last
+   frame) and fade it with CSS on the SAME clock as the carriers, so the
+   carriers' drop, his climb, the placement and the fade stay one loop
+   and can't drift apart. The uprights a ladder could lean on are the
+   L's stem and the E's stem, but which one is VEN's call. *"Working with
+   the stack … at the bottom of his ladder"*: he takes his tile from the
+   carriers' pile.
+4. **Suggested order:**
+   1. VEN signs off the title, or gives notes on size, speed or the
+      seal.
+   2. Measure the lettering (letter boxes, tops, uprights, ground) and
+      put 2–3 placements behind a switch. VEN picks by looking, not by
+      reading descriptions.
+   3. Generate the ladder man (still → loop or one-shot), repainted in
+      ink, and check every edit for invented logos.
+   4. Wire him onto the carriers' clock.
+   5. QA with `?crewt=` frame-exact shots on desktop and a true 390px
+      phone.
+
+   Credits: **2,794 left** (OpenArt Starter plan; 1,206 spent this
+   session, none of it on the title). A 2K Nano Banana 2 edit costs 30;
+   PixVerse V6 at 720p costs 14 a second (70 for a 5 s clip). The ladder
+   man is two or three stills and one or two clips: about 150–250.
+
+### 5. The villagers — handed to another developer
+
+VEN gave the village walkers to another developer on 2026-09-30 with one
+link, https://github.com/MTDVEN/hanok/blob/crew-test/VILLAGERS.md. That
+page is his start: branch rules, how to run it, the switches, the file
+map, how the engine works, the art pipeline and the house rules. He
+works on `crew-test`.
+
+- **What he has**: `js/villagers.js`, where `WALKERS` holds 4 walkers on
+  the routes trunk-left, trunk-right, mid-up and middle. `fig` 1 is the
+  A-frame man, 2 the woman with tiles, 3 the running child; `h` is the
+  height as a fraction of the plate's width; `pace` is in body-heights a
+  second, measured off the strips; `PAUSE` is 1.2–2.6 s at a route's
+  end. Also `art/crew/vill-1..3.webp` + `vill.json` (60 frames at
+  12 fps), `art/village/routes.json` from `tools/routes.js`, and the
+  `VILLAGERS` rules in css/site.css.
+- **Verified at hand-off**: a fresh clone of `crew-test` from GitHub,
+  run as the doc says. All 4 walkers were there and moving, and 48 of
+  49 files loaded. The one 404 is `art/village/state-00.png`, the
+  village's optional plate probe; it is missing in the working folder
+  too, and village.js falls back.
+- **Access**: the repo is private on VEN's personal GitHub account, so
+  he has to be invited (Settings → Collaborators). A collaborator on a
+  personal repo can push to EVERY branch, `main` (the live site)
+  included; VILLAGERS.md tells him not to.
+- **The preview may not show his pushes.** The Vercel team is the
+  default personal "mtdven's projects", and its plan can't be read
+  through the API. If it is Hobby, Vercel can block deployments of
+  commits authored by someone outside the team; a commit authored by VEN
+  on top (even `git commit --allow-empty`) deploys the branch.
+- **For us: `git pull` on `crew-test` before touching `js/villagers.js`,
+  `art/village/routes.json`, `art/crew/vill*`, the VILLAGERS css or
+  `tools/routes.js`, and ask VEN before editing them at all. They are
+  his now.**
+
+### 6. The title, by the numbers (the method is in art/title/README.md)
+
+- **Source**: `art/title/zico-ref.png`, 768×1152 as received, cropped to
+  `[20,385,760,865]`, a 740×480 working box. A higher-resolution
+  original from Zico would keep more of the dry-brush texture (specks
+  under 14px² are dropped at this size).
+- **Ink**: judged against the local paper, ink ≤ 0.35 and paper ≥ 0.86.
+  13 pens in writing order: `$-s`, `$-left`, `$-right`, `T-bar`,
+  `T-stem`, `i-stem`, `i-dot`, `L`, `E-stem`, `E-top`, `E-mid`, `E-low`,
+  `S`. Overlap 1.6px, Douglas-Peucker 0.3, mask width
+  `ceil(2·(far + 1.6) + 3)`.
+- **Timing**: each stroke takes 0.95 ms per unit of its length, clamped
+  to 170–560 ms, after a 300 ms lead-in with 50 ms between strokes. The
+  word writes in **≈4.4 s**, the seal stamps at ≈4.6 s, and the title is
+  flagged `is-written` at ≈4.8 s. That was measured at 5.1 s after
+  navigation in headless Chrome; the clock starts on the first frame,
+  about 0.3 s in.
+
+  | stroke | length | ms | | stroke | length | ms |
+  |---|---|---|---|---|---|---|
+  | `$-s` | 466 | 443 | | `L` | 310 | 295 |
+  | `$-left` | 338 | 321 | | `E-stem` | 208 | 198 |
+  | `$-right` | 313 | 297 | | `E-top` | 121 | 170 |
+  | `T-bar` | 267 | 253 | | `E-mid` | 77 | 170 |
+  | `T-stem` | 265 | 252 | | `E-low` | 123 | 170 |
+  | `i-stem` | 168 | 170 | | `S` | 677 | 560 |
+  | `i-dot` | 28 | 170 | | *(lead-in 300, gaps 13 × 50)* | | |
+
+- **On the page** (js/hero.js, ZICO mode):
+  - the viewBox is 480 high, and `ZK` 1.45 scales the seal, its air and
+    the nib to the bigger box; the seal sits at y = 0.47 × 480;
+  - the width is `min(var(--mark-w, 760px), 92vw, calc(52svh *
+    var(--mark-ar, 4)))`, with `--mark-ar` written by `fitBox()`, so
+    the tall mark stays on the first screen of a short window;
+  - `?mark=N` sets the width.
+- **The crew's API is unchanged**:
+  - `HANOK_HERO.ready` gives the letters, with `ch` = `$ T i L E S`
+    taken from the pen ids;
+  - `HANOK_HERO.geom` is {vbW, vbH, letters, cap (the median, $
+    excluded), topAt, profile, inkIn, raster};
+  - `hanok:written` fires when the title is done, and `hanok:relayout`
+    if its geometry changes.
+- **Switches**:
+  - the default is Zico's lettering;
+  - `?title=hand` is the earlier brush letters;
+  - `?title=song` or `?titlefont=Family[:wght@NNN]` is a webfont
+    written through a mask (rejected by VEN, kept);
+  - `?stamp=0` drops the seal; `?mark=N` sets the width.
+- **Verified**:
+  - 1440×900, a 390px phone and 1366×657, with no errors, on the
+    preview since `5e7f97d`;
+  - re-checked at the end of the session with tools/cdp-shots.js: at
+    2.5 s `$Ti` is mid-write; at 6.5 s the word and the seal are down.
+- **For VEN to sign off**: the size; the speed (~4.4 s); keep the 韓
+  seal or not; the lowercase i (Zico's, kept). Also ask Zico for a
+  higher-res original.
+
+### 7. QA: what worked, and the scripts are in the repo now
+
+- **`tools/cdp-eval.js`** and **`tools/cdp-shots.js`** (new, 2026-09-30,
+  not yet committed at the time of writing): real-time headless Chrome
+  over CDP from Node 22+, no dependencies, usage in each file's header.
+  Every earlier session wrote these in its scratchpad and lost them.
+- The Chrome extension's tab is hidden. rAF, CSS animations,
+  IntersectionObserver and `<video>` never run there, and its
+  screenshots come back tiled or stale, so don't judge anything from
+  them.
+- Headless `--screenshot` fires before big images decode, and its
+  window can't go below ~500px. Use `Emulation.setDeviceMetricsOverride`
+  (the scripts do) for a true 390px phone.
+- `?crewt=<s>` freezes the crew at an exact moment; render at
+  (tick + 0.5)/12 to land inside a tick.
+- **The dev server dies between sessions, and whenever a background task
+  hits its time limit.** Start it in the background with a long timeout
+  and check for 200. A test script that spawns its own server must kill
+  it explicitly: the child keeps Node alive, so an `exit` handler never
+  runs (the hand-off check hung on exactly this).
+
+### 8. Rejected this session — don't re-propose
+
+- Zico's X-style figures as painted (`?crew=x`, kept). Every character
+  is repainted in ink.
+- Google fonts for the title: Black Han Sans, Yuji Boku and Song Myung
+  (`?titlefont=`, `?title=song`, kept). VEN: *"it needs to look
+  handwritten and as if it was written with a brush."*
+- Positioning reviews before the font was settled. VEN: *"Theres no
+  point doing reviews on the positioning of the characters and whwatnot
+  when i intend on changing the font."*
+
+### 9. Working with VEN, this session
+
+- VEN relays Zico by pasting his chat. Zico's words are the brief, and
+  VEN's replies set the order; take the order literally (title first,
+  then the characters).
+- Pasted images often fail to arrive: only the text "[Image #N]" comes
+  through, and the font reference took four tries. Ask VEN to save the
+  image into the project folder instead.
+- VEN judges by looking. Build options behind URL switches rather than
+  describing them, and keep the losers.
+
+### 10. Files (session 20)
+
+- **New**:
+  - code: `js/crew.js`, `js/villagers.js`, `js/title-zico.js`
+    (generated);
+  - tools: `tools/crew.html`, `tools/crewstage.js`, `tools/routes.js`,
+    `tools/title.js`, `tools/title-pens.js`, `tools/cdp-eval.js`,
+    `tools/cdp-shots.js`;
+  - art: `art/crew/*` (strips, manifests, stage specs, the `src/` clips
+    and stills, README.md), `art/title/*` (zico-ref.png, pens.json,
+    README.md), `art/village/routes.json`;
+  - `VILLAGERS.md`.
+- **Changed**:
+  - `js/hero.js`: ZICO mode, webfont pens, the ink API;
+  - `css/site.css`: the title's size, the crew and villager rules;
+  - `index.html`: three new scripts;
+  - `tools/build.js`: ships the new files and the crew manifests;
+  - `tools/serve.js`: a POST endpoint for tools/crew.html;
+  - `.gitignore`: the `_work/` dirs.
+
+### Open (session 20)
+
+- VEN's sign-off on the title (6), then the characters to the brief
+  (4).
+- The X link, the Namsangol "How to join" (3), and the Korean toggle
+  going live (push `main`).
+- What "just one is good" meant.
+- Weight: the heading strips are ~2.4MB (loaded only with `?crew=`).
+  Drop the `x` set when it's no longer wanted, and try 8 fps for the
+  slow sets.
+
+## 9aq. Session 21 (2026-09-30, evening) — the painters, and every stroke lands whole
+
+VEN opened with two asks, verbatim:
+
+> This session I want to change the characters in the main hero section
+> to look like they are painting the ticker "$TILES" rather than being on
+> a laptop like they are or moving tiles around
+
+> also 1 problem i noticed with the ticker, during its animation parts of
+> the strokes are missing, for example in the screenshot, the "S" shape
+> of the "$" has rendered in but the lines on top of that have not
+> rendered in yet, you can see a gap in the bottom of the "S" shape where
+> the line is supposed to cross over. I want each stroke to be full with
+> no gaps. can this be done?
+
+Both are built, on `crew-test`, not live.
+
+### 1. Every stroke lands whole
+
+**Cause:** tools/title-pens.js gave every inked pixel to its NEAREST
+pen, which cuts a crossing down the bisector. The $'s S is written first,
+so it showed a diamond-shaped hole at each crossing until the bars came
+(VEN's screenshot, and our own capture at 1.15 s); the T's bar had a
+notch where its stem joins, the E's stem bites where its arms join.
+
+**Fix:** each pen measures its own brush width all along its centre-line
+(a scan across the ink, opened so crossings don't inflate it — its
+BAND), and a pixel belongs to the FIRST pen whose band covers it; ink
+outside every band goes to the nearest pen as before. A crossing now
+lands with the first stroke through it. Nothing lands early: the band
+is the stroke's own width. Verified on the new proof
+`art/title/_work/3-strokes.png` (the word after each of the 13 strokes)
+and on the page at 0.77 s, 1.14 s, 1.79 s, 2.88 s and 3.12 s, and in real
+time; the finished word (`all`) is unchanged. `?titlet=<ms>` (new)
+freezes the writing: `?titlet=770` is the $'s S whole, bars to come. The
+one straight edge left mid-write is the S's top end, where its
+centre-line stops on the right bar (filled 0.4 s later) — the end of a
+stroke, not a gap. Details: art/title/README.md "Every stroke lands
+whole".
+
+### 2. The painters
+
+Five villagers, left to right: a boy with an ink pot dabbing the foot of
+the $'s left bar; a young man with a headband crouched on the T's bar,
+brushing its top, his ink bowl beside him; a young woman sitting on the
+E's top arm, touching up the S; a young man sweeping a GIANT brush along
+the tip of the S's tail; a woman reaching up with a long-handled brush to
+the S's lower curve. The look is the ink cast's (clean line, pale wash,
+tan work clothes), drawn a touch more Joseon: topknots and a headband.
+
+- **Painted onto the real lettering.** A painter reads as painting only
+  if his brush meets the letter, so the still is an EDIT of Zico's traced
+  title on green (`tools/paintstage.js make`), all five in one still, one
+  PixVerse loop (same still first and last). `tools/crew.html ?stage=`
+  finds the lettering in the clip by its outlines, lifts it out (the
+  letters are ink like the painters' linework — they can't be keyed) and
+  writes the frame's rectangle of the title (`view`) into
+  `art/crew/paint.json`. js/crew.js kind `"paint"` puts each figure back
+  on exactly the spot he was painted against. **A painter's spot is
+  therefore his picture, not a line of data** (`dx`/`dy` nudge; a new
+  spot is a new still). Pipeline: art/crew/README.md "The painters".
+- **They arrive with their strokes** (VEN asks to see alternatives as
+  switches): the boy as the $'s first bar lands (~1.1 s), the kneeler
+  with the T's bar (~1.8 s), the other three with the S (~4.4 s) —
+  `hero.js` now records each pen as it lands (`HANOK_HERO.done`, event
+  `hanok:stroke`). `?paintin=end` = all five with the finished title. No
+  hop onto the letters (a hop lifts the brush off the ink): a fade.
+- **Size**: the crew's approved scale (standing adults ~117 svg units).
+  It took mannequins — see 3.
+- **Kept**: `?cast=sit,carry` is the laptop-sitters and the tile delivery
+  exactly as before; `build` the first builders. The painters show only
+  on Zico's lettering (`?title=hand` warns once and leaves them out).
+- **Verified** (headless Chrome over CDP): frozen frames across the loop
+  on desktop; a true 390px phone at 2x; the arrivals in real time (2 of
+  5 in at 2.6 s, 5 of 5 by 7 s); `paintin=end` (0 then 5); `cast=sit,carry`
+  (no painters, the old cast); `motion=0` (5, still); no `?crew` (none);
+  every painter animating (1,100–4,900 px changing per 0.4 s); no new
+  console errors; `tools/build.js` ships `paint.json`, the stage file and
+  the five strips, and leaves `paint.spec.json` home.
+- **Weight**: 1.75MB of strips (only with `?crew=`); `q=0.7` or 8 fps
+  would cut it.
+
+### 3. What it took (so nobody pays for it twice)
+
+- **4K Nano Banana output is upscaled in tiles** (patchy green, one tile
+  blurred): generate at 2K.
+- **The model will not take a figure's size from words.** Told "small",
+  then given a yardstick in the picture, it drew everyone ~1.5x the
+  approved crew; asked to shrink its own result it changed nothing; given
+  that result as a reference beside grey mannequins it copied the
+  reference, size and all. **Grey mannequins drawn at the right size
+  (art/crew/paint.spec.json → `paintstage.js guides`), with no finished
+  still among the references, worked first time.**
+- **A big brush touching a letter makes the video model paint.** In all
+  three loops the giant brush repainted the tail's tip as wet strands (the
+  still already had his bristles widening it). That ink is not in the
+  outlines, so it stays in his strip and lies over the real tail: on the
+  page it reads as his fresh stroke and moves as he works. Take 3 was the
+  calmest and is the one used; "never lift the brush" calmed the other
+  four, not him. The small brushes added no ink.
+- WebP caps a strip at 16383px (the giant brush at `k=0.8` was 21780):
+  `k=0.65`. PixVerse kept the still's 43:24 (1920×1072).
+
+### 4. Open — VEN's call
+
+- **The painters: APPROVED.** VEN, looking at `?crew=ink` (the default,
+  stroke-synced arrival, giant brush and all): *"this is perfect. I like
+  this."* They still show only with `?crew=ink`: going live means
+  switching them on by default, then merging to main (VEN's go-ahead).
+- **The title** is still waiting for its sign-off (size, speed, the 韓
+  seal — which sits just above the long-brush woman's brush;
+  `?stamp=0` drops it).
+- Unchanged from §9ap: the X link, Namsangol's "How to join", the
+  Korean toggle going live, "just one is good".
+- **Nothing from session 21 is committed** at the time of writing: it
+  waits for VEN's word, like session 20's doc edits and the cdp scripts.
+
+### 5. Files (session 21)
+
+- **New**: `tools/paintstage.js`; `art/crew/paint.spec.json` (the
+  mannequins), `paint.stage.json` (the view), `paint.json` + `paint-1..5.webp`
+  (the strips); `art/crew/src/still-paint.png`, `src/paint.mp4`.
+- **Changed**: `tools/title-pens.js` (bands; the `3-strokes.png` proof) and
+  its output `js/title-zico.js`; `js/hero.js` (`?titlet=`, `done` /
+  `hanok:stroke`, `zico`); `js/crew.js` (kind `"paint"`, `?paintin=`, the
+  default cast, `?crewt=` freezes loops); `css/site.css` (the painters'
+  fade); `tools/crew.html` (`stage=`, `sep=cc`, `dump=`); the two READMEs;
+  `art/title/pens.json` (its note only).
+- Working files (gitignored `_work/`): the composite, the guides, every
+  still tried (`paint*-?.png`), the three loop takes, dumped frames.
+
 ## LAUNCH DAY — everything still outstanding
 
 VEN, 2026-08-16, wrapping the session: *"all adjustments will be made
@@ -7019,6 +7554,8 @@ token-specific and waits on Zico.
   design — but if VEN ever falls in love with a particular arrangement,
   pin it with `seed` instead.
 - **`links`** — buy / X / dexscreener / telegram. `null` hides each.
+  **Zico gave the X on 2026-09-29: `https://x.com/tilesonGIWA`** — not
+  set yet (§9ap.2).
 - **`chart.pool`** — the GeckoTerminal pool address. `null` serves the
   deterministic mock candles; setting it switches to live candles on a
   2-minute refresh.
@@ -7102,10 +7639,12 @@ quantisation (§9h).
   no change of rhythm. The global backdrop (§9q.3) treats the symptom
   nicely; this is the cause, and the two compose.
 - **PLAN.html phases 2 and 3** — villagers walking the lanes, birds
-  over the ridge. Phase 3B (sleeping Z's) is done (§9o).
-- **The two walk sheets** (`p-walk-a/b.png`) — phase 2's only art
-  dependency, and the edit-a-crop trick does NOT apply: there are no
-  villagers in the painting to cut out.
+  over the ridge. Phase 3B (sleeping Z's) is done (§9o). **Phase 2 is
+  built on `crew-test` (§9am, `?crew=ink`) and is now another
+  developer's (§9ap.5)**; the birds are still to do.
+- ~~**The two walk sheets** (`p-walk-a/b.png`)~~ — superseded in
+  session 20: the walkers are sprite strips cut from a generated video
+  (§9am, art/crew/README.md), not two-pose sheets.
 - **Zico's outstanding deliverables** — name, copy, final art direction
   sign-off, CA.
 

@@ -317,9 +317,12 @@
      and cut into its 13 brush strokes; each stroke's ink sits behind a
      mask that its own pen uncovers, in writing order, the nib riding the
      pen. Every inked pixel belongs to exactly one stroke, so a stroke
-     never uncovers its neighbours' ink early.
+     never uncovers its neighbours' ink early — and where two cross, the
+     crossing is the stroke written FIRST, so none lands with a hole in it
+     (tools/title-pens.js, 2026-09-30).
        ?title=hand   the earlier hand-authored brush letters
-       ?titlefont=…  / ?title=song   a webfont, written through a mask */
+       ?titlefont=…  / ?title=song   a webfont, written through a mask
+       ?titlet=MS    the writing frozen MS ms in (see tick) */
   var ZT = window.HANOK_TITLE;
   var ZICO = !!(ZT && ZT.pens && !SONG && !/[?&]title=hand\b/.test(location.search));
   /* this lettering is drawn ~2x the old letters' units: the seal, the
@@ -374,7 +377,7 @@
       var ink = el("path", { d: p.ink, fill: "#211B11", "fill-rule": "evenodd", mask: "url(#zpen" + n + ")" }, zByCh[ch]);
       /* a quick hand: long strokes do not crawl — the S and its tail
          land in about half a second */
-      strokes.push({ main: pen, over: null, len: len, swell: null, sLen: 0, userSpace: true, ink: ink,
+      strokes.push({ main: pen, over: null, len: len, swell: null, sLen: 0, userSpace: true, ink: ink, id: p.id,
                      dur: Math.max(170, Math.min(560, len * 0.95)) });
     });
     zOrder.forEach(function(ch, i){ letterGroups.push({ ch: ch, i: i, g: zByCh[ch], half: 0 }); });
@@ -462,7 +465,16 @@
      A late webfont (loaded after the 4s wait) re-publishes and fires
      `hanok:relayout` on #hero with the new geometry. */
   var readyResolve;
-  window.HANOK_HERO = { svg: svg, ready: new Promise(function(r){ readyResolve = r; }) };
+  /* `done` — Zico's pens already written, by id ($-s, T-bar, …): each one
+     is added, and `hanok:stroke` ({ id }) fires on #hero, the moment its
+     stroke lands, so a painter (js/crew.js) can arrive with the letter he
+     works on rather than before it exists */
+  window.HANOK_HERO = { svg: svg, ready: new Promise(function(r){ readyResolve = r; }), done: {}, zico: ZICO };
+  function strokeDone(id){
+    if (!id || window.HANOK_HERO.done[id]) return;
+    window.HANOK_HERO.done[id] = true;
+    try { hero.dispatchEvent(new CustomEvent("hanok:stroke", { detail: { id: id } })); } catch(e){}
+  }
   var INK_S = 2;                       // raster px per svg unit
   function rasterInk(cb){
     var vb = svg.viewBox.baseVal, W = Math.ceil(vb.width * INK_S), Hh = Math.ceil(vb.height * INK_S);
@@ -824,6 +836,7 @@
       s.main.style.strokeDashoffset = 0;
       if (s.over) s.over.style.strokeDashoffset = 0;
       if (s.swell) s.swell.style.strokeDashoffset = 0;
+      strokeDone(s.id);
     });
     stampSeal(true);
     finishHero();
@@ -832,10 +845,14 @@
 
   function ease(p){ return p < 0.5 ? 2*p*p : 1 - Math.pow(-2*p + 2, 2) / 2; }
 
+  /* `?titlet=MS` freezes the writing MS milliseconds in — one exact moment
+     to look at (or screenshot): `?titlet=1000` is the $'s S down and its
+     bars still to come. The crew's `?crewt=` is the same idea. */
+  var tQ = /[?&]titlet=([0-9]{1,5})\b/.exec(location.search), TITLE_T = tQ ? +tQ[1] : null;
   var begun = null, sealDone = false;
   function tick(ts){
     if (begun === null) begun = ts;
-    var now = ts - begun, active = null;
+    var now = TITLE_T != null ? TITLE_T : ts - begun, active = null;
 
     timeline.forEach(function(it){
       var p = (now - it.start) / it.dur;
@@ -854,6 +871,7 @@
         it.s.swell.style.strokeDashoffset = it.s.sLen * (1 - sp);
       }
       if (p < 1) active = { it: it, p: p };
+      else strokeDone(it.s.id);
     });
 
     if (active && active.it.s.userSpace){
@@ -892,7 +910,7 @@
       setTimeout(finishHero, 220);
     }
 
-    if (now < writingEnd + 1400) requestAnimationFrame(tick);
+    if (now < writingEnd + 1400 && TITLE_T == null) requestAnimationFrame(tick);
   }
   /* a font writes once its face has loaded (whenSong, above) */
   if (!SONG) requestAnimationFrame(tick);

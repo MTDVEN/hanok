@@ -1507,6 +1507,12 @@ a{ color: var(--ink); }
   transition: opacity .5s ease, transform .6s cubic-bezier(.3, 1.5, .5, 1);
 }
 .motion-ok .crew.is-in .crew__fig{ opacity: 1; transform: none; }
+/* PAINTERS (js/crew.js kind "paint") were painted against the letters, so
+   they never hop onto them — a drop would lift the brush off the ink. Each
+   fades in on the spot: the moment the stroke he works on is written (his
+   own .is-in), or with the whole layer once the title is done. */
+.motion-ok .crew__fig--paint{ transform: none; transition: opacity .45s ease; }
+.motion-ok .crew .crew__fig--paint.is-in{ opacity: 1; }
 
 /* CARRIERS (js/crew.js deliver()) are driven frame by frame from one
    clock: position, frame and fade are inline styles, so these boxes
