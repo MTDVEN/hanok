@@ -6860,6 +6860,54 @@ prose, crypto loan-words the Korean market actually uses (업비트,
 
 ---
 
+## 9al. Session 20 (2026-09-30) — the crew: Zico's villagers sit on the heading (branch `crew-test`)
+
+Zico's asks of 2026-09-29, in full: his X characters around the $TILES
+heading (some building it, some sitting on top with laptops, some
+carrying tiles), a couple of villagers running round the village,
+$TILES in Song Myung, the X link (`https://x.com/tilesonGIWA`), a "how
+to join" block for the Namsangol stop, and a Korean button. **The
+Korean button already existed — `607b3c2` (§9ak) had never been pushed.**
+VEN asked how the animation would be built, then: *"lets do the
+suggested first step in a test environment"* — the four laptop-sitters
+on the heading, in both styles, before committing to the whole cast.
+
+**All of it is on branch `crew-test`; `main` is untouched.** Switches:
+`?crew=x|ink`, `?seat=spread|pairs`, `?crewsize=`, `?title=song`.
+Nothing changes without them.
+
+- **The characters exist only on X**: faceless-ish villagers in plain
+  tan work clothes, painted in the warm semi-real style of the X banner
+  — NOT the site's ink. Hence two styles: `x` (his figures, cut out) and
+  `ink` (the same poses repainted as a Joseon genre painting).
+- **The motion is a video turned into frames.** Still on flat green →
+  PixVerse V6 image2video with the SAME still as first and last frame
+  (the clip ends where it begins, so it loops with no seam) →
+  `tools/crew.html` (WebCodecs decode, green key, one strip per figure)
+  → `js/crew.js` plays each strip with CSS `steps(n, jump-none)` on a
+  transform, only while the hero is on screen. Full pipeline, prompts,
+  generation IDs and traps: **`art/crew/README.md`**.
+- **The crew sits on the letters actually drawn.** `js/hero.js` now
+  publishes each letter's ink box (`window.HANOK_HERO.ready`) and fires
+  `hanok:written` when the mark is done; the crew climbs on then. Brush
+  letters are measured off their strokes; Song Myung glyphs off canvas
+  `measureText` in the loaded face.
+- **`?title=song`** sets $TILES in Song Myung, sized so its T matches
+  the brush caps (112 units), hidden until the face loads, wiped on
+  left to right, seal after. A glyph cannot write itself — that is the
+  trade Zico's font costs.
+- Verified: headless Chrome stills at 1440×900 and a true 390px phone
+  (both styles, both titles, both seatings), and a real-time CDP run
+  confirming the loop plays (`.crew--live`, animation clock advancing,
+  frames differing across 2.5s). The steps() maths was checked frame by
+  frame (frame k = −k × frame width exactly).
+- 380 OpenArt credits (3,620 left). Strips ~820KB per style — to halve
+  once a style is chosen.
+
+**Open, VEN's and Zico's call:** `x` or `ink`; `spread` or `pairs`;
+brush or Song Myung. Then the builders, the carriers and the village
+walkers (art/crew/README.md "Next").
+
 ## LAUNCH DAY — everything still outstanding
 
 VEN, 2026-08-16, wrapping the session: *"all adjustments will be made

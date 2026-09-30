@@ -105,6 +105,20 @@ if (!jm) throw new Error("could not find MAPS in js/journey.js — " +
 var maps = Function("return " + jm[1])();
 Object.keys(maps).forEach(function(k){ FILES.push(maps[k].img); });
 
+/* THE CREW (crew-test branch): js/crew.js and every manifest in
+   art/crew/ with the strips it names. Read off the manifests, not a
+   directory listing, so a strip no manifest points at (a re-cut left
+   behind) never ships — and art/crew/src and _work (Zico's original,
+   the stills, the clips) never do. */
+FILES.push("js/crew.js");
+var CREW = path.join(ROOT, "art", "crew");
+if (fs.existsSync(CREW)) fs.readdirSync(CREW).forEach(function(f){
+  if (!/\.json$/.test(f)) return;
+  FILES.push("art/crew/" + f);
+  JSON.parse(fs.readFileSync(path.join(ROOT, "art", "crew", f), "utf8"))
+    .figures.forEach(function(fig){ FILES.push("art/crew/" + fig.file); });
+});
+
 function copy(rel){
   var src = path.join(ROOT, rel), dst = path.join(DIST, rel);
   if (!fs.existsSync(src)){ console.log("  MISSING  " + rel); return 0; }

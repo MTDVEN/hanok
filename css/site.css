@@ -1421,6 +1421,46 @@ a{ color: var(--ink); }
   max-width: 46ch;
 }
 
+/* THE CREW (js/crew.js, crew-test branch) ------------------------
+   Zico's villagers sat on the tops of the letters. The layer is laid
+   exactly over the title svg and every figure is placed in % of it,
+   so the crew scales with the title. Each figure is a window one frame
+   wide onto a strip of --n frames; the strip slides by whole frames
+   (steps(n, jump-none) lands on frame 0 and on frame n-1 exactly), and
+   a transform keeps it on the compositor. */
+.hero__title.has-crew{ position: relative; }
+.crew{ position: absolute; inset: 0; pointer-events: none; }
+.crew__fig{
+  position: absolute;
+  overflow: hidden;
+}
+.crew__strip{
+  position: absolute;
+  left: 0; top: 0;
+  height: 100%;
+  width: calc(var(--n) * 100%);
+  max-width: none;
+  display: block;
+}
+.motion-ok .crew__strip{
+  animation: crew-play var(--dur) steps(var(--n), jump-none) infinite;
+  animation-play-state: paused;
+}
+.motion-ok .crew--live .crew__strip{ animation-play-state: running; }
+@keyframes crew-play{
+  from{ transform: translateX(0); }
+  to  { transform: translateX(calc(-100% + 100% / var(--n))); }
+}
+/* they climb on after the title is written: a short drop onto the
+   letter, as if hopping up onto it. Without motion they are simply
+   there. */
+.motion-ok .crew__fig{
+  opacity: 0;
+  transform: translateY(-14%);
+  transition: opacity .5s ease, transform .6s cubic-bezier(.3, 1.5, .5, 1);
+}
+.motion-ok .crew.is-in .crew__fig{ opacity: 1; transform: none; }
+
 /* small screens -------------------------------------------------- */
 
 @media (max-width: 560px){

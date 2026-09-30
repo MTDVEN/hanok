@@ -64,3 +64,8 @@ node_modules/
 
 # the map route debug render, regenerable with maproute --debug
 art/journey/*-route.png
+
+# the crew (crew-test): OpenArt stills, re-cut QA sheets and zooms.
+# 4MB each and regenerable — their OpenArt URLs are in art/crew/README.md.
+# Zico's original and the two chosen clips live in art/crew/src/ and ARE kept.
+art/crew/_work/

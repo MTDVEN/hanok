@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>crew — clip to sprite strips</title>
+<!--
+  THE CREW PIPELINE, STEP 2 OF 2 — a clip becomes sprite strips.
+
+  Open on the dev server (node tools/serve.js):
+    /tools/crew.html?v=art/crew/_work/<clip>.mp4&name=<out>&figs=4
+
+  Step 1 happens on OpenArt: a still of the cast on flat chroma green,
+  animated by an image-to-video model with THE SAME STILL AS FIRST AND
+  LAST FRAME, so the clip ends where it began and loops without a seam.
+  This page does the rest, because Chrome is the only thing on this
+  machine that can decode video (no ffmpeg, no python):
+
+    1. steps through the clip at `fps` and pulls every frame
+    2. keys the green out — alpha from how much greener a pixel is than
+       its red and blue, with the green spill clamped off the edges
+    3. finds the figures by the EMPTY COLUMNS between them, over the
+       union of all frames, so a figure's box never jitters
+    4. packs each figure into a one-row strip at height `h`, and POSTs
+       <out>-<i>.webp plus <out>.json (the manifest crew.js reads) into
+       art/crew/, and a QA contact sheet into art/crew/_work/
+
+  Params: v (clip) · name (output stem) · figs (expected figures) ·
+  fps (sampling, default 12) · h (strip height in px, default 120) ·
+  lo/hi (key ramp on the 0-255 greenness, default 24/70) · save=0 to
+  look without writing.
+-->
+<style>
+  body{ margin: 0; padding: 16px; background: #1b1814; color: #EBDDB9; font: 13px/1.5 ui-monospace, monospace; }
+  #log{ white-space: pre-wrap; }
+  .row{ display: flex; gap: 18px; flex-wrap: wrap; margin: 12px 0; }
+  .cell{ padding: 10px; }
+  .cell--paper{ background: #DFCEA5; }
+  .cell--magenta{ background: #ff00ff; }
+  .fig{ display: block; }
+</style>
+</head>
+<body>
+<div id="log"></div>
+<div class="row" id="previews"></div>
+<script src="https://cdn.jsdelivr.net/npm/mp4box@0.5.2/dist/mp4box.all.min.js"></script>
+<script>
+/* Demux with mp4box.js, decode with WebCodecs. Every frame is counted
+   in presentation order (which is the order VideoDecoder emits), every
+   step-th one is kept as an ImageBitmap and the rest are closed on
+   arrival, so a 5 s 720p clip holds ~60 frames, not 120. */
+function codecDescription(file, track){
+  var DS = window.DataStream || MP4Box.DataStream;
+  var entries = file.getTrackById(track.id).mdia.minf.stbl.stsd.entries;
+  for (var i = 0; i < entries.length; i++){
+    var box = entries[i].avcC || entries[i].hvcC || entries[i].vpcC || entries[i].av1C;
+    if (box){
+      var ds = new DS(undefined, 0, DS.BIG_ENDIAN);
+      box.write(ds);
+      return new Uint8Array(ds.buffer, 8);           // drop the box header
+    }
+  }
+}
+function decodeAll(buf, wantFps){
+  return new Promise(function(resolve, reject){
+    var file = MP4Box.createFile(), out = { frames: [], total: 0, step: 1 },
+        pending = [], fed = 0, want = 0;
+    var dec = new VideoDecoder({
+      output: function(frame){
+        var k = out.total++;
+        if (k % out.step !== 0){ frame.close(); return; }
+        pending.push(createImageBitmap(frame).then(function(bm){
+          out.frames.push({ k: k, bitmap: bm });
+        }).finally(function(){ frame.close(); }));
+      },
+      error: reject
+    });
+    function finish(){
+      dec.flush().then(function(){ return Promise.all(pending); }).then(function(){
+        out.frames.sort(function(a, b){ return a.k - b.k; });
+        resolve(out);
+      }, reject);
+    }
+    file.onError = reject;
+    file.onReady = function(info){
+      var tr = info.videoTracks[0];
+      if (!tr) return reject(new Error("no video track"));
+      out.w = tr.video.width; out.h = tr.video.height;
+      out.fps = tr.nb_samples / (tr.duration / tr.timescale);
+      out.step = Math.max(1, Math.round(out.fps / wantFps));
+      want = tr.nb_samples;
+      dec.configure({ codec: tr.codec, codedWidth: out.w, codedHeight: out.h,
+                      description: codecDescription(file, tr) });
+      file.setExtractionOptions(tr.id, null, { nbSamples: Infinity });
+      file.start();
+    };
+    file.onSamples = function(id, user, samples){
+      samples.forEach(function(s){
+        dec.decode(new EncodedVideoChunk({
+          type: s.is_sync ? "key" : "delta",
+          timestamp: 1e6 * s.cts / s.timescale,
+          duration: 1e6 * s.duration / s.timescale,
+          data: s.data
+        }));
+      });
+      fed += samples.length;
+      if (fed >= want) finish();
+    };
+    buf.fileStart = 0;
+    file.appendBuffer(buf);
+    file.flush();
+  });
+}
+
+(async function(){
+  "use strict";
+  var Q = new URLSearchParams(location.search);
+  var SRC  = Q.get("v"),
+      NAME = Q.get("name") || "crew",
+      FIGS = +(Q.get("figs") || 4),
+      FPS  = +(Q.get("fps") || 12),
+      H    = +(Q.get("h") || 120),
+      LO   = +(Q.get("lo") || 24),
+      HI   = +(Q.get("hi") || 70),
+      /* where the invisible ledge they sit on is, as a fraction of the
+         clip's height — read off the still, where the hems fold flat.
+         Written per figure into the manifest as `seat`, the fraction
+         of that figure's strip where it meets the letter it sits on. */
+      SEATY = +(Q.get("seat") || 0.582),
+      SAVE = Q.get("save") !== "0";
+  var logEl = document.getElementById("log");
+  function log(s){ logEl.textContent += s + "\n"; }
+  window.CREW = { state: "running" };
+
+  if (!SRC){ log("need ?v=<clip>"); window.CREW.state = "error"; return; }
+
+  /* DECODED WITH WEBCODECS, NOT A <video>. The MCP's Chrome tab is a
+     hidden tab, and Chrome DEFERS MEDIA LOADING in hidden tabs — the
+     element sat at readyState 0 forever (2026-09-30). VideoDecoder has
+     no such gate, so: fetch the bytes, demux with mp4box.js, decode
+     every sample, keep every (24/fps)-th frame. */
+  var buf = await (await fetch("../" + SRC.replace(/^\//, ""))).arrayBuffer();
+  var decoded = await decodeAll(buf, FPS);     // every step-th frame, presentation order
+  var W = decoded.w, VH = decoded.h, step = decoded.step;
+  var picks = decoded.frames;
+  /* the clip ENDS on the frame it began with (same still as first and
+     last frame), so a sample landing on the very end is frame 0 again:
+     drop it, or the loop holds one frame twice */
+  if ((decoded.total - 1) % step === 0 && picks.length > 2) picks.pop().bitmap.close();
+  var N = picks.length, OUT_FPS = decoded.fps / step;
+  log("clip " + W + "x" + VH + " @" + decoded.fps.toFixed(2) + "fps, " + decoded.total +
+      " frames -> " + N + " at " + OUT_FPS.toFixed(2) + "fps");
+
+  var work = document.createElement("canvas");
+  work.width = W; work.height = VH;
+  var wx = work.getContext("2d", { willReadFrequently: true });
+
+  /* ---- 1+2: pull and key every frame ---------------------------- */
+  var frames = [], colHit = new Uint32Array(W), prevSum = -1, same = 0;
+  for (var i = 0; i < N; i++){
+    wx.clearRect(0, 0, W, VH);
+    wx.drawImage(picks[i].bitmap, 0, 0, W, VH);
+    picks[i].bitmap.close();
+    var img = wx.getImageData(0, 0, W, VH), d = img.data, sum = 0;
+    for (var p = 0; p < d.length; p += 4){
+      var r = d[p], g = d[p + 1], b = d[p + 2];
+      var mx = r > b ? r : b, gn = g - mx;               // greenness
+      var a = gn <= LO ? 1 : gn >= HI ? 0 : 1 - (gn - LO) / (HI - LO);
+      /* despill: a pixel greener than both its red and blue took green
+         from the screen (motion blur on a swinging foot, bounce light).
+         Clamping G to max(R,B) left skin YELLOW — (R,R,B) — so G goes
+         to the mean of R and B instead, which puts it back to the
+         warm tan/skin these figures are made of. */
+      if (g > mx) d[p + 1] = (r + b) >> 1;
+      d[p + 3] = Math.round(a * 255);
+      sum += d[p + 3];
+    }
+    /* EDGE despill, the second half. H.264 stores colour at half
+       resolution, so where tan or skin meets the green screen the
+       chroma averages into YELLOW — pixels that are not greener than
+       their red (the rule above never sees them) and are fully opaque.
+       Only within 2px of a transparent pixel, pull G down to the mean
+       of R and B; everywhere else the washes keep their own green. */
+    var A = new Uint8Array(W * VH);
+    for (var q = 0, n = 3; q < A.length; q++, n += 4) A[q] = d[n];
+    for (var y = 2; y < VH - 2; y++) for (var x = 2; x < W - 2; x++){
+      var o = y * W + x;
+      if (!A[o]) continue;
+      if (A[o - 2] > 200 && A[o + 2] > 200 && A[o - 2 * W] > 200 && A[o + 2 * W] > 200 &&
+          A[o - W - 1] > 200 && A[o - W + 1] > 200 && A[o + W - 1] > 200 && A[o + W + 1] > 200) continue;
+      var pp = o * 4, mean = (d[pp] + d[pp + 2]) >> 1;
+      if (d[pp + 1] > mean) d[pp + 1] = mean;
+    }
+    /* a decoder that stopped updating (a backgrounded tab can do this)
+       hands back the same frame again and again — say so loudly */
+    if (sum === prevSum) same++;
+    prevSum = sum;
+    frames.push(img);
+    if (i % 12 === 0) log("  frame " + i + "/" + N);
+  }
+  if (same > N / 4) log("!! " + same + " frames identical to the one before — decoder stalled?");
+
+  /* ---- 3: find the figures by empty columns over ALL frames ------ */
+  var rowHit = new Uint32Array(VH);
+  frames.forEach(function(img){
+    var d = img.data;
+    for (var y = 0; y < VH; y++) for (var x = 0; x < W; x++){
+      if (d[(y * W + x) * 4 + 3] > 40){ colHit[x]++; rowHit[y]++; }
+    }
+  });
+  /* a column counts as occupied if at least a few pixels are, summed
+     over the clip — a lone speck of compression noise is not a figure */
+  var segs = [], inSeg = false, s0 = 0, MINCOL = 3;
+  for (var x = 0; x <= W; x++){
+    var on = x < W && colHit[x] >= MINCOL;
+    if (on && !inSeg){ inSeg = true; s0 = x; }
+    if (!on && inSeg){ inSeg = false; segs.push([s0, x - 1]); }
+  }
+  /* drop slivers (narrower than 2% of the frame): noise, not people */
+  segs = segs.filter(function(s){ return s[1] - s[0] > W * 0.02; });
+  log("found " + segs.length + " figure column(s): " + segs.map(function(s){ return s[0] + "-" + s[1]; }).join(", "));
+  if (segs.length !== FIGS) log("!! expected " + FIGS + " figures — check the key (lo/hi) or the clip");
+
+  /* per figure: vertical extent inside its own columns, over all frames */
+  var figs = segs.map(function(s){
+    var y0 = VH, y1 = -1;
+    frames.forEach(function(img){
+      var d = img.data;
+      for (var y = 0; y < VH; y++){
+        for (var x = s[0]; x <= s[1]; x++){
+          if (d[(y * W + x) * 4 + 3] > 40){ if (y < y0) y0 = y; if (y > y1) y1 = y; break; }
+        }
+      }
+    });
+    var pad = 2;
+    return { x0: Math.max(0, s[0] - pad), x1: Math.min(W - 1, s[1] + pad),
+             y0: Math.max(0, y0 - pad), y1: Math.min(VH - 1, y1 + pad) };
+  });
+
+  /* ---- 4: pack one strip per figure ----------------------------- */
+  var keyed = document.createElement("canvas");
+  keyed.width = W; keyed.height = VH;
+  var kx = keyed.getContext("2d");
+  var manifest = { clip: SRC, fps: +OUT_FPS.toFixed(3), frames: N, h: H, figures: [] };
+  var qaCells = [];
+
+  for (var f = 0; f < figs.length; f++){
+    var b = figs[f], bw = b.x1 - b.x0 + 1, bh = b.y1 - b.y0 + 1;
+    var fw = Math.round(bw * H / bh);
+    var strip = document.createElement("canvas");
+    strip.width = fw * N; strip.height = H;
+    var sx = strip.getContext("2d");
+    sx.imageSmoothingEnabled = true; sx.imageSmoothingQuality = "high";
+    for (var k = 0; k < N; k++){
+      kx.putImageData(frames[k], 0, 0);
+      sx.drawImage(keyed, b.x0, b.y0, bw, bh, k * fw, 0, fw, H);
+    }
+    var file = NAME + "-" + (f + 1) + ".webp";
+    manifest.figures.push({ file: file, w: fw, h: H,
+      seat: +((SEATY * VH - b.y0) / bh).toFixed(4),
+      /* where the figure sits in the clip, as fractions of the frame —
+         crew.js does not need it, but it records the row's spacing */
+      box: [b.x0 / W, b.y0 / VH, bw / W, bh / VH].map(function(n){ return +n.toFixed(4); }) });
+    if (SAVE){
+      var blob = await new Promise(function(ok){ strip.toBlob(ok, "image/webp", 0.9); });
+      await fetch("/art/crew/" + file, { method: "POST", body: blob });
+      log("saved art/crew/" + file + "  " + strip.width + "x" + H + "  " + Math.round(blob.size / 1024) + "KB");
+    }
+    qaCells.push({ strip: strip, fw: fw });
+
+    /* live preview on paper and on magenta (a hole shows on magenta) */
+    ["paper", "magenta"].forEach(function(bg){
+      var cell = document.createElement("div");
+      cell.className = "cell cell--" + bg;
+      var el = document.createElement("div");
+      el.className = "fig";
+      el.style.width = fw + "px"; el.style.height = H + "px";
+      el.style.backgroundImage = "url(" + strip.toDataURL("image/png") + ")";
+      el.animate([{ backgroundPosition: "0 0" }, { backgroundPosition: (-fw * N) + "px 0" }],
+                 { duration: N / OUT_FPS * 1000, iterations: Infinity, easing: "steps(" + N + ")" });
+      cell.appendChild(el);
+      document.getElementById("previews").appendChild(cell);
+    });
+  }
+
+  /* QA contact sheet: 6 evenly spaced frames of every figure, on paper
+     and on magenta, one figure per row — a still you can judge */
+  var PICK = 6, pad = 8, cw = 0;
+  qaCells.forEach(function(c){ cw = Math.max(cw, c.fw); });
+  var qa = document.createElement("canvas");
+  qa.width = (cw + pad) * PICK * 2 + pad; qa.height = (H + pad) * qaCells.length + pad;
+  var qx = qa.getContext("2d");
+  qx.fillStyle = "#DFCEA5"; qx.fillRect(0, 0, qa.width / 2, qa.height);
+  qx.fillStyle = "#ff00ff"; qx.fillRect(qa.width / 2, 0, qa.width / 2, qa.height);
+  qaCells.forEach(function(c, r){
+    for (var j = 0; j < PICK; j++){
+      var k = Math.round(j * (N - 1) / (PICK - 1));
+      for (var side = 0; side < 2; side++){
+        qx.drawImage(c.strip, k * c.fw, 0, c.fw, H,
+          side * qa.width / 2 + pad + j * (cw + pad), pad + r * (H + pad), c.fw, H);
+      }
+    }
+  });
+  if (SAVE){
+    var qb = await new Promise(function(ok){ qa.toBlob(ok, "image/png"); });
+    await fetch("/art/crew/_work/" + NAME + "-qa.png", { method: "POST", body: qb });
+    await fetch("/art/crew/" + NAME + ".json", { method: "POST", body: JSON.stringify(manifest, null, 2) });
+    log("saved art/crew/" + NAME + ".json and art/crew/_work/" + NAME + "-qa.png");
+  }
+  window.CREW = { state: "done", manifest: manifest, stalled: same };
+  log("done");
+})().catch(function(e){
+  document.getElementById("log").textContent += "\nERROR " + (e && e.stack || e);
+  window.CREW = { state: "error", error: String(e) };
+});
+</script>
+</body>
+</html>
