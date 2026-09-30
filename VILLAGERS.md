@@ -6,8 +6,11 @@ way in; `HANDOFF.md` is the long history, if you ever need it.
 
 Work on the **`crew-test`** branch; it has everything below. Do not push to
 `main`: `main` deploys straight to the live site (tilesongiwa.com via Vercel).
-Every push to `crew-test` gets its own preview at
-https://hanok-git-crew-test-mtdvens-projects.vercel.app/
+`crew-test` has its own preview at
+https://hanok-git-crew-test-mtdvens-projects.vercel.app/?crew=ink — but
+Vercel may hold back commits from anyone outside the owner's Vercel account,
+so if your push doesn't show up there, check it locally (below) and ask the
+repo owner to redeploy.
 
 ## Run it
 
