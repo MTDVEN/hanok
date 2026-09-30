@@ -71,3 +71,6 @@ art/crew/_work/
 
 # tools/routes.js --debug output (regenerable)
 art/village/_work/
+
+# tools/title.js --debug proofs (regenerable)
+art/title/_work/
