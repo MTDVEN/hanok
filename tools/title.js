@@ -17,9 +17,12 @@
       neighbours, bilinear) and alpha from the ratio luma / paper.
    2. PENS (art/title/pens.json) — the brush strokes as they were
       written, each a centre-line in writing order, authored over the
-      reference. Every inked pixel belongs to the pen whose centre-line
-      is nearest (a chamfer distance field per pen), so where strokes
-      cross or touch, each pen reveals only its own ink.
+      reference. Each pen measures its own brush width along its line
+      (its BAND), and every inked pixel belongs to the FIRST pen written
+      whose band covers it — so a crossing is the earlier stroke's ink
+      and every stroke lands whole (VEN, 2026-09-30: the $'s S showed
+      holes where its bars were still to come). Ink outside every band
+      goes to the nearest pen. Each pen still reveals only its own ink.
    3. TRACE. Each pen's share of the ink is traced to a vector outline
       (marching squares on the soft alpha, sub-pixel, then simplified):
       crisp at any size, exact to Zico's strokes. The pen's mask width

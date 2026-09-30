@@ -48,16 +48,96 @@ module.exports = function(ink, PENS, DEBUG, WORK, ROOT){
         if (x >= 0 && y >= 0 && x < W && y < H) line[y * W + x] = 1;
       }
     }
-    return { id: p.id, c: dOf(segs), D: chamfer(line, W, H) };
+    return { id: p.id, c: dOf(segs), D: chamfer(line, W, H), pts: pts };
   });
 
-  /* ---- every inked pixel to its nearest pen (ties: the earlier) ---- */
-  var owner = new Int16Array(W * H).fill(-1);
+  /* ---- each pen's BAND: how wide its own brush is, all along it -----
+     VEN, 2026-09-30: *"parts of the strokes are missing … the S shape of
+     the $ has rendered in but the lines on top of that have not … a gap in
+     the bottom of the S shape where the line is supposed to cross over. I
+     want each stroke to be full with no gaps."* Nearest-pen ownership cut
+     every crossing down the bisector, so the $'s S (written first) was
+     left with a diamond-shaped hole wherever a bar was still to come, the
+     T's bar with a notch where its stem would join, and the E's stem with
+     bites where its arms would.
+
+     So each pen measures its brush: from every point of its centre-line
+     (1px apart) it scans across the ink on both sides (dry-brush gaps up
+     to GAP px bridged) for the stroke's reach there. Where another stroke
+     crosses, that scan runs off along the other stroke — a spike as long
+     as the crossing is wide — so the reach is OPENED (a running min, then
+     a running max, RW px each way): spikes narrower than 2·RW go, the
+     brush's own swell and taper stay. */
+  var GAP = 2, RW = 20, MAXR = 70;
+  function at(x, y){
+    var ix = Math.round(x), iy = Math.round(y);
+    return ix < 0 || iy < 0 || ix >= W || iy >= H ? 0 : A[iy * W + ix];
+  }
+  function band(dense){
+    /* resample the centre-line at 1px of arc */
+    var c = [dense[0]], carry = 0;
+    for (var k = 1; k < dense.length; k++){
+      var a = dense[k - 1], b = dense[k], L = Math.hypot(b[0] - a[0], b[1] - a[1]), t = 1 - carry;
+      while (t <= L){ c.push([a[0] + (b[0] - a[0]) * t / L, a[1] + (b[1] - a[1]) * t / L]); t += 1; }
+      carry = L - (t - 1);
+    }
+    var n = c.length, nx = new Float32Array(n), ny = new Float32Array(n), eL = new Float32Array(n), eR = new Float32Array(n);
+    for (k = 0; k < n; k++){
+      var p = c[Math.max(0, k - 3)], q = c[Math.min(n - 1, k + 3)], tl = Math.hypot(q[0] - p[0], q[1] - p[1]) || 1;
+      nx[k] = -(q[1] - p[1]) / tl; ny[k] = (q[0] - p[0]) / tl;
+      [-1, 1].forEach(function(side){
+        var last = -1;
+        for (var r = 0; r <= MAXR; r += 0.5){
+          if (at(c[k][0] + side * nx[k] * r, c[k][1] + side * ny[k] * r) > 0.5) last = r;
+          else if (r - Math.max(0, last) > GAP) break;
+        }
+        (side < 0 ? eL : eR)[k] = Math.max(0, last);
+      });
+    }
+    function open(e){
+      var lo = new Float32Array(n), hi = new Float32Array(n), j, m;
+      for (k = 0; k < n; k++){ m = Infinity; for (j = Math.max(0, k - RW); j <= Math.min(n - 1, k + RW); j++) if (e[j] < m) m = e[j]; lo[k] = m; }
+      for (k = 0; k < n; k++){ m = 0; for (j = Math.max(0, k - RW); j <= Math.min(n - 1, k + RW); j++) if (lo[j] > m) m = lo[j]; hi[k] = m; }
+      return hi;
+    }
+    return { c: c, nx: nx, ny: ny, eL: open(eL), eR: open(eR) };
+  }
+  /* is pixel (x, y) inside this pen's band? Its nearest centre-line point
+     decides the side and the reach; past either end is outside */
+  function inBand(B, x, y){
+    var best = -1, bd = Infinity;
+    for (var k = 0; k < B.c.length; k++){
+      var dx = x - B.c[k][0], dy = y - B.c[k][1], d = dx * dx + dy * dy;
+      if (d < bd){ bd = d; best = k; }
+    }
+    var ox = x - B.c[best][0], oy = y - B.c[best][1];
+    var along = Math.abs(ox * B.ny[best] - oy * B.nx[best]), across = ox * B.nx[best] + oy * B.ny[best];
+    /* only an END can be passed: on the outside of a curve the normals fan
+       out, and a pixel between two of them lies more than half a sample
+       along from its nearest — testing that everywhere left a dotted fringe */
+    if ((best === 0 || best === B.c.length - 1) && along > 0.75) return false;
+    return across < 0 ? -across <= B.eL[best] + 0.5 : across <= B.eR[best] + 0.5;
+  }
+
+  /* ---- every inked pixel to the FIRST pen written whose band covers it;
+     outside every band (dry-brush hairs, a blot past a stroke's end), to
+     the nearest pen as before. A crossing is then the earlier stroke's
+     ink: each stroke is whole the moment it lands, and the later one is
+     drawn over ink that is already there. */
+  pens.forEach(function(p){ p.band = band(p.pts); });
+  /* a quick reject before the exact test: the chamfer distance is within
+     a few % of the true one, so allow 10% and 2px */
+  var owner = new Int16Array(W * H).fill(-1), reachMax = pens.map(function(p){
+    var m = 0; for (var k = 0; k < p.band.c.length; k++) m = Math.max(m, p.band.eL[k], p.band.eR[k]); return m * 1.1 + 2;
+  });
   for (var k = 0; k < W * H; k++){
     if (A[k] <= 0.02) continue;
-    var best = 0, bd = Infinity;
-    for (var i = 0; i < pens.length; i++){ if (pens[i].D[k] < bd){ bd = pens[i].D[k]; best = i; } }
-    owner[k] = best;
+    var best = 0, bd = Infinity, first = -1, x = k % W, y = (k / W) | 0;
+    for (var i = 0; i < pens.length; i++){
+      if (first < 0 && pens[i].D[k] <= reachMax[i] && inBand(pens[i].band, x, y)) first = i;
+      if (pens[i].D[k] < bd){ bd = pens[i].D[k]; best = i; }
+    }
+    owner[k] = first >= 0 ? first : best;
   }
 
   /* ---- trace one pen's share: marching squares at 0.5 ------------- */
@@ -169,5 +249,22 @@ module.exports = function(ink, PENS, DEBUG, WORK, ROOT){
     pens.forEach(function(p){ for (var k4 = 0; k4 < W * H; k4++) if (p.D[k4] < 0.7){ o[k4 * 3] = 0; o[k4 * 3 + 1] = 0; o[k4 * 3 + 2] = 0; } });
     fs.writeFileSync(path.join(WORK, "2-pens.png"), png.encode(W, H, 3, 2, o));
     console.log("wrote art/title/_work/2-pens.png");
+
+    /* the word as it stands after each stroke — what the page shows between
+       pens: written ink dark, the stroke just landed red, ink still to come
+       pale grey (so a hole in a written stroke shows as grey inside dark) */
+    var COLS = 4, ROWS = Math.ceil(pens.length / COLS), PW = W + 10, PH = H + 10;
+    var sh = Buffer.alloc(PW * COLS * PH * ROWS * 3, 255);
+    for (var s5 = 0; s5 < pens.length; s5++){
+      var ox5 = (s5 % COLS) * PW, oy5 = ((s5 / COLS) | 0) * PH;
+      for (var k5 = 0; k5 < W * H; k5++){
+        var a5 = A[k5]; if (a5 <= 0.02 || owner[k5] < 0) continue;
+        var c5 = owner[k5] < s5 ? [33, 27, 17] : owner[k5] === s5 ? [200, 30, 30] : [215, 212, 205];
+        var q5 = ((oy5 + ((k5 / W) | 0)) * PW * COLS + ox5 + k5 % W) * 3;
+        for (var ch5 = 0; ch5 < 3; ch5++) sh[q5 + ch5] = Math.round(255 - (255 - c5[ch5]) * a5);
+      }
+    }
+    fs.writeFileSync(path.join(WORK, "3-strokes.png"), png.encode(PW * COLS, PH * ROWS, 3, 2, sh));
+    console.log("wrote art/title/_work/3-strokes.png");
   }
 };

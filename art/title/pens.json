@@ -1,5 +1,5 @@
 {
-  "note": "Zico's $TiLES, stroke by stroke, in writing order. Each pen is the centre-line of one brush stroke in the coordinates of tools/title.js's crop (px of art/title/zico-ref.png minus [20, 385]). Read off the ink's skeleton (a 10px grid over it). A pen only ever reveals the ink nearer to it than to any other pen.",
+  "note": "Zico's $TiLES, stroke by stroke, in writing order. Each pen is the centre-line of one brush stroke in the coordinates of tools/title.js's crop (px of art/title/zico-ref.png minus [20, 385]). Read off the ink's skeleton (a 10px grid over it). A pen reveals the ink inside its own brush width (its band) that no EARLIER pen's band covers — so a crossing lands with the first stroke through it — plus loose ink nearer to it than to any other pen.",
   "pens": [
     {
       "id": "$-s",
