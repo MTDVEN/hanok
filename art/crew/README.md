@@ -27,6 +27,7 @@ font and the builders, which wait for the font (see Next).
 | `&cast=sit,carry,build,village` | pick groups. `build` = the FIRST builders, out of the default until redrawn for the new font |
 | `&relay=1` | carriers take turns instead of passing each other |
 | `&carryplane=front` | carriers and pile in front of the letters (default behind, so $TILES stays whole) |
+| `&titlefont=Black+Han+Sans` | $TILES in ANY Google font (`Family:wght@900` for a weight), still written by hand: the glyphs are uncovered through a mask by the brush letters' pen strokes stretched onto each glyph, the nib riding along |
 | `&title=song` | $TILES in Song Myung |
 | `&crewsize=0.5` | people's size (default 0.42; 0.55 on phones ≤560px) |
 | `&crewt=12.5` | freeze the scene at 12.5 s (QA: every hand-over can be screenshotted exactly) |

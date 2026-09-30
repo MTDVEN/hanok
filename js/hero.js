@@ -278,15 +278,48 @@
     strokes.push({ main: main, over: over, len: len, swell: swell, sLen: sLen });
   }
 
-  /* `?title=song` — THE TICKER SET IN SONG MYUNG, a test. Zico,
-     2026-09-29: *"can also change font of $TILES to 'Song myung
-     font'"*. A webfont glyph has no stroke order to write in (see the
-     header), so this does not write itself: it is wiped on left to
-     right, and the seal stamps after as usual. Built on the crew-test
-     branch because the crew sits on the letters and has to be seen on
-     both. The brush strokes stay the default. */
-  var SONG = /[?&]title=song\b/.test(location.search);
+  /* THE TICKER SET IN A REAL FONT — AND STILL WRITTEN BY HAND.
+     Zico, 2026-09-29/30: $TILES in Song Myung, then *"a better font"*;
+     VEN: *"make sure that the written animation is still there"*.
+
+       ?titlefont=Black+Han+Sans        any Google Fonts family
+       ?titlefont=Noto+Serif+KR:wght@900  …at a weight
+       ?title=song                      Song Myung (the first ask)
+       CONFIG.token.titleFont           the chosen one, once there is one
+
+     A font's glyph is a filled outline with no stroke order, so it
+     cannot write itself the way the brush LETTERS do. It is WRITTEN
+     THROUGH A MASK instead: the glyphs are set in the font, hidden, and
+     uncovered by thick pen strokes drawn in writing order — the brush
+     LETTERS' own strokes, stretched onto each glyph's ink — with the
+     nib riding the pen. What is left when the pen lifts is exactly the
+     font. Each letter's pen is widened until it covers the glyph (see
+     penWidth), and the mask comes off at the end, so no sliver is ever
+     left unwritten. The brush strokes stay the default. */
+  var fontQ = /[?&]titlefont=([A-Za-z0-9+ %]{2,60})(?::wght@([1-9]00))?/.exec(location.search);
+  var FONT = null, FONT_W = "";
+  if (fontQ){
+    FONT = decodeURIComponent(fontQ[1]).replace(/\+/g, " ").replace(/[^A-Za-z0-9 ]/g, "").trim() || null;
+    FONT_W = fontQ[2] || "";
+  } else if (/[?&]title=song\b/.test(location.search)){
+    FONT = "Song Myung";
+  } else if (TOKEN.titleFont){
+    FONT = String(TOKEN.titleFont.family || TOKEN.titleFont).replace(/[^A-Za-z0-9 ]/g, "");
+    FONT_W = String(TOKEN.titleFont.weight || "");
+  }
+  var SONG = !!FONT;                        // (the name is historical: "a webfont title")
   var songText = null, SONG_BASE = 148, SONG_CAP = 112;
+  /* the CSS font shorthand for this face at px size n */
+  function fontAt(n){ return (FONT_W ? FONT_W + " " : "") + n + "px '" + FONT + "'"; }
+  /* a family that is not already linked by index.html is fetched from
+     Google Fonts, subset to the wordmark's own characters (a few KB) */
+  if (FONT && FONT !== "Song Myung"){
+    var fl = document.createElement("link");
+    fl.rel = "stylesheet";
+    fl.href = "https://fonts.googleapis.com/css2?family=" + encodeURIComponent(FONT).replace(/%20/g, "+") +
+      (FONT_W ? ":wght@" + FONT_W : "") + "&display=block&text=" + encodeURIComponent(WORD);
+    document.head.appendChild(fl);
+  }
 
   /* each letter's strokes go in a group of their own, so a letter's
      ink can be measured on its own (window.HANOK_HERO, below) */
@@ -310,7 +343,8 @@
   if (SONG){
     songText = el("text", {
       x: X0, y: SONG_BASE, fill: "#211B11", filter: "url(#inkRough)",
-      "font-family": "'Song Myung', serif",
+      "font-family": "'" + FONT + "', serif",
+      "font-weight": FONT_W || "normal",
       /* a first guess at the size; set properly from the face's own
          cap height once it has loaded — see songFit() */
       "font-size": String(Math.round(SONG_CAP / 0.7))
@@ -389,7 +423,7 @@
     }
     if (SONG){
       cx.scale(INK_S, INK_S);
-      cx.font = songText.getAttribute("font-size") + "px 'Song Myung'";
+      cx.font = fontAt(songText.getAttribute("font-size"));
       for (var i = 0; i < WORD.length; i++){
         var p; try { p = songText.getStartPositionOfChar(i); } catch(e){ continue; }
         cx.fillText(WORD.charAt(i), p.x, SONG_BASE);
@@ -453,7 +487,7 @@
     if (SONG){
       var cx = document.createElement("canvas").getContext("2d"), PX = 200,
           k = +songText.getAttribute("font-size") / PX;
-      cx.font = PX + "px 'Song Myung'";
+      cx.font = fontAt(PX);
       for (var i = 0; i < WORD.length; i++){
         var ch = WORD.charAt(i), m = cx.measureText(ch), sx;
         try { sx = songText.getStartPositionOfChar(i).x; } catch(e){ continue; }
@@ -503,10 +537,10 @@
     var t0 = Date.now();
     (function poll(){
       var known = false;
-      document.fonts.forEach(function(f){ if (/Song Myung/i.test(f.family)) known = true; });
+      document.fonts.forEach(function(f){ if (f.family.replace(/["']/g, "").toLowerCase() === FONT.toLowerCase()) known = true; });
       if (known){
-        if (document.fonts.check("200px 'Song Myung'", WORD)) return cb(true);
-        document.fonts.load("200px 'Song Myung'", WORD);
+        if (document.fonts.check(fontAt(200), WORD)) return cb(true);
+        document.fonts.load(fontAt(200), WORD);
       }
       if (Date.now() - t0 > 4000) return cb(false);
       setTimeout(poll, 60);
@@ -516,8 +550,10 @@
      caps, then re-measure the box and move the seal after it */
   function songFit(){
     var cx = document.createElement("canvas").getContext("2d");
-    cx.font = "200px 'Song Myung'";
-    var capR = cx.measureText("T").actualBoundingBoxAscent / 200;
+    cx.font = fontAt(200);
+    /* cap height off a capital the word has (T for $TILES), else H */
+    var capCh = /[A-Z]/.test(WORD.replace(/[^A-Z]/g, "")) ? WORD.replace(/[^A-Z]/g, "").charAt(0) : "H";
+    var capR = cx.measureText(capCh).actualBoundingBoxAscent / 200;
     if (capR > 0.3 && capR < 1.2) songText.setAttribute("font-size", (SONG_CAP / capR).toFixed(1));
     fitBox();
     if (seal) seal.setAttribute("transform", "translate(" + sealX + " 108)" +
@@ -610,49 +646,126 @@
 
   /* timeline ------------------------------------------------------ */
 
-  /* `?title=song`: no strokes to write. Hidden behind a zero-width
-     mask until the face has loaded (never show the fallback serif),
-     then wiped on left to right through a soft-edged rect, and the
-     seal stamps as it does after the brush. */
+  /* ---- the pen, for a font (see "A REAL FONT" above) ----------------
+     For each glyph: its brush strokes (LETTERS, drawn on a 100x140
+     grid) are stretched so their centre-lines span the glyph's ink box
+     inset by half its stroke weight, and drawn into a mask as thick
+     white strokes. penWidth() starts at the glyph's own stroke weight
+     and widens (to 3.2x) until the pen has covered 98.5% of the glyph's
+     ink — measured on a canvas, so it holds for any face. A character
+     with no brush strokes gets one pen straight down its middle. */
+  var penMask = null;
+  function inkOf(ch, px, rect){
+    /* the glyph drawn alone on a canvas: alpha mask + its box, px units */
+    var c = document.createElement("canvas"); c.width = rect.w; c.height = rect.h;
+    var x = c.getContext("2d", { willReadFrequently: true });
+    x.font = fontAt(px); x.fillStyle = "#000";
+    x.fillText(ch, rect.ox, rect.oy);
+    return x.getImageData(0, 0, rect.w, rect.h).data;
+  }
+  function buildPens(){
+    var L = letterBoxes(), S = 3;                    // canvas px per svg unit
+    var fs = +songText.getAttribute("font-size");
+    var tmp = el("g", { opacity: "0" }, svg);
+    L.forEach(function(l){
+      var paths = LETTERS[l.ch] || LETTERS[l.ch.toUpperCase()];
+      var bw = l.x1 - l.x0, bh = l.bottom - l.top;
+      /* the glyph, rasterised in its own box (+ margin) */
+      var M = Math.ceil(0.25 * bh), rect = { w: Math.ceil((bw + 2 * M) * S), h: Math.ceil((bh + 2 * M) * S) };
+      var sx0;
+      try { sx0 = songText.getStartPositionOfChar(l.i).x; } catch(e){ sx0 = l.x0; }
+      rect.ox = (sx0 - (l.x0 - M)) * S; rect.oy = (SONG_BASE - (l.top - M)) * S;
+      var glyph = inkOf(l.ch, fs * S, rect), total = 0;
+      for (var q = 3; q < glyph.length; q += 4) if (glyph[q] > 110) total++;
+      /* its stroke weight: twice the deepest point inside the ink
+         (a chamfer distance transform on the canvas mask) */
+      var W = rect.w, Hh = rect.h, dt = new Float32Array(W * Hh);
+      for (var k = 0; k < W * Hh; k++) dt[k] = glyph[k * 4 + 3] > 110 ? 1e9 : 0;
+      for (var y = 1; y < Hh; y++) for (var x = 1; x < W - 1; x++){ var o = y * W + x; if (dt[o]) dt[o] = Math.min(dt[o], dt[o - 1] + 1, dt[o - W] + 1, dt[o - W - 1] + 1.4, dt[o - W + 1] + 1.4); }
+      for (y = Hh - 2; y >= 0; y--) for (x = W - 2; x >= 1; x--){ o = y * W + x; if (dt[o]) dt[o] = Math.min(dt[o], dt[o + 1] + 1, dt[o + W] + 1, dt[o + W + 1] + 1.4, dt[o + W - 1] + 1.4); }
+      var deep = 0; for (k = 0; k < dt.length; k++) if (dt[k] < 1e8 && dt[k] > deep) deep = dt[k];
+      var weight = Math.max(4, 2 * deep / S);        // svg units
+      /* the pen's centre-lines, mapped onto the glyph */
+      var ds;
+      if (paths){
+        var g = el("g", {}, tmp);
+        paths.forEach(function(d){ el("path", { d: d }, g); });
+        var bb = g.getBBox();
+        var ix = Math.min(weight / 2, bw * 0.3), iy = Math.min(weight / 2, bh * 0.3);
+        var kx = (bw - 2 * ix) / Math.max(1, bb.width), ky = (bh - 2 * iy) / Math.max(1, bb.height);
+        ds = paths.map(function(d){
+          var n = 0;
+          return d.replace(/-?\d*\.?\d+/g, function(v){
+            var isX = (n++ % 2) === 0;
+            return (isX ? l.x0 + ix + (+v - bb.x) * kx : l.top + iy + (+v - bb.y) * ky).toFixed(2);
+          });
+        });
+      } else {
+        ds = ["M" + ((l.x0 + l.x1) / 2).toFixed(2) + " " + l.top.toFixed(2) + " L" + ((l.x0 + l.x1) / 2).toFixed(2) + " " + l.bottom.toFixed(2)];
+      }
+      /* widen the pen until it covers the glyph */
+      var cov = document.createElement("canvas"); cov.width = W; cov.height = Hh;
+      var cx2 = cov.getContext("2d", { willReadFrequently: true });
+      var pen = weight * 1.15;
+      for (var tries = 0; tries < 12; tries++){
+        cx2.clearRect(0, 0, W, Hh);
+        cx2.setTransform(S, 0, 0, S, -(l.x0 - M) * S, -(l.top - M) * S);
+        cx2.lineWidth = pen; cx2.lineCap = "round"; cx2.lineJoin = "round"; cx2.strokeStyle = "#fff";
+        ds.forEach(function(d){ cx2.stroke(new Path2D(d)); });
+        cx2.setTransform(1, 0, 0, 1, 0, 0);
+        var m2 = cx2.getImageData(0, 0, W, Hh).data, hit = 0;
+        for (q = 3; q < glyph.length; q += 4) if (glyph[q] > 110 && m2[q] > 110) hit++;
+        if (!total || hit / total >= 0.985 || pen >= weight * 3.2) break;
+        pen *= 1.12;
+      }
+      ds.forEach(function(d){
+        var p = el("path", { d: d, fill: "none", stroke: "#fff", "stroke-width": pen.toFixed(2),
+                             "stroke-linecap": "round", "stroke-linejoin": "round" }, penMask);
+        var len = p.getTotalLength();
+        p.style.strokeDasharray = len + " " + (len + 4);
+        p.style.strokeDashoffset = len;
+        strokes.push({ main: p, over: null, len: len, swell: null, sLen: 0, userSpace: true });
+      });
+    });
+    svg.removeChild(tmp);
+  }
+
+  var START_DELAY = 300, STROKE_GAP = 50, timeline = [], writingEnd = 0;
+  function plan(){
+    var t = START_DELAY;
+    timeline = strokes.map(function(s){
+      var dur = Math.max(150, Math.min(460, s.len * 1.7));
+      var item = { s: s, start: t, dur: dur };
+      t += dur + STROKE_GAP;
+      return item;
+    });
+    writingEnd = t;
+  }
+
   if (SONG){
     if (reduced){
       stampSeal(true);
       finishHero();
       whenSong(function(ok){
         songFit(); publish();
-        if (!ok) document.fonts.load("200px 'Song Myung'", WORD).then(function(){ songFit(); publish(); });
+        if (!ok) document.fonts.load(fontAt(200), WORD).then(function(){ songFit(); publish(); });
       });
       return;
     }
-    var soft = el("filter", { id: "songSoft", x: "-20%", y: "-20%", width: "140%", height: "140%" }, defs);
-    el("feGaussianBlur", { stdDeviation: "9" }, soft);
-    var wipe = el("mask", { id: "songWipe", maskUnits: "userSpaceOnUse",
-                            x: "-60", y: "-60", width: "2400", height: "300" }, defs);
-    var wipeR = el("rect", { x: "-40", y: "-40", width: "0", height: "260",
-                             fill: "#fff", filter: "url(#songSoft)" }, wipe);
-    inkGroup.setAttribute("mask", "url(#songWipe)");
+    /* hidden until the face is in and the pen writes it */
+    penMask = el("mask", { id: "penMask", maskUnits: "userSpaceOnUse",
+                           x: "-200", y: "-200", width: "4000", height: "600" }, defs);
+    inkGroup.setAttribute("mask", "url(#penMask)");
     whenSong(function(ok){
       songFit(); publish();
-      if (!ok) document.fonts.load("200px 'Song Myung'", WORD).then(function(){
-        if (document.fonts.check("200px 'Song Myung'", WORD)){ songFit(); publish(); }
+      if (!ok) document.fonts.load(fontAt(200), WORD).then(function(){
+        if (document.fonts.check(fontAt(200), WORD)){ songFit(); publish(); }
       });
-      var span = svg.viewBox.baseVal.width + 80, t0 = null, DUR = 1500;
-      function frame(ts){
-        if (t0 === null) t0 = ts;
-        var p = Math.min(1, (ts - t0) / DUR);
-        var e = p < 0.5 ? 2*p*p : 1 - Math.pow(-2*p + 2, 2) / 2;
-        wipeR.setAttribute("width", String(e * span));
-        if (p < 1) return requestAnimationFrame(frame);
-        inkGroup.removeAttribute("mask");
-        stampSeal(false);
-        setTimeout(finishHero, 220);
-      }
-      requestAnimationFrame(frame);
+      buildPens();
+      plan();
+      requestAnimationFrame(tick);
     });
-    return;
-  }
-
-  if (reduced){
+  } else if (reduced){
     strokes.forEach(function(s){
       s.main.style.strokeDashoffset = 0;
       s.over.style.strokeDashoffset = 0;
@@ -661,16 +774,7 @@
     stampSeal(true);
     finishHero();
     return;
-  }
-
-  var START_DELAY = 300, STROKE_GAP = 50, t = START_DELAY;
-  var timeline = strokes.map(function(s){
-    var dur = Math.max(150, Math.min(460, s.len * 1.7));
-    var item = { s: s, start: t, dur: dur };
-    t += dur + STROKE_GAP;
-    return item;
-  });
-  var writingEnd = t;
+  } else plan();
 
   function ease(p){ return p < 0.5 ? 2*p*p : 1 - Math.pow(-2*p + 2, 2) / 2; }
 
@@ -685,7 +789,7 @@
       p = Math.min(1, p);
       var off = it.s.len * (1 - ease(p));
       it.s.main.style.strokeDashoffset = off;
-      it.s.over.style.strokeDashoffset = off;
+      if (it.s.over) it.s.over.style.strokeDashoffset = off;
       /* the swell covers SWELL_A..SWELL_B of the stroke, so it is
          revealed on the main stroke's progress remapped onto that
          span — otherwise the heavy middle would arrive before the
@@ -698,7 +802,14 @@
       if (p < 1) active = { it: it, p: p };
     });
 
-    if (active){
+    if (active && active.it.s.userSpace){
+      /* a pen is drawn in the svg's own units, inside a mask (which has
+         no screen matrix): the nib sits on the point itself */
+      var pp = active.it.s.main.getPointAtLength(active.it.s.len * ease(active.p));
+      nib.setAttribute("cx", pp.x);
+      nib.setAttribute("cy", pp.y);
+      nib.setAttribute("opacity", "0.9");
+    } else if (active){
       var pt = active.it.s.main.getPointAtLength(active.it.s.len * ease(active.p));
       var m = active.it.s.main.getScreenCTM(), sm = svg.getScreenCTM();
       /* getPointAtLength is in the path's local space; map through its
@@ -717,12 +828,15 @@
 
     if (now >= writingEnd + 160 && !sealDone){
       sealDone = true;
+      /* the pen has lifted: whatever it did not quite reach is the font's */
+      if (penMask) inkGroup.removeAttribute("mask");
       stampSeal(false);
       setTimeout(finishHero, 220);
     }
 
     if (now < writingEnd + 1400) requestAnimationFrame(tick);
   }
-  requestAnimationFrame(tick);
+  /* a font writes once its face has loaded (whenSong, above) */
+  if (!SONG) requestAnimationFrame(tick);
 
 })();

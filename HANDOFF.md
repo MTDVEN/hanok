@@ -6969,6 +6969,15 @@ art/crew/README.md. What changed, all on `crew-test`:
   from the real glyph, a ladder longer than any cap, clipped at the
   baseline. Waiting on the font.
 - 346 credits this part (1,206 total, 2,794 left).
+- **Then, the font (same day, VEN: "make sure that the written animation
+  is still there")**: `?titlefont=<any Google Fonts family>` (and
+  `?title=song`) now WRITE the title instead of wiping it: the glyphs
+  sit behind a mask and thick pen strokes — the brush LETTERS' own
+  strokes, stretched onto each glyph's ink, widened until they cover
+  98.5% of it — uncover them in writing order with the nib riding the
+  pen; the mask lifts at the end. js/hero.js buildPens(). Zico's font
+  reference image still has not reached Claude (it arrives as the text
+  "[Image #3]" only) — VEN to save it into the project folder.
 
 ## LAUNCH DAY — everything still outstanding
 
