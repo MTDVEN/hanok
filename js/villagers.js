@@ -1,8 +1,9 @@
 /* ================================================================
-   VILLAGERS — people walking the village's paths. A TEST (branch
-   crew-test), on with the crew: `?crew=ink` (`&cast=` without
-   `village` leaves them out). Six walkers in six colours since session
-   21 (WALKERS_NEW, art/crew/vill2); `?vill=old` = the first three.
+   VILLAGERS — people walking the village's paths. Built as a test on
+   the crew-test branch; live and on by default since 2026-09-30
+   (`?crew=0` turns them off; `&cast=` without `village` leaves them
+   out). Six walkers in six colours since session 21 (WALKERS_NEW,
+   art/crew/vill2); `?vill=old` = the first three.
 
    Zico, 2026-09-29: *"are you able to add animations? like a couple
    villagers running around the village at the bottom"*. The plan had
@@ -32,8 +33,11 @@
 (function(){
   "use strict";
 
+  /* on by default since they went live (2026-09-30); `?crew=0` turns
+     them off with the heading crew, and `?crew=x` (the laptop-sitters as
+     painted on X, a kept comparison) never had them */
   var q = location.search;
-  if (!/[?&]crew=ink\b/.test(q)) return;
+  if (/[?&]crew=(0|off|x)\b/.test(q)) return;
   var castQ = /[?&]cast=([a-z,]+)/.exec(q);
   if (castQ && castQ[1].split(",").indexOf("village") < 0) return;
 

@@ -87,7 +87,7 @@ window.HANOK_CONFIG = {
   /* Links. null hides the corresponding button/anchor. */
   links: {
     buy: null,          // e.g. "https://pump.fun/coin/<ca>"
-    x: null,            // e.g. "https://x.com/<handle>"
+    x: "https://x.com/tilesonGIWA",   // Zico, 2026-09-29: "make the link to the X on website"
     dexscreener: null,  // e.g. "https://dexscreener.com/solana/<pair>"
     telegram: null
   },

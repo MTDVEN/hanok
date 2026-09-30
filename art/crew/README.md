@@ -38,7 +38,8 @@ tile delivery and the first builders are all kept (`?cast=sit,carry`,
 
 | URL | what |
 |---|---|
-| `index.html?crew=ink` | **the painters** on the heading (each arrives as his stroke is written), plus villagers on the village paths |
+| `index.html` | **the painters** on the heading (each arrives as his stroke is written), plus villagers on the village paths — ON BY DEFAULT and LIVE on tilesongiwa.com since 2026-09-30 (`?crew=ink` says the same explicitly) |
+| `?crew=0` | the page without the crew or the villagers |
 | `&paintin=end` | the painters arrive together once the title is written (the alternative) |
 | `&cast=paint,sit,carry,build,village` | pick groups. `sit,carry` = the laptop-sitters and the tile delivery (the cast before the painters), `build` = the first builders |
 | `?titlet=770` | freeze the title's writing at 770ms (here: the $'s S down, its bars to come) |
@@ -52,7 +53,10 @@ tile delivery and the first builders are all kept (`?cast=sit,carry`,
 | `index.html?crew=x` | the laptop-sitters as painted on X — the comparison VEN rejected, kept |
 | `index.html?crew=ink&cast=sit,carry&title=hand` | the old cast on the earlier brush letters it was fitted to (on Zico's lettering its pile search fails, a console warning). The painters are never shown on `title=hand` |
 
-Nothing shows without `?crew=`. The live site is untouched.
+Until 2026-09-30 nothing showed without `?crew=` and the live site was
+untouched; since VEN's *"push everything so that it works with the main
+link tilesongiwa.com"* the painters and the villagers are on by default,
+and live.
 
 ## The sets
 

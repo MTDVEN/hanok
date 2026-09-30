@@ -1,5 +1,6 @@
 /* ================================================================
-   CREW — Zico's villagers on the heading. A TEST (branch crew-test).
+   CREW — Zico's villagers on the heading. Built as a test on the
+   crew-test branch; live, and on by default, since 2026-09-30.
 
    Zico, 2026-09-29: *"add some of the same characters on X around the
    heading. some building the header, some sitting at the top with
@@ -12,7 +13,9 @@
    pile of tiles at the bottom of the ladder and then walk back off
    frame (where they rendered in from)"*.
 
-     ?crew=ink     the crew, in ink: the PAINTERS (below)
+     (default)     the crew, in ink: the PAINTERS (below); `?crew=ink`
+                   says the same thing explicitly
+     ?crew=0       no crew (and no villagers — js/villagers.js)
      ?crew=x       the laptop-sitters only, as painted on @tilesonGIWA
      ?cast=paint,sit,carry,build   which groups (default paint; `sit,carry`
                    is the laptop-sitters and the tile delivery that came
@@ -68,10 +71,14 @@
 (function(){
   "use strict";
 
+  /* ON BY DEFAULT since the crew went live (2026-09-30, VEN: "push
+     everything so that it works with the main link tilesongiwa.com") —
+     it was opt-in (`?crew=ink`) on the crew-test branch until then, and
+     `?crew=ink` still works. `?crew=0` is the page without it. */
   var q = location.search;
+  if (/[?&]crew=(0|off)\b/.test(q)) return;
   var m = /[?&]crew=(x|ink)\b/.exec(q);
-  if (!m) return;
-  var STYLE = m[1];
+  var STYLE = m ? m[1] : "ink";
   var castQ = /[?&]cast=([a-z,]+)/.exec(q);
   var CAST  = castQ ? castQ[1].split(",") : ["paint"];
   if (STYLE === "x") CAST = ["sit"];

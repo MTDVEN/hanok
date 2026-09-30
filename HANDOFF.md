@@ -6,10 +6,15 @@ assets, what was already reviewed/fixed (and what was deliberately NOT
 fixed), and the exact next steps. `README.md` is the short ops sheet;
 this file is the deep context.
 
-**SESSION 21 (2026-09-30, evening), READ FIRST: THE CHARACTERS ARE
-PAINTERS NOW, AND EVERY STROKE OF THE TITLE LANDS WHOLE.** Still all on
-`crew-test`, still none of it live. VEN asked for two things, and
-**§9aq** is the record of both:
+**SESSION 21 (2026-09-30, evening), READ FIRST: IT IS ALL LIVE NOW.** At
+the end of the session VEN said *"push everything so that it works with
+the main link tilesongiwa.com"*: `main` was fast-forwarded to `crew-test`
+(the same commit), so tilesongiwa.com serves Zico's lettering, the
+painters, the six villagers, the journey's new zoom, the "How to join"
+section, the Korean toggle and the X link — the painters and villagers
+ON BY DEFAULT (`?crew=0` turns them off). **§9au** is that step and the
+last fix before it. The session in order — VEN asked for two things
+first, and **§9aq** is the record of both:
 
   1. *"change the characters in the main hero section to look like they
      are painting the ticker "$TILES" rather than being on a laptop like
@@ -39,9 +44,11 @@ PAINTERS NOW, AND EVERY STROKE OF THE TITLE LANDS WHOLE.** Still all on
      1.35, then at VEN's word the same step again → 1.10) and **"여정 ·
      THE JOURNEY" carries its own clearing** (**§9as**;
      `?zoomin=1.65&notepx=0&lqdesk=9` and `?jhead=0` are the old ones).
-  5. Last, **Namsangol's "How to join the community"** — Zico's steps as
+  5. **Namsangol's "How to join the community"** — Zico's steps as
      their own section after the journey, the map's note pointing to it
      (**§9at**; `?join=stop` puts them on the map at Namsangol instead).
+  6. Last, VEN's screenshot of Namsangol — the caption running through
+     골 — fixed, and **everything put live** (**§9au**).
   1,120 credits spent this session, 1,674 left.
 
 **SESSION 20 (2026-09-30), READ FIRST: ALL CURRENT WORK IS ON BRANCH
@@ -321,24 +328,22 @@ history.)
 > re-propose those). Then run `git status` and `git pull` on
 > `crew-test`; another developer works on that branch too.
 >
-> State: the LIVE site, https://tilesongiwa.com, is `origin/main`,
-> untouched since session 19; pushing main deploys. Local main has one
-> unpushed commit, the Korean toggle (607b3c2). All current work is on
-> branch `crew-test`, previewed at
-> https://hanok-git-crew-test-mtdvens-projects.vercel.app/?crew=ink.
-> There, the $TILES title is Zico's own brush lettering, written stroke
-> by stroke (13 strokes, ~4.4 s), and every stroke now lands whole. Five
-> villagers paint it (session 21): a boy at the $, a man kneeling on the
-> T's bar, a woman on the E's arm, a man with a giant brush on the S's
-> tail, a woman with a long brush under the S. Each arrives as the
-> stroke he works on is written (`?paintin=end`: all at the end). I
-> approved the painters as they are ("this is perfect"). They still only
-> show with `?crew=ink`; going live means switching them on by default
-> and merging to main, on my go-ahead.
+> State: the LIVE site, https://tilesongiwa.com, is `origin/main`, and
+> since the end of session 21 `main` and `crew-test` are the same commit;
+> pushing main deploys. New work goes on `crew-test` first (preview:
+> https://hanok-git-crew-test-mtdvens-projects.vercel.app/) and reaches
+> main only on my go-ahead. Live now: the $TILES title is Zico's own
+> brush lettering, written stroke by stroke (13 strokes, ~4.4 s), every
+> stroke landing whole; five villagers paint it, each arriving as the
+> stroke he works on is written; six villagers in colour walk the
+> village; the journey zooms in less on desktop (1.10) and its title has
+> a clearing; Namsangol's "How to join" is a section after the journey;
+> the Korean toggle; the X link. The painters and villagers are on by
+> default (`?crew=0` turns them off).
 >
-> Namsangol's "How to join" is built too (§9at): its own section after
-> the journey, `?join=stop` on the map instead. Also open: the X link
-> and putting the Korean toggle live.
+> Waiting on Zico: his word on the "How to join" wording ($TILE or
+> $TILES) and on the Korean translation; the CA and the buy link at
+> launch (js/config.js — the site fills them in everywhere).
 >
 > The village walkers (js/villagers.js, the routes, the vill strips)
 > belong to another developer now (VILLAGERS.md). Don't edit them
@@ -7135,9 +7140,9 @@ title.
 | Song Myung for $TILES | built (`?title=song`), then superseded: Zico sent his own lettering and VEN rejected webfonts |
 | characters smaller, lettering bigger | done (§9an); to be re-checked on the new title |
 | tiles placed ON something; carriers to the ladder, a pile at its foot, back off frame | the delivery works (§9an); the pile's site and the ladder man are part of the rebuild |
-| the X link | **not done**: `CONFIG.links.x` in js/config.js is still `null`. One line |
+| the X link | **done and live, session 21** (§9au): `CONFIG.links.x` = https://x.com/tilesonGIWA |
 | Namsangol "How to join" | **done in session 21** (§9at): its own section after the journey (`?join=stop` = on the map) |
-| a Korean button | exists since §9ak and is on the preview; **not live** until `main` is pushed |
+| a Korean button | exists since §9ak; **live since session 21** (§9au) |
 | villagers running round the village | built (§9am); **handed to another developer** (5) |
 | "just one is good" (his reply to VEN's video) | **meaning never confirmed**: one style? one carrier? one video? Ask VEN |
 
@@ -7739,6 +7744,61 @@ i can show zico and ask"*); pushed to `crew-test`. `?join=stop` stays as
 the alternative. **Open**: Zico's word on it, on the wording (MetaMask
 capitalised, "your" added, $TILES) and on the Korean.
 
+## 9au. Session 21, part 5 (2026-09-30) — the caption off the name, and everything live
+
+VEN, with a screenshot of Namsangol (the caption running through 골):
+*"can you fix this, the english overlaps with the korean. also push
+everything so that it works with the main link "tilesongiwa.com" please"*
+
+### 1. The caption no longer runs through the name (js/journey.js)
+
+**Cause — mine.** A Korean name is centred on its searched anchor and
+scales with `lq`; its English caption sits on its own anchor at a fixed
+size. At Namsangol the two anchors are 57 map units apart and the column's
+lower half reaches 59 at lq 1.465. Before §9as only big windows reached
+1.465 (1440×900 did: the overlap was there, unseen); the zoom-out made a
+desktop's lq climb to its cap everywhere, VEN's 1280-wide window included.
+Phones (lq ~1.73) had it all along.
+
+**Fix**: where a name's column box overlaps its caption's box, the caption
+drops just below the column (`CAP_GAP` 2 units), keeping its x. Under
+Namsangol's gate that is the big clearing (checked on the bare sheet,
+`?labels=0`); the other three stops never trigger it at any lq up to
+LQ_MAX. The names keep their size, so all four stay alike.
+
+**Measured in ink** (each painted alone, the gap between 골's last pixel
+and the caption's first): before, −3.4px (overlap) on VEN's 1280×630 at
+1.5x; after, +14px there, 15 at 1280×551 and 1440×900, 20 at 1920×1080,
+14 at 1024×700, 9 on a 390px phone — about the column's own spacing
+between characters. Gyeongbokgung, Changdeokgung and Jeonju unchanged
+(their captions sit beside or well below their names).
+`?capgap=-999` shows the old overlap.
+
+### 2. Everything live
+
+- **The painters and the villagers are ON BY DEFAULT** (js/crew.js,
+  js/villagers.js): nobody types `?crew=ink` at tilesongiwa.com.
+  `?crew=ink` still works; `?crew=0` is the page without them; `?crew=x`
+  as before. VILLAGERS.md and art/crew/README.md say so.
+- **The X link is set**: `CONFIG.links.x` = https://x.com/tilesonGIWA, as
+  Zico asked on 2026-09-29 — "Follow on X" and the footer X work.
+- **`main` fast-forwarded to `crew-test`** after checking the preview,
+  and pushed: the deploy carries sessions 20–21 and the Korean toggle
+  (607b3c2). Both branches are the same commit now.
+- **What the live page loads that it did not**: js/title-zico.js (88KB),
+  the painters' five strips (1.75MB) and the villagers' six (0.9MB),
+  fetched after the title and when the village comes into view. The rest
+  of art/crew ships but is only fetched behind its switches.
+- **Check the live site** with `node tools/cdp-eval.js
+  "https://tilesongiwa.com/" 9000 "document.querySelectorAll('.crew__fig--paint').length"`
+  (5), and `SEL=#village … ".v-walker"` (6).
+
+### 3. Open
+
+- Zico's word on the "How to join" wording ($TILE/$TILES) and the Korean.
+- The CA, buy, DEX Screener and Telegram links at launch (js/config.js).
+- `perRoof` (tokenomics), as ever.
+
 ## LAUNCH DAY — everything still outstanding
 
 VEN, 2026-08-16, wrapping the session: *"all adjustments will be made
@@ -7761,8 +7821,8 @@ token-specific and waits on Zico.
   design — but if VEN ever falls in love with a particular arrangement,
   pin it with `seed` instead.
 - **`links`** — buy / X / dexscreener / telegram. `null` hides each.
-  **Zico gave the X on 2026-09-29: `https://x.com/tilesonGIWA`** — not
-  set yet (§9ap.2).
+  **X is set (session 21): `https://x.com/tilesonGIWA`**, Zico's of
+  2026-09-29. buy / dexscreener / telegram are still `null`.
 - **`chart.pool`** — the GeckoTerminal pool address. `null` serves the
   deterministic mock candles; setting it switches to live candles on a
   2-minute refresh.

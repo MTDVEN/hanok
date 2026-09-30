@@ -4,10 +4,14 @@ The job: the animated **villagers walking the village** in the last section
 of the page (`#village`, "Every $100k raises a roof"). This page is the short
 way in; `HANDOFF.md` is the long history, if you ever need it.
 
+**The villagers are LIVE since 2026-09-30**: the owner put everything on
+`crew-test` onto tilesongiwa.com, the six walkers in colour included, and
+they are on by default now.
+
 Work on the **`crew-test`** branch; it has everything below. Do not push to
 `main`: `main` deploys straight to the live site (tilesongiwa.com via Vercel).
 `crew-test` has its own preview at
-https://hanok-git-crew-test-mtdvens-projects.vercel.app/?crew=ink — but
+https://hanok-git-crew-test-mtdvens-projects.vercel.app/ — but
 Vercel may hold back commits from anyone outside the owner's Vercel account,
 so if your push doesn't show up there, check it locally (below) and ask the
 repo owner to redeploy.
@@ -17,15 +21,15 @@ repo owner to redeploy.
 No build step and no packages, just Node:
 
     node tools/serve.js
-    → http://localhost:8137/index.html?crew=ink&motion=1
+    → http://localhost:8137/index.html
 
-Scroll to the bottom. **The villagers only run with `?crew=ink`** (they are
-still an opt-in test). The other switches that matter:
+Scroll to the bottom. The villagers are on by default (they were an opt-in
+test behind `?crew=ink` until they went live). The switches that matter:
 
 | switch | what it does |
 |---|---|
-| `?crew=ink` | turns the villagers (and the heading crew) on |
-| `&cast=village` | only the villagers, no heading crew |
+| `?crew=0` | turns the villagers (and the heading crew) off |
+| `?cast=village` | only the villagers, no heading crew |
 | `&vill=old` | the first three villagers (all in tan) instead of the six in colour |
 | `&villsize=0.04` | the adults' height as a fraction of the plate's width (default 0.032) |
 | `&motion=0` | the reduced-motion version (villagers stand still on their paths). Motion is ON by default, whatever the OS setting |

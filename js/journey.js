@@ -1496,6 +1496,11 @@
      CAP_SIZE in tools/mapnote.js — the same number, or the caption's
      small clearing is cut for a different width than is drawn. */
   var CAPU = qs("capu", 9.5);
+  /* the air, in map units, between a Korean name's column and a caption
+     that has to drop below it (see "THE CAPTION NEVER RUNS THROUGH THE
+     NAME" in measure(); the column's box already allows ~4 units of the
+     glyph's own side bearing) */
+  var CAP_GAP = qs("capgap", 2);
   /* since the blocks were fixed in sheet units (tools/mapnote.js) only
      DTEXT_MAX is read: the ceiling in px a wide window may draw the
      note at, past which it sits centred in its box a little smaller */
@@ -2541,9 +2546,26 @@
             var etx = lb.ex != null ? lb.ex : tx,
                 ety = lb.ey != null ? lb.ey : ty + lq * lb.efy,
                 cq = CAPU / lb.F;
+            var cwU = textW(lb.sp.name.toUpperCase(), CAPU * unit, 0.2) / unit;
+            /* THE CAPTION NEVER RUNS THROUGH THE NAME (2026-09-30, VEN with a
+               screenshot of Namsangol: "the english overlaps with the
+               korean"). The name is centred on its anchor and grows with lq;
+               the caption's anchor was searched at its own fixed size. At
+               Namsangol the anchors are 57 units apart and the column's lower
+               half reaches 59 at lq 1.465 — every desktop since the zoom-out
+               to 1.10 (§9as: a lower zoom asks for a larger lq, up to
+               LQ_DESK), and a phone's ~1.73 before that. So where the
+               column's box overlaps the caption's, the caption drops just
+               below the column, keeping its x: under Namsangol's gate that is
+               the big clearing (checked on the bare sheet, ?labels=0). The
+               other three stops clear at every lq up to LQ_MAX. */
+            var colHW = lq * LSIZE * 0.5,
+                colBottom = ty + lq * ((lb.sp.ko.length - 1) / 2 * LSIZE * 1.14 + LSIZE * 0.55);
+            if (VLAB && ety > ty && colBottom + CAP_GAP > ety - CAPU * 0.85 &&
+                etx - cwU / 2 < tx + colHW && etx + cwU / 2 > tx - colHW)
+              ety = colBottom + CAP_GAP + CAPU * 0.85;
             lb.ge.setAttribute("transform",
               "translate(" + etx.toFixed(1) + " " + ety.toFixed(1) + ") scale(" + cq.toFixed(3) + ")");
-            var cwU = textW(lb.sp.name.toUpperCase(), CAPU * unit, 0.2) / unit;
             lb.capBox = { x0: etx - cwU / 2, x1: etx + cwU / 2, y0: ety - CAPU * 0.85, y1: ety + CAPU * 0.3 };
             /* the note, in its clearing: the planned size (c.fs, sheet
                units); the only cap is a px ceiling for wide windows */
