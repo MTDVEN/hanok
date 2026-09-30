@@ -66,7 +66,8 @@ Nothing shows without `?crew=`. The live site is untouched.
 | `carrye` | the same two, unloaded (edit of the loaded still) | `src/carriers-empty.mp4` | 397 + 278KB | walk OUT, mirrored |
 | `drop-m` | ONE-SHOT: the man stacks his A-frame's tiles on the pile | `src/drop-m.mp4` | 465KB (61 frames) | the drop-off; also the pile before/after |
 | `drop-w` | ONE-SHOT: the woman sets her tiles on it and pats them | `src/drop-w.mp4` | 296KB (49 frames) | the drop-off; also the pile after |
-| `vill` | same cast from the valley's high angle | `src/villagers.mp4` | 108 + 76 + 67KB | walk the village paths |
+| `vill2` | six villagers in six colours (VEN: *"stand out more, variation in clothes colour and hair colour"*), from `vill-a.png`'s angle and hand (`src/still-vill2.png`) | `src/villagers2.mp4` | 6 strips, 104–203KB, 0.9MB in all | walk the village paths — the default since session 21 |
+| `vill` | same cast from the valley's high angle | `src/villagers.mp4` | 108 + 76 + 67KB | `?vill=old` |
 
 ## The pipeline
 
@@ -126,10 +127,25 @@ Nothing shows without `?crew=`. The live site is untouched.
 | mannequins + A as a reference (3) | `jEbnsJrNtxD9tMEG4YUf` | none: all three copied A, size and all |
 | **mannequins only** (3) | `98kMn9lyz8DSOLiGAR2w` | **C `ZystbFqPVHfLqM6CgsUu` → `src/still-paint.png`** |
 | painters' loop, 1080p 5s | `ZM6V7jRU03jatB4J1GnR` take 1 · `JRsDJeAtDzHGDmIYmKQ0` takes 2 + 3 | **take 3 `z77HVMkMgSyr8G3qw5jO` → `src/paint.mp4`** |
+| six villagers in colour (3), from `vill-a.png` | `eJa2DUEPPaeUHwLtTC7n` | **B `Zt8oslDayetdVoVbg373` → `src/still-vill2.png`** |
+| their walk loop, 1080p 5s | `sPCotkBSM5zp2SVmhcnb` | `uyJAJt9FUMyhXsKRDmS2` → `src/villagers2.mp4` |
 
-1,206 credits in sessions 1–20; 880 in session 21 (the painters: 430 on
-stills, 450 on three 1080p loops); **1,914 left**. One generation at a
-time.
+1,206 credits in sessions 1–20; 1,120 in session 21 (the painters: 430
+on stills, 450 on three 1080p loops; the six villagers: 90 + 150);
+**1,674 left**. One generation at a time.
+
+**The six villagers (session 21)** were one still (the old walkers' still
+as the style and angle, the six described with their colours; no
+mannequins needed — their size on the page is set by `h`, not by the
+picture) and one walk-in-place loop, cut with
+`tools/crew.html?v=art/crew/src/villagers2.mp4&name=vill2&figs=6&k=0.18&sep=cc&grp=1&pace=1`.
+`pace=1` (new) measures each walker's ground speed off its own planted
+foot and writes it into the manifest (checked against the first cast's
+hand-measured paces: 0.92/0.90/1.51 against 0.97/1.03/1.45). Walkers in a
+row brush each other in passing, so their shapes merge over a clip:
+`grp=1` keeps the growth to a pixel, and the cutter now splits any merged
+shape at its emptiest column until there are `figs` of them (`mincol=`
+does the same job for the column splitter).
 
 ## The painters — how they were made (session 21)
 

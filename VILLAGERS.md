@@ -26,6 +26,8 @@ still an opt-in test). The other switches that matter:
 |---|---|
 | `?crew=ink` | turns the villagers (and the heading crew) on |
 | `&cast=village` | only the villagers, no heading crew |
+| `&vill=old` | the first three villagers (all in tan) instead of the six in colour |
+| `&villsize=0.04` | the adults' height as a fraction of the plate's width (default 0.032) |
 | `&motion=0` | the reduced-motion version (villagers stand still on their paths). Motion is ON by default, whatever the OS setting |
 | `&preview=0` | hides the market-cap slider (bottom left). With it on, pressing `+` raises roofs, so you can see villagers walk among houses |
 
@@ -36,11 +38,12 @@ still an opt-in test). The other switches that matter:
 | `js/villagers.js` | **the villager engine** — who walks which path (`WALKERS`), how fast, pauses, turning, depth sorting with the houses |
 | `js/village.js` | the village itself: the painted plate, the houses (`.v-house`), the sleeping Z's |
 | `css/site.css` | styles: search for `VILLAGERS` (`.v-walker`, `.v-walker__win`) and `crew-frames` (the frame stepping) |
-| `art/crew/vill-1..3.webp` + `art/crew/vill.json` | the three walk cycles (a man with a tile-loaded A-frame, a woman with tiles, a running child): one sprite strip each, 60 frames at 12fps, and the manifest describing them |
+| `art/crew/vill2-1..6.webp` + `art/crew/vill2.json` | **the six walkers in colour (the default since 2026-09-30)**: the tile man with his A-frame (indigo), a woman with tiles (white and crimson), a running child (rainbow sleeves), an elder with a stick (all white), a woman with a basket on her head (sky blue and navy), a young man with tiles on his shoulder (mustard). 60 frames at 12fps; each figure's measured `pace` is in the manifest |
+| `art/crew/vill-1..3.webp` + `art/crew/vill.json` | the first three walk cycles, all in tan (`&vill=old`) |
 | `art/village/routes.json` | the walking routes (4), as points along the painted dirt paths, in fractions of the plate |
 | `tools/routes.js` | finds those routes on the painting: `node tools/routes.js --debug` draws them over the plate in `art/village/_work/routes-debug.png`. Add a route = add waypoints to `ROUTES` in that file and re-run |
 | `tools/crew.html` | turns a green-screen video into sprite strips (open it on the dev server) — see "New art" below |
-| `art/crew/src/villagers.mp4` | the source clip the current strips were cut from |
+| `art/crew/src/villagers2.mp4`, `src/still-vill2.png` | the clip and still of the six (`src/villagers.mp4` is the first three's) |
 | `art/village/field.png` | the valley plate (1024x717) |
 
 ## How the engine works (js/villagers.js)
@@ -73,7 +76,18 @@ pipeline"):
    keys out the green and writes one strip per figure + `<set>.json` into
    `art/crew/`.
 
-Measure the new pace (steps x stride) before wiring it into `WALKERS`.
+**Pace is measured for you now**: add `&pace=1` and each figure's ground
+speed (read off its own planted foot) goes into the manifest as `pace`,
+which `js/villagers.js` uses unless a `WALKERS` entry overrides it. The six
+were cut with
+`tools/crew.html?v=art/crew/src/villagers2.mp4&name=vill2&figs=6&k=0.18&sep=cc&grp=1&pace=1`
+— walkers in a row brush each other in passing, so `sep=cc&grp=1` (shapes,
+barely grown) and the cutter splits a merged pair at its emptiest column.
+
+**Session 21 (2026-09-30), at the owner's request** — *"I want them to
+stand out more, variation in clothes colour and hair colour"* — the cast
+became the six above: `WALKERS_NEW` in `js/villagers.js` (heights from one
+human scale, `ADULT`); the first three are `WALKERS_OLD` (`&vill=old`).
 
 ## House rules
 

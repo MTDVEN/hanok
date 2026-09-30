@@ -28,8 +28,14 @@ PAINTERS NOW, AND EVERY STROKE OF THE TITLE LANDS WHOLE.** Still all on
   The pipeline for new figures is `tools/paintstage.js` (make → guides →
   check) and `tools/crew.html ?stage=`, in art/crew/README.md "The
   painters". **The one lesson worth carrying: OpenArt will not take a
-  figure's SIZE from words — draw grey mannequins at the size.** 880
-  credits spent, 1,914 left.
+  figure's SIZE from words — draw grey mannequins at the size.**
+  VEN approved the painters on sight (*"this is perfect"*); they were
+  pushed to `crew-test` and the preview shows them.
+  3. Then, at VEN's word, **the village walkers got a new cast** — six
+     villagers each in their own strong colour, hair from black to white
+     (**§9ar**; `?vill=old` keeps the first three). These are the files
+     handed to the other developer; VILLAGERS.md is updated for him.
+  1,120 credits spent this session, 1,674 left.
 
 **SESSION 20 (2026-09-30), READ FIRST: ALL CURRENT WORK IS ON BRANCH
 `crew-test`, AND NONE OF IT IS LIVE.** In one day, Zico's characters were
@@ -7518,8 +7524,10 @@ tan work clothes), drawn a touch more Joseon: topknots and a headband.
   `?stamp=0` drops it).
 - Unchanged from §9ap: the X link, Namsangol's "How to join", the
   Korean toggle going live, "just one is good".
-- **Nothing from session 21 is committed** at the time of writing: it
-  waits for VEN's word, like session 20's doc edits and the cdp scripts.
+- **Committed and pushed to `crew-test`** at VEN's request ("can you
+  update this link"): `bbdd376` the whole strokes, `4300387` the painters
+  (with session 20's doc edits and the cdp scripts). The preview shows
+  them. main untouched.
 
 ### 5. Files (session 21)
 
@@ -7534,6 +7542,55 @@ tan work clothes), drawn a touch more Joseon: topknots and a headband.
   `art/title/pens.json` (its note only).
 - Working files (gitignored `_work/`): the composite, the guides, every
   still tried (`paint*-?.png`), the three loop takes, dumped frames.
+
+## 9ar. Session 21, part 2 (2026-09-30) — the villagers stand out
+
+VEN, after the painters went up on the preview: *"After that we need to
+work on the villagers. I want them to stand out more, variation in
+clothes colour and hair colour."* (These are the village walkers handed
+to another developer in §9ap.5 — VEN asked for this himself; nobody had
+pushed to `crew-test` since, checked before starting.)
+
+**Why they vanished**: three figures, all tan, brown-haired, ~30px tall
+on a tan path in a green valley; the code already said so ("tan cloth on
+a tan path"). A recolour of the strips was not possible — clothes and
+skin are the same tan, so no colour rule can tell them apart.
+
+**Built**: a new cast of six, one still + one walk-in-place loop, each in
+its own strong colour with varied hair:
+
+| fig | who | clothes | hair | route |
+|---|---|---|---|---|
+| 1 | the tile man with his A-frame | indigo jacket, white trousers, white headband | black topknot | trunk-left |
+| 2 | a woman carrying tiles | white jacket, crimson skirt | brown bun | trunk-right |
+| 3 | a child running | rainbow saekdong sleeves, white | black | mid-up |
+| 4 | an elder with a stick | all white | white topknot and beard | middle |
+| 5 | a woman with a basket on her head | sky-blue jacket, navy skirt | long black braid | trunk-right (the other way) |
+| 6 | a young man with tiles on his shoulder | mustard jacket, grey trousers | chestnut, tied back | trunk-left (the other way) |
+
+- **Sizes** come from one human scale: `ADULT` 0.032 of the plate's width
+  (the young man), everyone else in proportion to their height in the
+  clip — ~12% bigger than the first cast. `?villsize=0.04` tries another;
+  bigger than ~0.04 and a person outgrows half a cottage.
+- **Pace** is measured, not typed: `tools/crew.html pace=1` (new) reads
+  each walker's ground speed off its own planted foot and writes it to
+  `vill2.json` (adults 0.37–0.51 body-heights/s, a loaded walk; the child
+  1.18). Checked against the first cast's hand-measured paces: within ~10%.
+- **Cutting a row of walkers**: they brush each other in passing, so over
+  the clip their shapes merge; `sep=cc&grp=1` plus a new splitter that
+  cuts a merged shape at its emptiest column (between the A-frame man and
+  the crimson woman: 104px of contact over the whole clip).
+- **Switches**: `?vill=old` = the first three (`WALKERS_OLD`); `&villsize=`.
+- **Verified**: six walkers on the page, each visible and identifiable at
+  2x; reduced motion (six standing); none without `?crew=`; `cast=paint`
+  (painters, no walkers); the build ships `vill2`. 240 credits.
+
+**VEN approved them** (*"ok i like the villagers, push to the preview
+link so i can show zico"*) and they were pushed to `crew-test` to show
+Zico. **Open**: Zico's reaction; their size (`?villsize=`); whether more
+routes are wanted (four paths carry six people, two of them both ways);
+**telling the other developer** that the cast changed under him
+(VILLAGERS.md says so).
 
 ## LAUNCH DAY — everything still outstanding
 

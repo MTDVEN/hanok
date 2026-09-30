@@ -1,7 +1,8 @@
 /* ================================================================
    VILLAGERS — people walking the village's paths. A TEST (branch
    crew-test), on with the crew: `?crew=ink` (`&cast=` without
-   `village` leaves them out).
+   `village` leaves them out). Six walkers in six colours since session
+   21 (WALKERS_NEW, art/crew/vill2); `?vill=old` = the first three.
 
    Zico, 2026-09-29: *"are you able to add animations? like a couple
    villagers running around the village at the bottom"*. The plan had
@@ -49,12 +50,42 @@
      second, measured off the strip: steps every 6 / 6 / 5.2 frames at
      12fps, full stride 0.48 / 0.52 / 0.62 of the figure's height.
      `at` is where on the route they start (0..1), `dir` which way. */
-  var WALKERS = [
+  var WALKERS_OLD = [
     { route: "trunk-left",  fig: 1, h: 0.030,  pace: 0.97, at: 0.15, dir:  1 },
     { route: "trunk-right", fig: 2, h: 0.0264, pace: 1.03, at: 0.55, dir:  1 },
     { route: "mid-up",      fig: 3, h: 0.022,  pace: 1.45, at: 0.30, dir: -1 },
     { route: "middle",      fig: 1, h: 0.030,  pace: 0.97, at: 0.70, dir: -1 }
   ];
+  /* THE SECOND CAST (2026-09-30, session 21). VEN: *"I want them to stand
+     out more, variation in clothes colour and hair colour."* Tan on a tan
+     path vanished; these six each wear their own strong colour, with hair
+     from black to chestnut to white (art/crew/vill2.json, one clip):
+       1 the tile man with his A-frame — indigo jacket, black topknot
+       2 a woman with tiles — white jacket, crimson skirt, brown bun
+       3 a child running — rainbow saekdong sleeves
+       4 an elder with a stick — all white, white hair and beard
+       5 a woman with a basket on her head — sky blue and navy, black braid
+       6 a young man with tiles on his shoulder — mustard, chestnut hair
+     `h` is ONE human scale: ADULT (the young man's height, a fraction of
+     the plate's width) × each figure's height in the clip over his, so the
+     A-frame and the basket stand above heads and the child is a child. At
+     0.032 they are ~12% bigger than the first cast. `pace` is measured off
+     each strip's own planted foot (tools/crew.html `pace=1`), written into
+     the manifest — set it here only to override. `?vill=old` = the first
+     three, all in tan. */
+  /* `?villsize=0.04` tries another adult height (digits only, clamped) */
+  var sizeQ = /[?&]villsize=(0?\.[0-9]{1,4})\b/.exec(q);
+  var ADULT = sizeQ ? Math.min(0.08, Math.max(0.015, +sizeQ[1])) : 0.032, REF_FIG = 6;
+  var WALKERS_NEW = [
+    { route: "trunk-left",  fig: 1, at: 0.15, dir:  1 },
+    { route: "trunk-right", fig: 2, at: 0.55, dir:  1 },
+    { route: "mid-up",      fig: 3, at: 0.30, dir: -1 },
+    { route: "middle",      fig: 4, at: 0.25, dir:  1 },
+    { route: "trunk-right", fig: 5, at: 0.20, dir: -1 },
+    { route: "trunk-left",  fig: 6, at: 0.70, dir: -1 }
+  ];
+  var OLD = /[?&]vill=old\b/.test(q);
+  var SET = OLD ? "vill" : "vill2", WALKERS = OLD ? WALKERS_OLD : WALKERS_NEW;
   var PAUSE = [1.2, 2.6];           // seconds standing at a route's end
 
   function whenArt(cb){
@@ -67,7 +98,7 @@
   whenArt(function(){
     Promise.all([
       fetch("art/village/routes.json").then(function(r){ return r.json(); }),
-      fetch("art/crew/vill.json").then(function(r){ return r.json(); })
+      fetch("art/crew/" + SET + ".json").then(function(r){ return r.json(); })
     ]).then(function(res){ start(res[0], res[1]); })
       .catch(function(e){ if (window.console) console.warn("[villagers]", e); });
   });
@@ -92,10 +123,13 @@
     measure();
     if (window.ResizeObserver) new ResizeObserver(function(){ measure(); layout(); }).observe(plate);
 
-    var walkers = [];
+    var walkers = [], ref = man.figures[REF_FIG - 1];
     WALKERS.forEach(function(w, i){
       var pts = routes[w.route], f = man.figures[w.fig - 1];
       if (!pts || !f) return;
+      /* the second cast: height off one human scale, pace off the strip */
+      if (w.h == null) w.h = ref ? ADULT * f.box[3] / ref.box[3] : ADULT;
+      if (w.pace == null) w.pace = f.pace || 1;
       /* mover > frame box: the mover takes the per-frame translate;
          the box shows one frame of the strip as its background (the
          crew's technique — see js/crew.js) and mirrors to face left */
