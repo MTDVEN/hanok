@@ -1058,6 +1058,30 @@ a{ color: var(--ink); }
   margin: 0;
   z-index: 2;
 }
+/* ITS OWN CLEARING (2026-09-30, session 21). Zico: *"The "the journey"
+   title in the "the journey" section is not visible that well in the
+   background"*; VEN: *"Perhaps a clearing that is pinned to the "the
+   journey" text rather than the background itself."* The sheet moves
+   under the eyebrow, so no clearing cut into the map could stay beneath
+   it — this one belongs to the eyebrow and moves with it: a soft oval of
+   the SHEET's own paper (#E9D4BD, sampled off the render — warmer than
+   --paper), feathered to nothing, so it reads as mist the ridges fade
+   into, like the clearings round Zico's notes, not a label stuck on.
+   It sits inside the eyebrow's stacking context (z-index -1): under the
+   words, over the map. `?jhead=0` = the bare eyebrow. */
+.jmap__eyebrow::before{
+  content: "";
+  position: absolute;
+  top: -1.7em; bottom: -1.7em;
+  left: -2.6em; right: -2.6em;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(closest-side,
+    rgba(233, 212, 189, .96) 58%,
+    rgba(233, 212, 189, .78) 76%,
+    rgba(233, 212, 189, 0));
+}
+.jmap__eyebrow--bare::before{ display: none; }
 
 /* ---- the copy column — ?info=1 ONLY since 2026-08-20 part 2 --------
    VEN removed the per-location information; this block serves the way

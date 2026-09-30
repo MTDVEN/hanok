@@ -1183,10 +1183,37 @@
   /* scale when settled on a place / at the middle of a journey. Both
      are floors: a phone's viewport is taller than the sheet is at
      scale 1, so `cover` below raises them rather than showing paper. */
-  /* 1.85 → 1.65, VEN part 4: "zoom out the background a tiny bit" */
-  var ZOOM_IN  = qs("zoomin",  1.65),
+  /* 1.85 → 1.65, VEN part 4: "zoom out the background a tiny bit".
+     1.65 → 1.35 → 1.10, 2026-09-30 (session 21). Zico: *"when scrolling
+     down the site through the map, i feel like it zooms in too much? can
+     we make it zoom in less pls"* — VEN: on desktop; then, having seen
+     1.35: *"zoom out a little bit more. The amount you just zoomed out,
+     zoom out again by that same amount."* Zoom is a ratio, so the same
+     step again is the same ~18% shrink: 1.35 × (1.35/1.65) = 1.10.
+     Phones settle at PHONE_ZOOM and are untouched.
+     Two limits gave way for it (see measure()): a desktop's settle zoom
+     no longer has to be 1.35x the mid-leg zoom (1.00, the sheet's full
+     width — it cannot go lower without showing bare edges), so the dip
+     between places is now a gentle 1.10 → 1.00; and NOTE_PX, the px the
+     smallest printed note (NOTE_MIN_U: stop 2's three blocks, 9 units)
+     may not drop under, came down 15.5 → 12 — at 15.5 it pinned a 1280px
+     window (VEN's) at 1.35 and he would have seen no change. The floor
+     never goes past ZOOM_WAS, so no window zooms in more than it did:
+     1280px wide and up settle at 1.10, 1152 at ~1.16, 1024 at 1.30.
+     `?zoomin=1.35&notepx=15.5` is the first step exactly;
+     `?zoomin=1.65&notepx=0&lqdesk=9` the camera as it was before both. */
+  var ZOOM_IN  = qs("zoomin",  1.10),
       ZOOM_OUT = qs("zoomout", 1.00),
-      ZOOM_PAN = qs("zoompan", 1.30);
+      ZOOM_PAN = qs("zoompan", 1.30),
+      NOTE_PX  = qs("notepx",  12), NOTE_MIN_U = 9, ZOOM_WAS = 1.65;
+  /* the label scale's ceiling ON A DESKTOP — the contract LQ_MAX's note
+     describes, which a desktop used to keep without trying: its largest
+     label scale was 58/(24·zIn) = 1.465 at zIn 1.65, the scale
+     tools/maproute.js cleared the names' paper for. At a lower zIn the
+     same formula asks for more (2.2 at 1.10) and would write the names
+     over the ridges round their clearings; capped, they keep the size
+     their paper was cleared for and shrink on screen with the zoom. */
+  var LQ_DESK = qs("lqdesk", 1.465);
   /* Share of the section spent standing still at each stop — ZERO
      since 2026-08-20 part 3. VEN: *"I still want to be able to scroll
      past each place."* The dwell was ~54vh of scroll per stop where
@@ -1313,7 +1340,8 @@
      and Zico's copy are off the sheet entirely (they are in the band
      — see .jmap__note in css/site.css), so nothing else on the sheet
      is drawn past the paper that was searched for it. On a desktop
-     lq is ~1.09 and every cap here is inert. */
+     lq is ~1.09 and every cap here is inert. (Desktops have their own
+     ceiling since session 21's zoom-out: LQ_DESK, beside ZOOM_IN.) */
   var LQ_MAX = qs("lqmax", 1.8);
   /* share of the road's total length over which a name writes — the
      window ENDS at the stop, so the last character lands exactly as
@@ -1564,8 +1592,10 @@
       (VISTA ? '<div class="jmap__vistas"></div>' : "") +
       "</div>" +   /* /.jmap__view */
       /* the eyebrow is the one piece of chrome left: section identity,
-         pinned to the corner, outside the camera */
-      '<p class="eyebrow jmap__eyebrow"><span lang="ko">여정</span> · the journey</p>' +
+         pinned to the corner, outside the camera. It carries its own
+         clearing (css .jmap__eyebrow::before); `?jhead=0` drops it */
+      '<p class="eyebrow jmap__eyebrow' + (/[?&]jhead=0\b/.test(location.search) ? " jmap__eyebrow--bare" : "") +
+        '"><span lang="ko">여정</span> · the journey</p>' +
       /* ZICO'S COPY, NARROW-SCREEN HOME.
 
          On the sheet the copy is sized off the label scale, and that
@@ -2430,8 +2460,13 @@
       var narrow = W <= 860;
       var cover = Math.max(1, H / camH);
       zOut = Math.max(ZOOM_OUT, cover);
-      /* phones settle closer — see PHONE_ZOOM */
-      zIn  = Math.max(narrow ? PHONE_ZOOM : ZOOM_IN, zOut * 1.35);
+      /* phones settle closer — see PHONE_ZOOM — and at least 1.35x the
+         mid-leg zoom, so the dip between places reads. Desktops settle no
+         closer than ZOOM_IN, nor so far that the smallest note drops
+         under NOTE_PX, and only need to stay at or above the mid-leg zoom
+         (session 21: the 1.35x rule held a desktop at 1.35 — see ZOOM_IN) */
+      zIn  = narrow ? Math.max(PHONE_ZOOM, zOut * 1.35)
+                    : Math.max(ZOOM_IN, NOTE_PX > 0 ? Math.min(ZOOM_WAS, NOTE_PX * 1000 / (NOTE_MIN_U * W)) : 0, zOut);
       zPan = Math.max(ZOOM_PAN, cover);
       zFit = Math.max(H / camH, 0.05);   /* ?cam=fixed: whole sheet */
 
@@ -2442,8 +2477,9 @@
       fy = (narrow && (INFO || VISTA)) ? 0.33 : FOCUS_Y;
 
       /* Label scale, per viewport. Labels live in map units, and a map
-         unit is W·zIn/1000 px at the settle zoom — 2.96px at 1600w but
-         only 0.72px at 390w, where a 24-unit character would be 17px.
+         unit is W·zIn/1000 px at the settle zoom — 1.76px at 1600w (2.64
+         before session 21's zoom-out) but only 0.72px at 390w, where a
+         24-unit character would be 17px.
          So each label group is scaled to hit a target ON-SCREEN size:
          ~10% of the viewport height, floored at 34px, capped so it
          stays subordinate on very wide screens. The scale wraps both
@@ -2451,7 +2487,7 @@
          group transform), so the writing scales with the writing. */
       var unit = W * zIn / 1000;
       var want = Math.max(34, Math.min(0.10 * H, 0.058 * W));
-      var lq = Math.min(LQ_MAX, want / (unit * LSIZE));
+      var lq = Math.min(narrow ? LQ_MAX : LQ_DESK, want / (unit * LSIZE));
       var visW = 1000 / zIn, visH = 1000 * H / (W * zIn);   /* the frame, in map units */
       labels.forEach(function(lb, k){
         var tx = lb.ax != null ? lb.ax : lb.sx + lb.side * (23 + lq * lb.hw),
@@ -2534,8 +2570,9 @@
            POSITION, mostly, not note width. So the settle zoom gives
            instead: the deepest that still shows this stop's extents
            plus breathing room. Stops 1 and 2 stay at PHONE_ZOOM (their
-           spans are under 430); a desktop's zIn 1.65 shows 606 units
-           and never binds. zoomOf and camAt read zInK per stop. */
+           spans are under 430); a desktop's zIn shows 909 units at 1.10
+           (606 at the 1.65 it was until session 21) and never binds.
+           zoomOf and camAt read zInK per stop. */
         zInK[k] = Math.min(zIn, 1000 / (hi0 - lo0 + 30));
         var visWK = 1000 / zInK[k], visHK = 1000 * H / (W * zInK[k]);
         var minC = hi0 - visWK / 2 + 12, maxC = lo0 + visWK / 2 - 12;

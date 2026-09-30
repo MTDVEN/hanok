@@ -35,6 +35,10 @@ PAINTERS NOW, AND EVERY STROKE OF THE TITLE LANDS WHOLE.** Still all on
      villagers each in their own strong colour, hair from black to white
      (**§9ar**; `?vill=old` keeps the first three). These are the files
      handed to the other developer; VILLAGERS.md is updated for him.
+  4. Then Zico, via VEN: **the journey zooms in less on desktop** (1.65 →
+     1.35, then at VEN's word the same step again → 1.10) and **"여정 ·
+     THE JOURNEY" carries its own clearing** (**§9as**;
+     `?zoomin=1.65&notepx=0&lqdesk=9` and `?jhead=0` are the old ones).
   1,120 credits spent this session, 1,674 left.
 
 **SESSION 20 (2026-09-30), READ FIRST: ALL CURRENT WORK IS ON BRANCH
@@ -7591,6 +7595,92 @@ Zico. **Open**: Zico's reaction; their size (`?villsize=`); whether more
 routes are wanted (four paths carry six people, two of them both ways);
 **telling the other developer** that the cast changed under him
 (VILLAGERS.md says so).
+
+## 9as. Session 21, part 3 (2026-09-30) — the journey zooms in less, and its title gets its own clearing
+
+Zico, relayed by VEN (*"on desktop version"*):
+
+> when scrolling down the site through the map, i feel like it zooms in
+> too much? can we make it zoom in less pls. Also, The "the journey"
+> title in the "the journey" section is not visible that well in the
+> background. can we fix this? Perhaps a clearing that is pinned to the
+> "the journey" text rather than the background itself.
+
+### 1. Less zoom (js/journey.js, ZOOM_IN)
+
+- **The settle zoom on a desktop is 1.35, was 1.65** — 18% less, ~50%
+  more map on screen; the dip mid-leg (to ZOOM_OUT 1.00) is shallower
+  with it, so there is less zooming motion as well. **1.35 is the floor
+  of the existing rule** that keeps the settle zoom ≥ 1.35 × the mid-leg
+  zoom; going lower means loosening that rule too.
+- **The cost is text size**, because the notes and captions are printed
+  on the sheet in sheet units, in clearings cut for their size (no size
+  left to give: §9ac). At 1440px wide Changdeokgung's notes (9 units, the
+  smallest) go 21 → 17.5px, captions 22.6 → 18.5px; the Korean names keep
+  their sheet size. So **NOTE_PX (15.5px)** floors the zoom where the
+  smallest note would drop under it — never past the old 1.65:
+  | window width | settle zoom, was → now |
+  |---|---|
+  | 1280px and up | 1.65 → 1.35 |
+  | 1152px | 1.65 → 1.495 |
+  | 1024px | 1.65 → 1.65 |
+  | phones (≤860px) | PHONE_ZOOM 2.1, untouched |
+- **LQ_DESK 1.465** caps a desktop's label scale at what tools/maproute.js
+  cleared the names' paper for. A desktop used to stay under it without
+  trying (58/(24·1.65)); at a lower zoom the formula asks for 1.79 and
+  would write the Korean names over their ridges.
+- Checked at every stop against the old camera (1440×900, 1280×800): the
+  wider view shows each stop's note whole where 1.65 cut Changdeokgung's
+  third paragraph; at Jeonju the tail of Namsangol's note ("launch.") now
+  shows at the top edge — the notes are printed on the sheet (§9aj), so
+  that is the sheet in view, as notes were cut at edges before.
+- **Switches**: `?zoomin=1.5` a milder step; `?zoomin=1.65&notepx=0&lqdesk=9`
+  the camera exactly as it was; `?notepx=` the floor.
+
+### 2. The title's own clearing (css .jmap__eyebrow::before)
+
+A soft oval of the sheet's own paper colour (#E9D4BD, sampled off the
+render — warmer than --paper) feathered to nothing, as a pseudo-element
+OF the eyebrow, so it moves with the words and not with the map: the
+ridges and the road fade into it like the mist round Zico's notes. Checked
+on desktop, a 390px phone, the Korean page, the entry dissolve (it arrives
+with the map, never over the hero) and the exit (it leaves with it).
+`?jhead=0` = the bare eyebrow.
+
+### 3. The same step again: 1.35 → 1.10
+
+VEN, having seen 1.35: *"zoom out a little bit more. The amount you just
+zoomed out, zoom out again by that same amount."* Zoom is a ratio, so the
+same step is the same ~18% shrink: 1.35 × (1.35/1.65) = **1.10** (the sum
+would be 1.05; `?zoomin=1.05` shows it). Two limits from part 1 gave way:
+
+- **The 1.35x dip rule is phones-only now.** A desktop's settle zoom only
+  has to stay at or above the mid-leg zoom (1.00: the sheet's full width;
+  it cannot go lower without bare edges), so the dip between places is a
+  gentle 1.10 → 1.00 → 1.10. Checked: mid-leg is still scale(1).
+- **NOTE_PX 15.5 → 12.** At 15.5 it would have pinned a 1280px window —
+  VEN's — at 1.35, and he would have seen no change at all.
+
+| window width | 1.65 (was) | 1.35 (step 1) | now |
+|---|---|---|---|
+| 1280px and up | 1.65 | 1.35 | **1.10** |
+| 1152px | 1.65 | 1.495 | 1.16 |
+| 1024px | 1.65 | 1.65 | 1.30 |
+| phones | 2.1 | 2.1 | 2.1 |
+
+**The cost, measured**: Changdeokgung's notes (9 units, the smallest) are
+12.7px on a 1280px window (19 at 1.65), 14.3px at 1440, 19px at 1920; the
+Korean names keep their sheet size. Checked every stop at 1280×551 and
+1440×900: all four read, every note whole except Changdeokgung's third
+paragraph on the short window (cut at 1.65 too); the sheet's aged edge
+and the compass rose come into view.
+
+Switches: `?zoomin=1.35&notepx=15.5` = step 1 exactly;
+`?zoomin=1.65&notepx=0&lqdesk=9` = before both.
+
+**VEN chose it** (1.10 and the title's clearing): *"this one is good. lets
+go with this one please."* Pushed to `crew-test` for Zico. **Open**:
+Zico's look.
 
 ## LAUNCH DAY — everything still outstanding
 
