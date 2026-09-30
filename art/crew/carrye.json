@@ -1,0 +1,35 @@
+{
+  "clip": "art/crew/src/carriers-empty.mp4",
+  "fps": 12,
+  "frames": 60,
+  "h": null,
+  "k": 0.32,
+  "frameW": 1280,
+  "frameH": 720,
+  "figures": [
+    {
+      "file": "carrye-1.webp",
+      "w": 106,
+      "h": 197,
+      "seat": 0.5958,
+      "box": [
+        0.1586,
+        0.0722,
+        0.2586,
+        0.8556
+      ]
+    },
+    {
+      "file": "carrye-2.webp",
+      "w": 97,
+      "h": 177,
+      "seat": 0.5552,
+      "box": [
+        0.6336,
+        0.1556,
+        0.2375,
+        0.7681
+      ]
+    }
+  ]
+}

@@ -134,6 +134,18 @@ function decodeAll(buf, wantFps){
          Written per figure into the manifest as `seat`, the fraction
          of that figure's strip where it meets the letter it sits on. */
       SEATY = +(Q.get("seat") || 0.582),
+      /* surf=blue: the still carries a flat pure-BLUE (#0000FF) block
+         standing in for the letter a figure works on (the ladder leans
+         on it, a tile is laid on it, someone kneels on it), so the
+         model draws real contact instead of a tile in mid-air. Blue is
+         keyed out like the green, and the block's box in frame 0 is
+         written to the manifest per figure ('blue', fractions of that
+         figure's strip) — its top edge is the letter's top edge. */
+      SURF = Q.get("surf") === "blue",
+      /* oneshot=1: an action clip whose first and last frames DIFFER
+         (a carrier setting tiles down). Keep every frame, the last one
+         included: it is what the next strip has to match. */
+      ONESHOT = Q.get("oneshot") === "1",
       SAVE = Q.get("save") !== "0";
   var logEl = document.getElementById("log");
   function log(s){ logEl.textContent += s + "\n"; }
@@ -153,7 +165,7 @@ function decodeAll(buf, wantFps){
   /* the clip ENDS on the frame it began with (same still as first and
      last frame), so a sample landing on the very end is frame 0 again:
      drop it, or the loop holds one frame twice */
-  if ((decoded.total - 1) % step === 0 && picks.length > 2) picks.pop().bitmap.close();
+  if (!ONESHOT && (decoded.total - 1) % step === 0 && picks.length > 2) picks.pop().bitmap.close();
   var N = picks.length, OUT_FPS = decoded.fps / step;
   log("clip " + W + "x" + VH + " @" + decoded.fps.toFixed(2) + "fps, " + decoded.total +
       " frames -> " + N + " at " + OUT_FPS.toFixed(2) + "fps");
@@ -164,6 +176,8 @@ function decodeAll(buf, wantFps){
 
   /* ---- 1+2: pull and key every frame ---------------------------- */
   var frames = [], colHit = new Uint32Array(W), prevSum = -1, same = 0;
+  /* frame 0's strongly-blue pixels, before keying: where the surface is */
+  var blue0 = SURF ? new Uint8Array(W * VH) : null;
   for (var i = 0; i < N; i++){
     wx.clearRect(0, 0, W, VH);
     wx.drawImage(picks[i].bitmap, 0, 0, W, VH);
@@ -173,12 +187,35 @@ function decodeAll(buf, wantFps){
       var r = d[p], g = d[p + 1], b = d[p + 2];
       var mx = r > b ? r : b, gn = g - mx;               // greenness
       var a = gn <= LO ? 1 : gn >= HI ? 0 : 1 - (gn - LO) / (HI - LO);
+      if (SURF){
+        /* the blue surface, keyed the same way; and a pixel bluer than
+           its red and green (grey tile edge against the block) has its
+           blue pulled back to their mean, the green despill's twin */
+        var mrg = r > g ? r : g, bn = b - mrg;
+        var ab = bn <= LO ? 1 : bn >= HI ? 0 : 1 - (bn - LO) / (HI - LO);
+        if (i === 0 && bn >= HI) blue0[p >> 2] = 1;
+        if (ab < a) a = ab;
+        if (b > mrg){ d[p + 2] = (r + g) >> 1; b = d[p + 2]; mx = r > b ? r : b; }
+      }
       /* despill: a pixel greener than both its red and blue took green
          from the screen (motion blur on a swinging foot, bounce light).
          Clamping G to max(R,B) left skin YELLOW — (R,R,B) — so G goes
          to the mean of R and B instead, which puts it back to the
          warm tan/skin these figures are made of. */
       if (g > mx) d[p + 1] = (r + b) >> 1;
+      /* MAGENTA is H.264 chroma ringing (its overshoot past green goes
+         the other way), never paint: these figures are warm tan, skin,
+         warm-grey tile and ink. A pixel clearly redder AND bluer than
+         it is green is recoloured to the figures' own warm chroma at
+         the same brightness (drop-m, 2026-09-30: pink legs in its first
+         frames, up to 2% of a frame). */
+      var g2 = d[p + 1];
+      if (r - g2 > 10 && b - g2 > 10){
+        var Y = 0.299 * r + 0.587 * g2 + 0.114 * b;
+        d[p]     = Math.max(0, Math.min(255, Math.round(Y + 18)));
+        d[p + 1] = Math.max(0, Math.min(255, Math.round(Y - 3)));
+        d[p + 2] = Math.max(0, Math.min(255, Math.round(Y - 28)));
+      }
       d[p + 3] = Math.round(a * 255);
       sum += d[p + 3];
     }
@@ -197,6 +234,7 @@ function decodeAll(buf, wantFps){
           A[o - W - 1] > 200 && A[o - W + 1] > 200 && A[o + W - 1] > 200 && A[o + W + 1] > 200) continue;
       var pp = o * 4, mean = (d[pp] + d[pp + 2]) >> 1;
       if (d[pp + 1] > mean) d[pp + 1] = mean;
+      if (SURF){ var mrg2 = (d[pp] + d[pp + 1]) >> 1; if (d[pp + 2] > mrg2 + 8) d[pp + 2] = mrg2 + 8; }
     }
     /* a decoder that stopped updating (a backgrounded tab can do this)
        hands back the same frame again and again — say so loudly */
@@ -225,6 +263,17 @@ function decodeAll(buf, wantFps){
   }
   /* drop slivers (narrower than 2% of the frame): noise, not people */
   segs = segs.filter(function(s){ return s[1] - s[0] > W * 0.02; });
+  /* more column groups than figures asked for: keep the FIGS heaviest
+     (most occupied pixels over the clip) and say what was dropped — a
+     smudge the model left on the floor for a few frames is not a
+     figure (drop-w, 2026-09-30: two 12x4px specks beside the pile) */
+  if (segs.length > FIGS){
+    var mass = function(sg){ var m = 0; for (var x = sg[0]; x <= sg[1]; x++) m += colHit[x]; return m; };
+    var ranked = segs.slice().sort(function(p, q){ return mass(q) - mass(p); });
+    var keep = ranked.slice(0, FIGS);
+    ranked.slice(FIGS).forEach(function(sg){ log("  dropped column group " + sg[0] + "-" + sg[1] + " (mass " + mass(sg) + ")"); });
+    segs = segs.filter(function(sg){ return keep.indexOf(sg) >= 0; });
+  }
   log("found " + segs.length + " figure column(s): " + segs.map(function(s){ return s[0] + "-" + s[1]; }).join(", "));
   if (segs.length !== FIGS) log("!! expected " + FIGS + " figures — check the key (lo/hi) or the clip");
 
@@ -249,7 +298,33 @@ function decodeAll(buf, wantFps){
   keyed.width = W; keyed.height = VH;
   var kx = keyed.getContext("2d");
   var manifest = { clip: SRC, fps: +OUT_FPS.toFixed(3), frames: N, h: KSC ? null : H, k: KSC || null,
-                   frameW: W, frameH: VH, figures: [] };
+                   frameW: W, frameH: VH, oneshot: ONESHOT || undefined, figures: [] };
+
+  /* the blue block(s) of frame 0, as one bounding box per figure: the
+     strongly-blue pixels in the columns of that figure's segment plus a
+     margin either side (a ladder's wall stands just right of it) */
+  function blueBox(b){
+    if (!SURF) return null;
+    var mX = Math.round((b.x1 - b.x0) * 0.6), X0 = Math.max(0, b.x0 - mX), X1 = Math.min(W - 1, b.x1 + mX);
+    var bx0 = W, by0 = VH, bx1 = -1, by1 = -1, cnt = 0;
+    for (var y = 0; y < VH; y++) for (var x = X0; x <= X1; x++){
+      if (!blue0[y * W + x]) continue;
+      cnt++; if (x < bx0) bx0 = x; if (x > bx1) bx1 = x; if (y < by0) by0 = y; if (y > by1) by1 = y;
+    }
+    if (cnt < 200) return null;
+    /* the TOP EDGE is where the block's columns first turn blue — a
+       median over its middle half, so a tile resting on it (which hides
+       the blue below) or a shaded corner cannot drag it up or down */
+    var tops = [];
+    for (var x2 = bx0 + Math.round((bx1 - bx0) * 0.25); x2 <= bx0 + Math.round((bx1 - bx0) * 0.75); x2++){
+      for (var y2 = by0; y2 <= by1; y2++) if (blue0[y2 * W + x2]){ tops.push(y2); break; }
+    }
+    tops.sort(function(p1, p2){ return p1 - p2; });
+    var top = tops.length ? tops[tops.length >> 1] : by0;
+    var bw2 = b.x1 - b.x0 + 1, bh2 = b.y1 - b.y0 + 1;
+    return [ (bx0 - b.x0) / bw2, (top - b.y0) / bh2, (bx1 + 1 - b.x0) / bw2, (by1 + 1 - b.y0) / bh2 ]
+      .map(function(v){ return +v.toFixed(4); });
+  }
   var qaCells = [];
 
   for (var f = 0; f < figs.length; f++){
@@ -267,6 +342,7 @@ function decodeAll(buf, wantFps){
     var file = NAME + "-" + (f + 1) + ".webp";
     manifest.figures.push({ file: file, w: fw, h: FH,
       seat: +((SEATY * VH - b.y0) / bh).toFixed(4),
+      blue: blueBox(b) || undefined,
       /* where the figure sits in the clip, as fractions of the frame —
          crew.js does not need it, but it records the row's spacing */
       box: [b.x0 / W, b.y0 / VH, bw / W, bh / VH].map(function(n){ return +n.toFixed(4); }) });

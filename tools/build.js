@@ -114,9 +114,13 @@ FILES.push("js/crew.js", "js/villagers.js", "art/village/routes.json");
 var CREW = path.join(ROOT, "art", "crew");
 if (fs.existsSync(CREW)) fs.readdirSync(CREW).forEach(function(f){
   if (!/\.json$/.test(f)) return;
+  /* strip manifests name their strips; *.stage.json (where a drop
+     clip's carrier and pile sit) ship as they are; *.spec.json is the
+     authoring input of tools/crewstage.js and stays home */
+  if (/\.spec\.json$/.test(f)) return;
   FILES.push("art/crew/" + f);
-  JSON.parse(fs.readFileSync(path.join(ROOT, "art", "crew", f), "utf8"))
-    .figures.forEach(function(fig){ FILES.push("art/crew/" + fig.file); });
+  var j = JSON.parse(fs.readFileSync(path.join(ROOT, "art", "crew", f), "utf8"));
+  (j.figures || []).forEach(function(fig){ FILES.push("art/crew/" + fig.file); });
 });
 
 function copy(rel){

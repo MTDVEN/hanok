@@ -1,0 +1,11 @@
+{
+  "name": "drop-m",
+  "frame": [2752, 1536],
+  "loaded": { "src": "art/crew/src/still-carry.png",       "box": [448, 128, 1080, 1416] },
+  "empty":  { "src": "art/crew/src/still-carry-empty.png", "box": [444, 128, 1080, 1416] },
+  "piles": [
+    { "src": "art/crew/src/still-piles.png", "box": [152, 684, 840, 1116],  "scale": 0.45 },
+    { "src": "art/crew/src/still-piles.png", "box": [992, 476, 1704, 1184], "scale": 0.45 }
+  ],
+  "gap": 40
+}
